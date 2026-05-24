@@ -1,0 +1,69 @@
+sequenceDiagram
+    autonumber
+    actor Dev as Game Code (main.go)
+    participant NAPI as modules/napi (API Layer)
+    participant CORE as modules/core (Engine Core)
+    participant STORE as modules/nglobal (Store)
+    participant LAYOUT as modules/nlayout (Auto-Layout)
+    participant ECS as Donburi (ECS World)
+    participant AUDIO as modules/naudio (AudioSystem)
+    participant RENDER as modules/nsprite (DrawSystem)
+
+    Note over Dev, CORE: 1. KHỞI CHẠY HỆ THỐNG (BOOTSTRAPPING)
+    Dev->>CORE: core.NewGame(GameConfig{Title, Width, Height, SampleRate})
+    Note right of CORE: Khởi tạo SceneManager,<br/>GlobalConfig, InputManager,<br/>Ebitengine AudioContext & GlobalStore
+    CORE-->>Dev: *core.Engine
+    Dev->>NAPI: napi.Init(engine)
+    Note right of NAPI: Đăng ký Engine Singleton làm Facade API
+
+    Note over Dev, STORE: 2. TỰ ĐỘNG NẠP TÀI NGUYÊN (ASSET LOADING)
+    Dev->>NAPI: napi.LoadManifest("assets/manifest.json")
+    NAPI->>STORE: ManifestLoader tải tệp JSON, gọi SpriteLoader & AudioLoader
+    Note right of STORE: Tải ảnh, cắt Spritesheet,<br/>giải mã file nhạc WAV/MP3,<br/>nạp vào các map lưu trữ
+    STORE-->>Dev: Nạp tài nguyên hoàn tất
+
+    Note over Dev, LAYOUT: 3. TÍNH TOÁN UI AUTO-LAYOUT
+    Dev->>LAYOUT: layout.NewDiv("ui_container")
+    Note right of LAYOUT: Thiết lập Flexbox: Hướng (Row/Col), Canh lề (Center/Start), Gap
+    Dev->>LAYOUT: layout.NewA("player_anchor", playerObject, 64, 64)
+    Note right of LAYOUT: Adapter bọc Game Object để liên kết vị trí vật lý với UI Box
+    Dev->>LAYOUT: container.AddChildren(anchor)
+    Dev->>LAYOUT: container.ComputeLayout(0, 0, 640, 480)
+    Note right of LAYOUT: Thuật toán tính toán kích thước & tọa độ các nút con.<br/>Tự động ghi giá trị tọa độ (X, Y) tính được vào ECS Component của playerObject!
+
+    Note over Dev, ECS: 4. KHỞI TẠO ĐỐI TƯỢNG VÀ THAO TÁC ECS
+    Dev->>Dev: NewPlayer()
+    activate Dev
+        Dev->>NAPI: napi.NewBaseObject("hero", "pos spr box")
+        NAPI->>ECS: donburi.Create(Position, Sprite, Box)
+        ECS-->>NAPI: *donburi.Entry
+        NAPI-->>Dev: baseObject (nobject.Object)
+        Dev->>Dev: Liên kết các Component Mixins
+        Note right of Dev: player.pos = PositionComponent{IObject: baseObject}<br/>player.spr = SpriteComponent{IObject: baseObject}
+        Dev->>Dev: Thiết lập ban đầu
+        Dev->>Dev: player.SetX(100) / player.SetSprite("idle", ...)
+        Dev->>NAPI: napi.Register(player, false)
+        Note right of NAPI: Đăng ký player vào Scene hiện hành để chạy logic
+    deactivate Dev
+
+    Note over Dev, RENDER: 5. VÒNG LẶP CHÍNH (GAME LOOP)
+    Dev->>CORE: engine.Start()
+    Note over CORE: Ebitengine chiếm quyền điều khiển vòng lặp chính (60 FPS)
+    
+    loop Mỗi Khung Hình (Frame Cycle)
+        CORE->>CORE: sceneManager.Update() (Cập nhật logic)
+        Note right of CORE: Chạy song song cả currentScene và globalHiddenScene
+        CORE->>CORE: logicSystem.Update(objectList)
+        loop Với mỗi Object hoạt động (bao gồm cả Player)
+            CORE->>Dev: player.StepUpdate()
+            Dev->>Dev: Di chuyển, xử lý va chạm
+            CORE->>ECS: Tự động chuyển frame hình tiếp theo của Sprite
+        end
+
+        CORE->>AUDIO: audioSystem.Update(world)
+        Note right of AUDIO: Quét qua các đối tượng có component Audio.<br/>Nếu ShouldPlay == true -> kích hoạt phát qua ebiten audio.Player.<br/>Nếu ShouldStop == true -> dừng và tua lại nhạc.
+
+        CORE->>RENDER: scene.Draw(screen)
+        RENDER->>RENDER: drawSystem.Draw(world)
+        Note right of RENDER: Quét qua tất cả thực thể có Position & Sprite Components.<br/>Lấy SpriteLW từ Store, vẽ frame hình tương ứng lên canvas chính<br/>kèm góc xoay, độ phóng to (scale), màu nhuộm (color.RGBA).
+    end

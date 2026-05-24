@@ -1,0 +1,59 @@
+graph TD
+    classDef layer1 fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef layer2 fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef layer3 fill:#dfd,stroke:#333,stroke-width:2px;
+    classDef layer4 fill:#fdd,stroke:#333,stroke-width:2px;
+    classDef layer5 fill:#ffd,stroke:#333,stroke-width:2px;
+
+    %% LAYERS DEF
+    subgraph L1 ["Tầng 1: Lập trình Game Logic & Đối tượng Custom (Game Code)"]
+        GameMain["main.go (Setup & Vòng lặp)"]
+        GameEntities["Custom Entities (Player, Enemy, Boss, UI Hud...)"]
+    end
+    class L1 layer1;
+
+    subgraph L2 ["Tầng 2: Game Logic API Facade (napi)"]
+        NAPI_Game["Game.go (Singleton Engine)"]
+        NAPI_Scene["Scene.go (Scene management wrappers)"]
+        NAPI_Obj["ObjectHelper.go (Token-based creation)"]
+        NAPI_Store["StoreHelper.go (Asset, Audio, Variables)"]
+        NAPI_Reg["Register.go (Token Registry & NewComponentType)"]
+    end
+    class L2 layer2;
+
+    subgraph L3 ["Tầng 3: Engine Core & UI Component Mixins"]
+        CORE_Engine["core.Engine (Trái tim của Game)"]
+        CORE_SM["core.SceneManager (Quản lý đa màn chơi)"]
+        CORE_Scene["core.Scene (Cảnh chơi chứa ECS World)"]
+        COMP_Mix["modules/components (Position, Sprite, Box, Audio Components)"]
+        NLAYOUT["modules/nlayout (UI Auto-Layout: Div, A, ILayout)"]
+    end
+    class L3 layer3;
+
+    subgraph L4 ["Tầng 4: Phân hệ Kỹ thuật (Subsystems & Helpers)"]
+        NGLOBAL["modules/nglobal (Global Store chứa Sprite/Audio nạp lên)"]
+        NASSET["modules/nasset (Asset Loader đơn & Sheet, Manifest JSON Reader)"]
+        NOBJECT["modules/nobject (Object base, LogicSystem điều phối StepUpdate)"]
+        NSPRITE["modules/nsprite (DrawSystem dựng hình từ ECS)"]
+        NAUDIO["modules/naudio (AudioSystem kích phát âm thanh)"]
+    end
+    class L4 layer4;
+
+    subgraph L5 ["Tầng 5: Core Domain & Bridges (Không phụ thuộc bất kỳ ai)"]
+        DOMAIN_Interfaces["domain (IObject, IScene, IGlobal, ILayout...)"]
+        DOMAIN_Data["domain (PositionData, SpriteData, BoxData, AudioData structs)"]
+        BRIDGE_LW["domain/bridge (轻量级/Lightweight wrappers như SpriteLW)"]
+    end
+    class L5 layer5;
+
+    %% IMPORT DIRECTIONS
+    L1 --> L2
+    L1 --> L3
+    
+    L2 --> L3
+    L2 --> L4
+    
+    L3 --> L4
+    L3 --> L5
+    
+    L4 --> L5

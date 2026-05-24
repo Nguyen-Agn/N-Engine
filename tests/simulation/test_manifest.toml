@@ -1,0 +1,14 @@
+[[sprites]]
+key = "test-sprite"
+path = "../test_resources/test.png"
+mode = "sheet"
+frameW = 32
+frameH = 32
+cols = 4
+rows = 1
+gapX = 0
+gapY = 0
+
+[[audios]]
+key = "test-bgm"
+path = "../test_resources/test.wav"

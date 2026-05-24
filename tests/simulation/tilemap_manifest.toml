@@ -1,0 +1,26 @@
+[[sprites]]
+key = "bg-image"
+path = "../test_resources/background.png"
+mode = "single"
+
+[[sprites]]
+key = "tileset"
+path = "../test_resources/exterior.png"
+mode = "sheet"
+frameW = 32
+frameH = 32
+cols = 4
+rows = 1
+gapX = 0
+gapY = 0
+
+[[sprites]]
+key = "player-sprite"
+path = "../test_resources/character.png"
+mode = "sheet"
+frameW = 32
+frameH = 32
+cols = 1
+rows = 1
+gapX = 0
+gapY = 0

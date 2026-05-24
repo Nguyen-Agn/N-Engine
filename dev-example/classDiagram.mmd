@@ -1,0 +1,356 @@
+classDiagram
+    direction TB
+
+    %% ==========================================
+    %% DOMAIN INTERFACES (Tầng giao ước lõi)
+    %% ==========================================
+    class IObject {
+        <<interface>>
+        +StepUpdate()
+        +Destroy()
+        +Entry() *donburi.Entry
+    }
+
+    class IPosition {
+        <<interface>>
+        +X() float32
+        +Y() float32
+        +SetX(x float32)
+        +SetY(y float32)
+    }
+
+    class ISprite {
+        <<interface>>
+        +SpriteIdx() int
+        +SetSpriteIdx(idx int)
+        +ImageSpeed() float32
+        +SetImageSpeed(speed float32)
+        +Rotation() float32
+        +SetRotation(r float32)
+        +ScaleX() float32
+        +SetScaleX(sx float32)
+        +ScaleY() float32
+        +SetScaleY(sy float32)
+        +Sprite(name string) ISpriteLW
+        +SetSprite(name string, sprite ISpriteLW)
+        +NextImage()
+        +ImageIndex() int
+        +SetImageIndex(idx int)
+    }
+
+    class IBox {
+        <<interface>>
+        +BoxW() float32
+        +SetBoxW(w float32)
+        +BoxH() float32
+        +SetBoxH(h float32)
+        +BoxX() float32
+        +SetBoxX(x float32)
+        +BoxY() float32
+        +SetBoxY(y float32)
+        +IsCollidable() bool
+        +SetIsCollidable(c bool)
+        +Shape() BoxShape
+        +SetShape(s BoxShape)
+    }
+
+    class IAudio {
+        <<interface>>
+        +Audio() IAudioLW
+        +SetAudio(name string, audio IAudioLW)
+        +AudioName() string
+        +SetAudioName(name string)
+        +Play(name string, vol, pitch float32)
+        +PlayDefault(name string)
+        +StopAudio()
+    }
+
+    class IScene {
+        <<interface>>
+        +Update() error
+        +Draw()
+        +Destroy()
+    }
+
+    class ISceneManager {
+        <<interface>>
+        +Update() error
+        +Draw() error
+        +Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int)
+        +ChangeSceneFromList(id string) error
+        +ChangeSceneForce(next IScene) error
+        +GetCurrentScene() IScene
+        +GetSceneFromList(id string) IScene
+        +GetGlobalScene() IScene
+        +AddScene(id string, scene IScene) error
+        +RemoveScene(id string) error
+        +RemoveAllScene() error
+    }
+
+    class IGlobal {
+        <<interface>>
+        +GetSprite(key string) ISpriteLW
+        +AddSprite(key string, sprite ISpriteLW)
+        +UpdateSprite(key string, sprite ISpriteLW)
+        +GetAudio(key string) IAudioLW
+        +AddAudio(key string, audio IAudioLW)
+        +UpdateAudio(key string, audio IAudioLW)
+        +GetObject(key string) IObject
+        +AddObject(key string, object IObject)
+        +UpdateObject(key string, object IObject)
+        +GetVar(key string) any
+        +NewVar(key string, value any)
+        +UpdateVar(key string, value any)
+        +GetConst(key string) any
+        +NewConst(key string, value any)
+        +UpdateConst(key string, value any)
+    }
+
+    class IGlobalConfig {
+        <<interface>>
+        +GetConfig() IGlobalConfig
+        +NotifyChange()
+        +AddObserver(observer IObserver)
+        +RemoveObserver(observer IObserver)
+        +SetValue(key string, value any)
+        +GetValue(key string) any
+    }
+
+    class IObserver {
+        <<interface>>
+        +NotifyChange(config IGlobalConfig)
+    }
+
+    class IInputManager {
+        <<interface>>
+    }
+
+    class ILayout {
+        <<interface>>
+        +SetBoxH(h int)
+        +SetBoxW(w int)
+        +SetBoxX(x int)
+        +SetBoxY(y int)
+        +BoxH() int
+        +BoxW() int
+        +BoxX() int
+        +BoxY() int
+        +AddChildren(children ILayout)
+        +RemoveChildren(children ILayout)
+        +Childrens() []ILayout
+        +GetChildrenByName(name string) ILayout
+        +Name() string
+        +SetName(name string)
+        +IsVisible() bool
+        +SetIsVisible(isVisible bool)
+        +SetLayoutConfig(config int)
+        +LayoutConfig() int
+        +SetGap(gap int)
+        +Gap() int
+        +ComputeLayout(parentX, parentY, parentW, parentH int)
+    }
+
+    class ILogicSystem {
+        <<interface>>
+        +Update(objectList []IObject)
+    }
+
+    class IDrawSystem {
+        <<interface>>
+        +Draw(w donburi.World)
+        +SetScreen(s *ebiten.Image)
+    }
+
+    class IAudioSystem {
+        <<interface>>
+        +Update(w donburi.World)
+    }
+
+    class ISpriteLoader {
+        <<interface>>
+        +LoadSingle(path string) (ISpriteLW, error)
+        +LoadSheet(path string, frameW, frameH, cols, rows, gapX, gapY int) (ISpriteLW, error)
+    }
+
+    class IAudioLoader {
+        <<interface>>
+        +Load(path string) (IAudioLW, error)
+    }
+
+    class IManifestLoader {
+        <<interface>>
+        +LoadFromFile(filePath string, store IGlobal) error
+    }
+
+    %% ==========================================
+    %% ENGINE MODULE CONCRETE STRUCTURES
+    %% ==========================================
+    
+    %% modules/core
+    class Engine {
+        +Scene *SceneManager
+        +Config *GlobalConfig
+        +Input *InputManager
+        +Store IGlobal
+        +AudioCtx *audio.Context
+        +Start(title string, w, h int)
+    }
+
+    class SceneManager {
+        -scenes map[string]IScene
+        -currentScene IScene
+        -globalScene IScene
+        +Update() error
+        +Draw() error
+        +Layout(ow, oh int) (sw, sh int)
+    }
+    ISceneManager <|.. SceneManager : implements
+
+    class Scene {
+        -world donburi.World
+        -drawSystem *nsprite.DrawSystem
+        -logicSystem ILogicSystem
+        -objectList []IObject
+        +Update() error
+        +Draw()
+        +Destroy()
+        +World() donburi.World
+    }
+    IScene <|.. Scene : implements
+
+    class GlobalConfig {
+        -observers []IObserver
+        -data map[string]any
+        +NotifyChange()
+        +AddObserver(o IObserver)
+    }
+    IGlobalConfig <|.. GlobalConfig : implements
+
+    class InputManager {
+        +Update()
+    }
+    IInputManager <|.. InputManager : implements
+
+    %% modules/nglobal
+    class GlobalStore {
+        <<singleton>>
+        -sprites map[string]ISpriteLW
+        -audios map[string]IAudioLW
+        -objects map[string]IObject
+        -vars map[string]any
+        -consts map[string]any
+        +GetSprite(key string) ISpriteLW
+        +GetAudio(key string) IAudioLW
+    }
+    IGlobal <|.. GlobalStore : implements
+
+    %% modules/nobject
+    class Object {
+        -entry *donburi.Entry
+        +StepUpdate()
+        +Destroy()
+        +Entry() *donburi.Entry
+    }
+    IObject <|.. Object : implements
+
+    class LogicSystem {
+        +Update(objectList []IObject)
+    }
+    ILogicSystem <|.. LogicSystem : implements
+
+    %% modules/nsprite & modules/naudio
+    class DrawSystem {
+        -screen *ebiten.Image
+        +Draw(w donburi.World)
+        +SetScreen(s *ebiten.Image)
+    }
+    IDrawSystem <|.. DrawSystem : implements
+
+    class AudioSystem {
+        -audioCtx *audio.Context
+        +Update(w donburi.World)
+    }
+    IAudioSystem <|.. AudioSystem : implements
+
+    %% modules/nasset
+    class SpriteLoader {
+        +LoadSingle(path string) (ISpriteLW, error)
+    }
+    ISpriteLoader <|.. SpriteLoader : implements
+
+    class AudioLoader {
+        -audioCtx *audio.Context
+        +Load(path string) (IAudioLW, error)
+    }
+    IAudioLoader <|.. AudioLoader : implements
+
+    class ManifestLoader {
+        -spriteLoader ISpriteLoader
+        -audioLoader IAudioLoader
+        +LoadFromFile(path string, store IGlobal) error
+    }
+    IManifestLoader <|.. ManifestLoader : implements
+
+    %% modules/nlayout (Hệ thống UI Auto-Layout)
+    class Div {
+        -name string
+        -x, y, w, h int
+        -childrens []ILayout
+        -layoutConfig int
+        -gap int
+        +ComputeLayout(px, py, pw, ph int)
+    }
+    ILayout <|.. Div : implements
+
+    class A {
+        -object IObject
+        -x, y, w, h int
+        +ComputeLayout(px, py, pw, ph int)
+    }
+    ILayout <|.. A : implements
+    A *-- IObject : wraps
+
+    %% modules/components (Component Mixins)
+    class PositionComponent {
+        +IObject base
+        +X() float32
+        +SetX(x float32)
+    }
+    IPosition <|.. PositionComponent : implements
+
+    class SpriteComponent {
+        +IObject base
+        +SpriteIdx() int
+        +SetSpriteIdx(idx int)
+    }
+    ISprite <|.. SpriteComponent : implements
+
+    class BoxComponent {
+        +IObject base
+        +BoxW() float32
+    }
+    IBox <|.. BoxComponent : implements
+
+    class AudioComponent {
+        +IObject base
+        +Play(name string, vol, pitch float32)
+    }
+    IAudio <|.. AudioComponent : implements
+
+    %% bridge
+    class SpriteLW {
+        -images []*ebiten.Image
+        -width, height int
+        +Image(idx int) *ebiten.Image
+    }
+    ISpriteLW <|.. SpriteLW : implements
+
+    %% GAME RELATIONSHIPS
+    Engine *-- SceneManager : holds
+    Engine *-- GlobalConfig : holds
+    Engine *-- InputManager : holds
+    Engine *-- GlobalStore : holds
+    SceneManager *-- Scene : manages
+    Scene *-- DrawSystem : uses
+    Scene *-- LogicSystem : uses
+    Scene *-- donburi.World : wraps
