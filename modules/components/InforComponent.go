@@ -23,3 +23,42 @@ func (p InforComponent) GetName() string {
 	}
 	return data.Name
 }
+
+func (p InforComponent) AddTag(tag string) {
+	data := enginetype.GetComponent(p.IObject, Infor)
+	if data != nil {
+		data.Tags = append(data.Tags, enginetype.HashString(tag))
+	}
+}
+
+func (p InforComponent) HasTag(tag string) bool {
+	return p.HasTagHash(enginetype.HashString(tag))
+}
+
+func (p InforComponent) HasTagHash(hash uint64) bool {
+	data := enginetype.GetComponent(p.IObject, Infor)
+	if data == nil {
+		return false
+	}
+	for _, t := range data.Tags {
+		if t == hash {
+			return true
+		}
+	}
+	return false
+}
+
+func (p InforComponent) IsDead() bool {
+	data := enginetype.GetComponent(p.IObject, Infor)
+	if data == nil {
+		return false
+	}
+	return data.IsDead
+}
+
+func (p InforComponent) MarkDead() {
+	data := enginetype.GetComponent(p.IObject, Infor)
+	if data != nil {
+		data.IsDead = true
+	}
+}

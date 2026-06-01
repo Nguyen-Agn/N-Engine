@@ -12,13 +12,19 @@ import (
 	"github.com/yohamta/donburi"
 )
 
+type objGroup struct{}
+
+// Obj là nhóm hàm tạo và đăng ký Game Object.
+// Obj is the function group for creating and registering Game Objects.
+var Obj = &objGroup{}
+
 // ─── Object Interface ─────────────────────────────────────────────────────────
 
 // Object là interface tối thiểu mà Custom Object phải implement để dùng với NewObject.
 // Game object chỉ cần có Create() — các lifecycle khác (StepUpdate, Destroy) là optional override.
-type Object interface {
-	Create()
-}
+// type Object interface {
+// 	Create()
+// }
 
 // ─── Object ID Counter ────────────────────────────────────────────────────────
 
@@ -34,7 +40,9 @@ func getNextObjectID() int {
 
 // NewObject tạo game object theo component code, inject vào target và tự động
 // khởi tạo giá trị mặc định cho từng component.
-// Sau khi gọi NewObject, hãy gọi Register/RegisterGlobal để đưa object vào update loop.
+//
+// Auto Register: Thêm "sce-tên_scene" hoặc "sce-glo" vào chuỗi cấu hình
+// để tự động đăng ký object vào scene đó (không cần gọi Obj.Reg thủ công).
 //
 // target phải là con trỏ tới struct có nhúng napi.IObject và các Component Mixin.
 // name là tên định danh — object sẽ được lưu vào global store để tra cứu sau.
@@ -46,32 +54,30 @@ func getNextObjectID() int {
 //		box  — Box component      (hitbox, collision)
 //		aud  — Audio component    (âm thanh)
 //		dir  — Direction component (góc hướng)
-//		glo  — modifier: tạo object trong Global Scene (persistent)
-//	 inp  — Input component (lắng nghe sự kiện từ bàn phím, chuột)
-//	 bg   — BackGround component (ảnh nền)
-//	 til  — TileMap component (vẽ nền tilemap)
-//	 alr  — Alarm component (chạy hàm theo hẹn giờ)
-//	 vel  — Velocỉy component (vận tốc)
-//	 twn  — Tween component (gia ảnh)
+//		sce-*    — modifier: đăng ký vào scene cụ thể (vd: sce-main)
+//			sce-glo  — modifier: tạo object trong Global Scene (persistent)
+//			sce-cur  — modifier: tạo object trong Current Scene (persistent)
+//	 	inp  — Input component (lắng nghe sự kiện từ bàn phím, chuột)
+//	 	bg   — BackGround component (ảnh nền)
+//	 	til  — TileMap component (vẽ nền tilemap)
+//	 	alr  — Alarm component (chạy hàm theo hẹn giờ)
+//	 	vel  — Velocity component (vận tốc)
+//	 	twn  — Tween component (gia ảnh)
 //
 // inf (Infor) được thêm tự động vào mọi object.
-//
-// Ví dụ:
-//
-//	p := &Player{}
-//	napi.NewObject(p, "player", "pos spr")
-//	napi.Register(p, false)
-func NewObject(target Object, name string, componentCode string) {
+func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 	tokens := strings.Fields(componentCode)
-	tokenSet, isGlobal := filter(tokens)
+	tokenSet, sceneName := filter(tokens)
 
 	// Lấy map từ scene phù hợp để tạo entry
-	targetMap := getScene(isGlobal).GetMap()
+	var targetScene = getScene(sceneName)
+
+	targetMap := targetScene.GetMap()
 
 	// Xây danh sách component types từ token
 	componentsList := []donburi.IComponentType{}
 	for token := range tokenSet {
-		comp := GetComponentType(token)
+		comp := getComponentType(token)
 		if comp != nil {
 			componentsList = append(componentsList, comp)
 		}
@@ -93,14 +99,19 @@ func NewObject(target Object, name string, componentCode string) {
 	})
 
 	obj := nobject.NewObject(entry)
+	bind(target, obj)
+	specilalCase(obj, tokenSet)
 
 	// Lưu vào global store nếu có tên (để tra cứu sau bằng napi.GetObject)
-	if name != "" {
-		engine().Store.AddObject(name, obj)
+	if target != nil {
+		o.RegisterIn(target, targetScene)
 	}
+}
 
-	// Inject IObject và tất cả Component Mixin vào target
-	bind(target, obj)
+func specilalCase(target Object, tokenSet map[string]bool) {
+	if tokenSet["col"] == tokenSet["box"] && tokenSet["col"] == true {
+		enginetype.GetComponent[BoxData](target, enginetype.Box).IsCollidable = true
+	}
 }
 
 // ─── Register Helpers ─────────────────────────────────────────────────────────
@@ -108,13 +119,9 @@ func NewObject(target Object, name string, componentCode string) {
 // Register đăng ký một IObject vào scene's update loop.
 //
 // scene: name of scene, if nil -> global var
-func Register(obj IObject, scene string) {
+func (o *objGroup) Register(obj IObject, scene string) {
 	var _scene interface{ AddObject(IObject) }
-	if scene != "" {
-		_scene = GetSceneByID(scene)
-	} else {
-		_scene = GetGlobalScene()
-	}
+	_scene = getScene(scene)
 
 	if _scene != nil {
 		_scene.AddObject(obj)
@@ -122,7 +129,7 @@ func Register(obj IObject, scene string) {
 }
 
 // RegisterIn đăng ký một IObject vào scene cụ thể do caller chỉ định.
-func RegisterIn(scene IScene, obj IObject) {
+func (o *objGroup) RegisterIn(obj IObject, scene IScene) {
 	if scene != nil {
 		scene.AddObject(obj)
 	}
@@ -131,28 +138,33 @@ func RegisterIn(scene IScene, obj IObject) {
 // ─── Internal Helpers ─────────────────────────────────────────────────────────
 
 // getScene trả về scene phù hợp: Global Scene nếu global=true, Current Scene nếu false.
-func getScene(global bool) IScene {
-	if global {
-		return GetGlobalScene()
+func getScene(name string) IScene {
+	switch name {
+	case "glo":
+		return Scene.GetGlobalScene()
+	case "cur", "":
+		return Scene.GetCurrentScene()
+	default:
+		return Scene.GetSceneByID(name)
 	}
-	return GetCurrentScene()
 }
 
-// filter phân tích danh sách token, tách modifier "glo" và đảm bảo "inf" luôn có mặt.
-// Trả về: set token duy nhất và cờ isGlobal.
-func filter(tokens []string) (map[string]bool, bool) {
+// filter phân tích danh sách token, tách modifier "sce-*" (hoặc "glo").
+// Trả về: set token duy nhất và tên scene để auto-register.
+func filter(tokens []string) (map[string]bool, string) {
 	tokenSet := make(map[string]bool, len(tokens))
-	var global bool = false
+	var sceneName string = ""
 	for _, t := range tokens {
-		if t == "glo" {
-			global = true
+		if after, ok := strings.CutPrefix(t, "sce-"); ok {
+			sceneName = after
+			continue
 		}
 		tokenSet[t] = true
 	}
 
 	// Infor là component bắt buộc đối với mọi Object
-	tokenSet["inf"] = true
-	return tokenSet, global
+	tokenSet["info"] = true
+	return constraint(tokenSet), sceneName
 }
 
 // bind inject IObject vào target struct và tất cả Component Mixin nhúng trong nó.
@@ -198,4 +210,22 @@ func bind(target any, base IObject) {
 			}
 		}
 	}
+}
+
+func (o *objGroup) NewObjectAndResgiter(target Object, name string, componentCode, scene string) {
+	o.NewObject(target, name, componentCode)
+	o.Register(target, scene)
+}
+
+func constraint(tokenSet map[string]bool) map[string]bool {
+	if tokenSet["col"] {
+		tokenSet["box"] = true
+	}
+	if tokenSet["twn"] {
+		tokenSet["spr"] = true
+	}
+	if tokenSet["back"] || tokenSet["velo"] || tokenSet["spr"] {
+		tokenSet["pos"] = true
+	}
+	return tokenSet
 }

@@ -1,6 +1,8 @@
 package enginetype
 
 import (
+	"hash/fnv"
+
 	"github.com/yohamta/donburi"
 )
 
@@ -8,6 +10,13 @@ import (
 // nobject.Object implement interface này qua method Entry().
 type entryProvider interface {
 	Entry() *donburi.Entry
+}
+
+// HashString băm chuỗi thành uint64 dùng FNV-1a.
+func HashString(s string) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return h.Sum64()
 }
 
 // SetComponent gán giá trị cho một custom component trên object.

@@ -5,7 +5,7 @@ go 1.25.3
 require github.com/hajimehoshi/ebiten/v2 v2.9.9
 
 require (
-	github.com/BurntSushi/toml v1.6.0 // indirect
+	github.com/BurntSushi/toml v1.6.0
 	github.com/ebitengine/oto/v3 v3.4.0 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect

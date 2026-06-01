@@ -13,7 +13,7 @@ import (
 //
 //	var StatsComp = napi.NewComponentType[StatsData]("sta")
 //	napi.SetComponent(player, StatsComp, StatsData{Health: 100, Mana: 50})
-func SetComponent[T any](obj IObject, comp *donburi.ComponentType[T], value T) {
+func setComponent[T any](obj IObject, comp *donburi.ComponentType[T], value T) {
 	enginetype.SetComponent(obj, comp, value)
 }
 
@@ -26,7 +26,7 @@ func SetComponent[T any](obj IObject, comp *donburi.ComponentType[T], value T) {
 //	if stats != nil {
 //	    stats.Health -= 10
 //	}
-func GetComponent[T any](obj IObject, comp *donburi.ComponentType[T]) *T {
+func getComponent[T any](obj IObject, comp *donburi.ComponentType[T]) *T {
 	return enginetype.GetComponent(obj, comp)
 }
 
@@ -37,6 +37,6 @@ func GetComponent[T any](obj IObject, comp *donburi.ComponentType[T]) *T {
 //
 //	napi.AddComponentType(player, StatsComp)
 //	napi.SetComponent(player, StatsComp, StatsData{Health: 100})
-func AddComponentType[T any](obj IObject, comp *donburi.ComponentType[T]) {
+func addComponentType[T any](obj IObject, comp *donburi.ComponentType[T]) {
 	enginetype.AddComponentType(obj, comp)
 }

@@ -2,6 +2,7 @@ package layout
 
 import (
 	"autoworld/domain"
+	"autoworld/modules/enginetype"
 	"autoworld/modules/napi"
 )
 
@@ -12,8 +13,8 @@ type PositionData = napi.PositionData
 type BoxData = napi.BoxData
 
 var (
-	Position = napi.GetComponentType("pos")
-	Box      = napi.GetComponentType("box")
+	Position = enginetype.GetComponentType("pos")
+	Box      = enginetype.GetComponentType("box")
 )
 
 const (

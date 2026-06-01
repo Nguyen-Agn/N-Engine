@@ -1,0 +1,116 @@
+# Tạo Object / Create an Object
+
+> **Vision**: Struct nhúng component, constructor ngắn gọn, lifecycle rõ ràng.
+> **Vision**: Embed components in struct, short constructor, clear lifecycle.
+
+---
+
+## 1. Giải thích / Explanation
+
+Mỗi object trong N-Engine là một **Go struct** nhúng các component token (Mixins).
+Each object in N-Engine is a **Go struct** embedding component tokens (Mixins).
+
+Các bước tạo object / Steps to create an object:
+1. Định nghĩa struct nhúng `napi.IObject` và các Mixins (như `napi.Pos`, `napi.Spr`).
+2. Viết constructor dùng `napi.Obj.NewObject` với chuỗi component.
+3. Cấu hình Object.
+4. Tùy chọn đăng ký vào scene (nếu không dùng modifier auto-register).
+5. Ghi đè lifecycle methods (`Create`, `StepUpdate`, `Destroy`).
+
+---
+
+## 2. Component Tokens & Mixins
+
+Khi tạo struct, bạn nhúng Mixin tương ứng. Khi gọi `NewObject`, bạn truyền token bằng chuỗi cách nhau bởi khoảng trắng.
+
+| Token | Component Mixin | Chức năng / Purpose |
+|---|---|---|
+| (auto) | `napi.IObject` | Lifecycle cơ bản (Create, StepUpdate, Destroy) / Base lifecycle |
+| (auto) | `napi.Info` | Thông tin định danh / Info (ID, Name) |
+| `pos` | `napi.Pos` | Vị trí X, Y / Position X, Y |
+| `spr` | `napi.Spr` | Sprite/hình ảnh / Sprite/image |
+| `inp` | `napi.Inp` | Lắng nghe input / Input listener |
+| `vel` | `napi.Velo` | Vận tốc / Velocity |
+| `box` | `napi.Box` | Hitbox va chạm / Collision hitbox |
+| `alr` | `napi.Alrm` | Bộ đếm giờ / Alarm timer |
+| `twn` | `napi.Twn` | Tween animation |
+| `aud` | `napi.Aud` | Âm thanh / Audio |
+| `bg`  | `napi.Back`| Hình nền / Background |
+| `til` | `napi.Tile`| Tilemap |
+| `dir` | `napi.Dir` | Góc quay di chuyển / Direction |
+
+---
+
+## 3. Ví dụ / Code Example
+
+```go
+package objects
+
+import (
+	"autoworld/modules/napi"
+)
+
+// Player - nhân vật người chơi / player character
+type Player struct {
+	napi.IObject // Bắt buộc / Required
+	napi.Pos     // Lấy getter/setter cho Tọa độ (SetX, SetY...)
+	napi.Spr     // Lấy getter/setter cho Ảnh (SetSprite...)
+	napi.Velo    // Lấy getter/setter cho Vận tốc (SetVelocity...)
+	napi.Inp     // Lấy khả năng lắng nghe Input (ListenOn)
+
+	speed float32
+	hp    int
+}
+
+// NewPlayer - constructor tạo player / constructor to create player
+func NewPlayer(x, y float32) *Player {
+	p := &Player{
+		speed: 3.0,
+		hp:    100,
+	}
+
+	// 1. Khởi tạo Object trong ECS với các tokens
+	// "pos spr vel inp" tương ứng với Pos, Spr, Velo, Inp
+	// "sce-main" là modifier để tự động đăng ký vào scene "main".
+	napi.Obj.NewObject(p, "Player1", "pos spr vel inp sce-main")
+
+	// 2. Cấu hình ban đầu
+	p.SetX(x)
+	p.SetY(y)
+
+	// Lắng nghe phím
+	p.ListenOn("space", p.OnJump)
+
+	return p
+}
+
+// Create được gọi 1 lần khi object vào scene
+func (p *Player) Create() {
+	p.SetSprite("idle", napi.Assert.GetSprite("hero_idle"))
+	p.SetCurrentSprite("idle")
+	p.SetMaxSpeed(p.speed)
+}
+
+// StepUpdate được gọi mỗi khung hình (frame)
+func (p *Player) StepUpdate() {
+	if p.X() > 800 {
+		p.SetX(0)
+	}
+}
+
+// Hàm custom handler cho input
+func (p *Player) OnJump() {
+	p.SetVelocityY(-5.0)
+}
+```
+
+---
+
+## 4. Đăng ký tự động / Auto-Register
+
+Trong chuỗi string khi gọi `napi.Obj.NewObject`, bạn có thể thêm các "modifier" đặc biệt để tự động đăng ký Object vào Scene:
+- `sce-main` : Tự động thêm vào scene có ID "main".
+- `sce-cur`  : Tự động thêm vào Scene hiện tại đang active.
+- `sce-glo`  : Tự động thêm vào Global Hidden Scene (tồn tại xuyên suốt các scene).
+
+Nếu không dùng modifier, bạn phải tự gọi `napi.Obj.Register(obj, "sceneId")`.

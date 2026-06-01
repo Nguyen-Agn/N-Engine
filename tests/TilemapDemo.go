@@ -9,8 +9,8 @@ import (
 
 // BackgroundObject là Custom Object đại diện cho nền game
 type BackgroundObject struct {
-	napi.IObject
-	napi.IBackground
+	napi.Obj
+	napi.Back
 }
 
 func NewBackgroundObject() *BackgroundObject {
@@ -33,9 +33,9 @@ func NewBackgroundObject() *BackgroundObject {
 
 // TilemapObject là Custom Object quản lý địa hình bản đồ
 type TilemapObject struct {
-	napi.IObject
-	napi.ITilemap
-	napi.IPosition
+	napi.obj
+	napi.til
+	napi.pos
 }
 
 func NewTilemapObject() *TilemapObject {
@@ -71,11 +71,11 @@ func NewTilemapObject() *TilemapObject {
 
 // BouncingPlayer là đối tượng di chuyển qua lại để kiểm tra lớp phủ
 type BouncingPlayer struct {
-	napi.IObject
-	napi.IPosition
-	napi.ISprite
-	napi.IInput
-	napi.IVelocity
+	napi.obj
+	napi.pos
+	napi.spr
+	napi.inp
+	napi.vec
 }
 
 func NewBouncingPlayer(x, y float32) *BouncingPlayer {

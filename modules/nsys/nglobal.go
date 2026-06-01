@@ -78,10 +78,14 @@ func (g *globalStore) GetConst(key string) any {
 	return g.constant[key]
 }
 
-func (g *globalStore) NewConst(key string, value any) {
+func (g *globalStore) NewConst(key string, value any) bool {
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	g.constant[key] = value
+	if g.constant[key] == nil {
+		g.constant[key] = value
+		return true
+	}
+	return false
 }
 
 func (g *globalStore) UpdateConst(key string, value any) {

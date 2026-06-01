@@ -182,6 +182,22 @@ type IInfor interface {
 	GetName() string
 	// GetId trả về mã định danh duy nhất (số nguyên tự tăng) của Object.
 	GetId() int
+	// AddTag thêm một tag định danh vào Object. Chuỗi sẽ được băm thành số nguyên uint64.
+	AddTag(tag string)
+	// HasTag kiểm tra xem Object có chứa tag này không (băm chuỗi đầu vào).
+	HasTag(tag string) bool
+	// HasTagHash kiểm tra xem Object có chứa mã băm tag này không.
+	HasTagHash(hash uint64) bool
+	// IsDead kiểm tra trạng thái của Object. True = không tham gia logic, chờ dọn dẹp.
+	IsDead() bool
+	// MarkDead đánh dấu Object là đã chết. Deferred destruction.
+	MarkDead()
+}
+
+// ICollision cung cấp khả năng xử lý va chạm.
+type ICollision interface {
+	// OnCollisionTag đăng ký callback, kích hoạt mỗi frame khi va chạm với Object có chứa tag chỉ định.
+	OnCollisionTag(tag string, handler func(other IObject))
 }
 
 // IDirection cung cấp hướng di chuyển cho Object (ánh xạ tới DirectionData).

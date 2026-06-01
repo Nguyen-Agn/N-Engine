@@ -9,6 +9,11 @@ type PositionData struct {
 	X, Y float32
 }
 
+// NineSlice chứa cấu hình 9-slice cho sprite.
+type NineSlice struct {
+	Top, Right, Bottom, Left int
+}
+
 // graphic
 type SpriteData struct {
 	Sprite           map[string]ISpriteLW
@@ -20,6 +25,8 @@ type SpriteData struct {
 	OffsetX, OffsetY float32
 	ImageColor       color.RGBA
 	ScaleX, ScaleY   float32
+	IsNineSlice      bool
+	NineSlice        NineSlice
 }
 
 // BackgroundData lưu thông tin hình nền hoặc màu nền của Scene.
@@ -51,15 +58,23 @@ type TilemapData struct {
 type BoxData struct {
 	BoxW, BoxH   float32
 	BoxX, BoxY   float32
-	IsCollidable bool
 	Shape        BoxShape
+	IsCollidable bool
 }
 
 // information
 
 type InforData struct {
-	Id   int
-	Name string
+	Id     int
+	Name   string
+	Tags   []uint64
+	IsDead bool
+}
+
+// collision
+type CollisionData struct {
+	Handlers     map[uint64]func(other IObject)
+	IsCollidable bool
 }
 
 // alarm

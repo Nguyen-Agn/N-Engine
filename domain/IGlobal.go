@@ -29,10 +29,6 @@ type IGlobal interface {
 	// ShareGlobal nhúng giao diện chia sẻ biến key-value có kiểu.
 	ShareGlobal
 
-	// GetConst trả về giá trị hằng số theo key. Trả về nil nếu key không tồn tại.
-	GetConst(key string) any
-	// NewConst khai báo hoặc ghi đè một hằng số theo key.
-	NewConst(key string, value any)
 	// UpdateConst cập nhật giá trị hằng số đã có theo key.
 	UpdateConst(key string, value any)
 }
@@ -60,4 +56,9 @@ type ShareGlobal interface {
 
 	// GetBool trả về giá trị kiểu bool theo key. Trả về false nếu key không tồn tại.
 	GetBool(key string) bool
+
+	// GetConst trả về giá trị hằng số theo key. Trả về nil nếu key không tồn tại.
+	GetConst(key string) any
+	// NewConst khai báo hoặc ghi đè một hằng số theo key.
+	NewConst(key string, value any) bool
 }

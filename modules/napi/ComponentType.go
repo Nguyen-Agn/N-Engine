@@ -14,7 +14,7 @@ import (
 // Ví dụ:
 //
 //	entry := napi.NewEntry(scene, napi.Position, napi.Sprite)
-func NewEntry(scene IScene, components ...donburi.IComponentType) *donburi.Entry {
+func newEntry(scene IScene, components ...donburi.IComponentType) *donburi.Entry {
 	return scene.World().Entry(scene.World().Create(components...))
 }
 
@@ -28,12 +28,12 @@ func NewEntry(scene IScene, components ...donburi.IComponentType) *donburi.Entry
 //
 //	var StatsComp = napi.NewComponentType[StatsData]("sta")
 //	napi.NewObject(hero, "hero", "pos spr sta")
-func NewComponentType[T any](token string) *donburi.ComponentType[T] {
+func newComponentType[T any](token string) *donburi.ComponentType[T] {
 	return enginetype.NewComponentType[T](token)
 }
 
 // GetComponentType tra cứu component type đã đăng ký theo token.
 // Trả về nil nếu token chưa được đăng ký.
-func GetComponentType(token string) donburi.IComponentType {
+func getComponentType(token string) donburi.IComponentType {
 	return enginetype.GetComponentType(token)
 }

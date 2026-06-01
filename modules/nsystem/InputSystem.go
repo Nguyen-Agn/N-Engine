@@ -1,6 +1,7 @@
 package nsystem
 
 import (
+	"slices"
 	"autoworld/domain"
 	"autoworld/modules/enginetype"
 )
@@ -29,13 +30,11 @@ func (s *InputSystem) Update(objectList []IObject) {
 		if data == nil {
 			continue
 		}
+		
 		for _, binding := range data.Bindings {
-			for _, key := range binding.Keys {
-				if s.input.IsKeyPressed(key) {
-					binding.Handler()
-					break // OR logic: 1 phím khớp là đủ
+			if slices.ContainsFunc(binding.Keys, s.input.IsKeyPressed) {
+					binding.Handler() // OR logic: 1 phím khớp là đủ
 				}
-			}
 		}
 	}
 }

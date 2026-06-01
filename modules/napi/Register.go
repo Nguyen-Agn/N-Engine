@@ -18,8 +18,8 @@ type Engine = core.Engine
 // GameConfig là cấu hình khởi động: Title, Width, Height, SampleRate.
 type GameConfig = core.GameConfig
 
-// Scene là *core.Scene — một màn chơi độc lập với world donburi riêng.
-type Scene = core.Scene
+// SceneType là *core.SceneType — một màn chơi độc lập với world donburi riêng.
+type SceneType = core.Scene
 
 // NewGame khởi tạo Engine từ GameConfig. Thường được gọi gián tiếp qua napi.Init().
 func NewGame(cfg GameConfig) *Engine {
@@ -60,7 +60,7 @@ const (
 var (
 	Position   = enginetype.Position
 	Sprite     = enginetype.Sprite
-	Box        = enginetype.Box
+	Box_       = enginetype.Box
 	Audio      = enginetype.Audio
 	Infor      = enginetype.Infor
 	Direction  = enginetype.Direction
@@ -76,33 +76,20 @@ var (
 // Nhúng (embed) các struct này vào Custom Object để nhận đầy đủ getter/setter.
 // Ví dụ: type Player struct { napi.IObject; napi.IPosition; napi.ISprite }
 
-type IPosition = components.PositionComponent
-type IBox = components.BoxComponent
-type IAudio = components.AudioComponent
-type ISprite = components.SpriteComponent
-type IInfor = components.InforComponent
-type IDirection = components.DirectionComponent
-type IInput = components.InputComponent
-type IBackground = components.BackgroundComponent
-type ITilemap = components.TilemapComponent
-type IAlarm = components.AlarmComponent
-type IVelocity = components.VelocityComponent
-type ITween = components.TweenComponent
-
-// ─── Component Struct Aliases ─────────────────────────────────────────────────
-// Cho phép game code dùng component struct trực tiếp mà không cần import modules/components.
-
-type PositionComponent = components.PositionComponent
-type BoxComponent = components.BoxComponent
-type AudioComponent = components.AudioComponent
-type SpriteComponent = components.SpriteComponent
-type InforComponent = components.InforComponent
-type DirectionComponent = components.DirectionComponent
-type BackgroundComponent = components.BackgroundComponent
-type TilemapComponent = components.TilemapComponent
-type AlarmComponent = components.AlarmComponent
-type VelocityComponent = components.VelocityComponent
-type TweenComponent = components.TweenComponent
+type Pos = components.PositionComponent
+type Box = components.BoxComponent
+type Aud = components.AudioComponent
+type Spr = components.SpriteComponent
+type Info = components.InforComponent
+type Dir = components.DirectionComponent
+type Inp = components.InputComponent
+type Back = components.BackgroundComponent
+type Tile = components.TilemapComponent
+type Alrm = components.AlarmComponent
+type Velo = components.VelocityComponent
+type Twn = components.TweenComponent
+type Object = domain.IObject
+type Col = components.CollisionComponent
 
 // ─── Custom Component (Generic Mixin) ────────────────────────────────────────
 // GenericComponent[T] là mixin generic để game dev tự tạo Component với method riêng.

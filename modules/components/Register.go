@@ -27,3 +27,4 @@ type InputData = domain.InputData
 type KeyBinding = domain.KeyBinding
 type BackgroundData = domain.BackgroundData
 type TilemapData = domain.TilemapData
+type CollisionData = domain.CollisionData

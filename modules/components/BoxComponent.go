@@ -25,8 +25,7 @@ var Box = enginetype.Box
 func init() {
 	enginetype.RegisterComponentInitializer("box", func(entry *donburi.Entry) {
 		donburi.SetValue(entry, enginetype.Box, BoxData{
-			IsCollidable: false,
-			Shape:        BSRectangle,
+			Shape: BSRectangle,
 		})
 	})
 }
@@ -90,22 +89,6 @@ func (p BoxComponent) SetBoxY(boxY float32) {
 		p.data.BoxY = boxY
 	}
 }
-
-func (p BoxComponent) IsCollidable() bool {
-
-	if p.data == nil {
-		return false
-	}
-	return p.data.IsCollidable
-}
-
-func (p BoxComponent) SetIsCollidable(isCollidable bool) {
-
-	if p.data != nil {
-		p.data.IsCollidable = isCollidable
-	}
-}
-
 func (p BoxComponent) Shape() BoxShape {
 
 	if p.data == nil {
@@ -115,7 +98,6 @@ func (p BoxComponent) Shape() BoxShape {
 }
 
 func (p BoxComponent) SetShape(shape BoxShape) {
-
 	if p.data != nil {
 		p.data.Shape = shape
 	}

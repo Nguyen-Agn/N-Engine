@@ -11,7 +11,10 @@
     3. **Graphic (Graphic.go)**:
         Module nội bộ chịu trách nhiệm tính toán ma trận biến đổi (DrawOptions). Nó kết hợp dữ liệu vị trí và sprite để tạo ra các tham số sẵn sàng cho việc vẽ.
     4. **DrawSystem (DrawSystem.go)**:
-        Hệ thống render chính. Nó sử dụng Query của donburi để lọc ra các thực thể cần vẽ và thực hiện lệnh `DrawImage` lên canvas của Ebitengine.
+        Hệ thống render chính. Nó sử dụng Query của donburi để lọc ra các thực thể cần vẽ và thực hiện lệnh `DrawImage` lên canvas của Ebitengine. Hỗ trợ cả sprite thông thường và sprite 9-slice.
+
+**Tính năng 9-slice**:
+    Khi thiết lập `IsNineSlice = true` và truyền thông số `NineSlice {Top, Right, Bottom, Left}` vào `SpriteData`, `Graphic.go` sẽ chia nhỏ hình ảnh thành 9 mảnh (patch) và điều chỉnh Scale theo `ScaleX` và `ScaleY` để tạo thành một đối tượng không bị biến dạng ở 4 góc. Kích thước đích được tính bằng `Kích_thước_gốc * Scale`. Điều này cực kỳ hữu ích để vẽ UI, hộp thoại (Box, Dialog).
 
 **Quy trình hoạt động**:
     1. **Render Flow**:

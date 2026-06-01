@@ -13,16 +13,17 @@ import (
 //   - Physical Map: thế giới game, tọa độ map space, có camera scroll.
 //   - GUI Map: HUD/overlay, tọa độ screen space, không camera offset.
 type Map struct {
-	logicSystem    ILogicSystem
-	audioSystem    IAudioSystem
-	inputSystem    IInputSystem
-	alarmSystem    IAlarmSystem
-	tweenSystem    ITweenSystem
-	velocitySystem IVelocitySystem
-	world          donburi.World
-	objectList     []IObject
-	width          int // chiều rộng bản đồ (pixel), 0 = không giới hạn
-	height         int // chiều cao bản đồ (pixel), 0 = không giới hạn
+	logicSystem     ILogicSystem
+	audioSystem     IAudioSystem
+	inputSystem     IInputSystem
+	alarmSystem     IAlarmSystem
+	tweenSystem     ITweenSystem
+	velocitySystem  IVelocitySystem
+	collisionSystem domain.IUpdateSystem
+	world           donburi.World
+	objectList      []IObject
+	width           int // chiều rộng bản đồ (pixel), 0 = không giới hạn
+	height          int // chiều cao bản đồ (pixel), 0 = không giới hạn
 }
 
 // NewMap khởi tạo Map mới với kích thước cho trước.
@@ -30,15 +31,16 @@ type Map struct {
 // input được dùng bởi InputSystem để kiểm tra phím mỗi frame.
 func NewMap(input domain.IInputManager, width, height int) *Map {
 	return &Map{
-		logicSystem:    nsystem.NewLogicSystem(),
-		audioSystem:    nsystem.NewAudioSystem(),
-		alarmSystem:    nsystem.NewAlarmSystem(),
-		tweenSystem:    nsystem.NewTweenSystem(),
-		velocitySystem: nsystem.NewVelocitySystem(),
-		inputSystem:    nsystem.NewInputSystem(input),
-		world:          donburi.NewWorld(),
-		width:          width,
-		height:         height,
+		logicSystem:     nsystem.NewLogicSystem(),
+		audioSystem:     nsystem.NewAudioSystem(),
+		alarmSystem:     nsystem.NewAlarmSystem(),
+		tweenSystem:     nsystem.NewTweenSystem(),
+		velocitySystem:  nsystem.NewVelocitySystem(),
+		collisionSystem: nsystem.NewCollisionSystem(),
+		inputSystem:     nsystem.NewInputSystem(input),
+		world:           donburi.NewWorld(),
+		width:           width,
+		height:          height,
 	}
 }
 
@@ -47,15 +49,16 @@ func NewMap(input domain.IInputManager, width, height int) *Map {
 // Kích thước = kích thước màn hình (viewW, viewH).
 func NewGUIMap(input domain.IInputManager, viewW, viewH int) *Map {
 	return &Map{
-		logicSystem:    nsystem.NewLogicSystem(),
-		audioSystem:    nsystem.NewAudioSystem(),
-		alarmSystem:    nsystem.NewAlarmSystem(),
-		tweenSystem:    nsystem.NewTweenSystem(),
-		velocitySystem: nsystem.NewVelocitySystem(),
-		inputSystem:    nsystem.NewInputSystem(input),
-		world:          donburi.NewWorld(),
-		width:          viewW,
-		height:         viewH,
+		logicSystem:     nsystem.NewLogicSystem(),
+		audioSystem:     nsystem.NewAudioSystem(),
+		alarmSystem:     nsystem.NewAlarmSystem(),
+		tweenSystem:     nsystem.NewTweenSystem(),
+		velocitySystem:  nsystem.NewVelocitySystem(),
+		collisionSystem: nsystem.NewCollisionSystem(),
+		inputSystem:     nsystem.NewInputSystem(input),
+		world:           donburi.NewWorld(),
+		width:           viewW,
+		height:          viewH,
 	}
 }
 
@@ -76,6 +79,7 @@ func (m *Map) Update() error {
 	// Luôn chạy sau các sự kiện cập nhật, Dev có thể setup trước trong các hàm chính
 	m.tweenSystem.Update(m.objectList)
 	m.velocitySystem.Update(m.objectList)
+	m.collisionSystem.Update(m.objectList)
 
 	// Cần được active từ các system chính
 	// Không bị phụ thuộc nên không cần ưu tiên
@@ -87,6 +91,9 @@ func (m *Map) Update() error {
 // LogicSystem sẽ gọi Create() vào frame tiếp theo.
 func (m *Map) AddObject(obj IObject) {
 	m.logicSystem.AddObjectCreated(obj)
+	if sys, ok := m.collisionSystem.(interface{ AddObject(IObject) }); ok {
+		sys.AddObject(obj)
+	}
 	m.objectList = append(m.objectList, obj)
 }
 

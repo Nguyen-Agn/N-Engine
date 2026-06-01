@@ -3,6 +3,7 @@ package globalconfig
 // GlobalConfig triển khai domain.IGlobalConfig với Observer Pattern.
 type GlobalConfig struct {
 	values    map[string]any
+	consts    map[string]any
 	observers []IObserver
 }
 
@@ -13,6 +14,7 @@ func NewGlobalConfig() *GlobalConfig {
 	if instance == nil {
 		instance = &GlobalConfig{
 			values: make(map[string]any),
+			consts: make(map[string]any),
 		}
 	}
 	return instance
@@ -26,6 +28,15 @@ func (c *GlobalConfig) GetConfig() IGlobalConfig {
 // set value for key config
 func (c *GlobalConfig) SetValue(key string, value any) {
 	c.values[key] = value
+}
+
+// add new constanst
+func (c *GlobalConfig) NewConst(key string, value any) bool {
+	if c.consts[key] == nil {
+		c.consts[key] = value
+		return true
+	}
+	return false
 }
 
 // add observer
@@ -71,12 +82,10 @@ func (c *GlobalConfig) GetInt64(key string) int64 {
 // get value type String
 // return defuatl = ""
 func (c *GlobalConfig) GetString(key string) string {
-	{
-		if val, ok := c.values[key].(string); ok {
-			return val
-		}
-		return ""
+	if val, ok := c.values[key].(string); ok {
+		return val
 	}
+	return ""
 }
 
 // get value type float32
@@ -100,10 +109,13 @@ func (c *GlobalConfig) GetFloat64(key string) float64 {
 // get value type bool
 // return defuatl = false
 func (c *GlobalConfig) GetBool(key string) bool {
-	{
-		if val, ok := c.values[key].(bool); ok {
-			return val
-		}
-		return false
+	if val, ok := c.values[key].(bool); ok {
+		return val
 	}
+	return false
+
+}
+
+func (c *GlobalConfig) GetConst(key string) any {
+	return c.consts[key]
 }

@@ -198,6 +198,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 		if currentSpr == nil {
 			return
 		}
+
 		sprW := float32(currentSpr.Width()) * sprData.ScaleX
 		sprH := float32(currentSpr.Height()) * sprData.ScaleY
 
@@ -206,11 +207,13 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 			return
 		}
 
-		drawOpts := BuildDrawOptions(*posData, *sprData, camX, camY)
-		if drawOpts == nil {
-			return
+		drawOptsList := BuildDrawOptions(*posData, *sprData, camX, camY)
+		for _, drawOpts := range drawOptsList {
+			if drawOpts == nil {
+				continue
+			}
+			ds.screen.DrawImage(drawOpts.Image, drawOpts.Opts)
 		}
-		ds.screen.DrawImage(drawOpts.Image, drawOpts.Opts)
 
 		// Chuyển frame animation
 		if currentSpr.Length() > 0 {
