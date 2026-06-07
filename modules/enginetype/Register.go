@@ -22,4 +22,7 @@ var (
 	Velocity   = NewComponentType[domain.VelocityData]("velo")
 	Tween      = NewComponentType[domain.TweenData]("twn")
 	Collision  = NewComponentType[domain.CollisionData]("col")
+	Draw       = NewComponentType[domain.DrawData]("drw")
+	Debug      = NewComponentType[domain.DebugData]("deb")
 )
+

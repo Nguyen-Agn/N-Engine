@@ -6,33 +6,39 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-// Scene quản lý một màn chơi độc lập trong Engine.
-// Mỗi Scene chứa:
-//   - Physical Map: ECS World + Logic/Audio/Input system + objectList (tọa độ map space)
-//   - GUI Map: screen-space overlay cho HUD (optional, tự tạo khi cần)
+// Scene quáº£n lÃ½ má»™t mÃ n chÆ¡i Ä‘á»™c láº­p trong Engine.
+// Má»—i Scene chá»©a:
+//   - Physical Map: ECS World + Logic/Audio/Input system + objectList (tá» a Ä‘á»™ map space)
+//   - GUI Map: screen-space overlay cho HUD (optional, tá»± táº¡o khi cáº§n)
 //   - Camera: viewport, follow-target, DrawSystem
 type Scene struct {
 	map_   *Map // physical game world
-	guiMap *Map // screen-space GUI/HUD (optional, nil nếu không dùng)
+	guiMap *Map // screen-space GUI/HUD (optional, nil náº¿u khÃ´ng dÃ¹ng)
 	camera *Camera
-	input  domain.IInputManager // lưu để tạo guiMap lazy
+	input  domain.IInputManager // lÆ°u Ä‘á»ƒ táº¡o guiMap lazy
+	id     string               // ID of the scene
 }
 
-// NewScene khởi tạo Scene mới với Physical Map và Camera.
-// mapW, mapH là kích thước bản đồ (pixel). Truyền 0, 0 nếu không giới hạn.
-// viewW, viewH là kích thước viewport của Camera (thường bằng screen size).
+// NewScene khá»Ÿi táº¡o Scene má»›i vá»›i Physical Map vÃ  Camera.
+// mapW, mapH lÃ  kÃ­ch thÆ°á»›c báº£n Ä‘á»“ (pixel). Truyá» n 0, 0 náº¿u khÃ´ng giá»›i háº¡n.
+// viewW, viewH lÃ  kÃ­ch thÆ°á»›c viewport cá»§a Camera (thÆ°á» ng báº±ng screen size).
 func NewScene(input domain.IInputManager, mapW, mapH, viewW, viewH int) *Scene {
-	return &Scene{
+	scene := &Scene{
 		map_:   NewMap(input, mapW, mapH),
 		camera: NewCamera(viewW, viewH),
 		input:  input,
 	}
+	// Inject DrawSystem into Map so IDraw objects are auto-registered on AddObject
+	if dr := scene.camera.GetDrawSystem(); dr != nil {
+		scene.map_.SetDrawRegistry(dr)
+	}
+	return scene
 }
 
-// ─── IScene interface ──────────────────────────────────────────────────────────
+// â”€â”€â”€ IScene interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// Update cập nhật toàn bộ Scene mỗi frame.
-// Thứ tự: Physical Map → GUI Map (nếu có) → Camera follow.
+// Update cáº­p nháº­t toÃ n bá»™ Scene má»—i frame.
+// Thá»© tá»±: Physical Map â†’ GUI Map (náº¿u cÃ³) â†’ Camera follow.
 func (s *Scene) Update() error {
 	if err := s.map_.Update(); err != nil {
 		return err
@@ -46,8 +52,8 @@ func (s *Scene) Update() error {
 	return nil
 }
 
-// Draw render Scene lên màn hình qua Camera.
-// Camera vẽ Physical Map (có camera offset) rồi GUI Map (không offset, đè lên trên).
+// Draw render Scene lÃªn mÃ n hÃ¬nh qua Camera.
+// Camera váº½ Physical Map (cÃ³ camera offset) rá»“i GUI Map (khÃ´ng offset, Ä‘Ã¨ lÃªn trÃªn).
 func (s *Scene) Draw() {
 	if s.guiMap != nil {
 		s.camera.Draw(s.map_.World(), s.guiMap.World())
@@ -56,16 +62,16 @@ func (s *Scene) Draw() {
 	}
 }
 
-// Destroy được gọi khi Scene bị xóa khỏi SceneManager.
+// Destroy Ä‘Æ°á»£c gá»i khi Scene bá»‹ xÃ³a khá»i SceneManager.
 func (s *Scene) Destroy() {}
 
-// AddObject đăng ký IObject vào Physical Map.
+// AddObject Ä‘Äƒng kÃ½ IObject vÃ o Physical Map.
 func (s *Scene) AddObject(obj IObject) {
 	s.map_.AddObject(obj)
 }
 
-// AddGUIObject đăng ký IObject vào GUI Map (screen-space, không camera offset).
-// GUI Map được tạo tự động nếu chưa tồn tại.
+// AddGUIObject Ä‘Äƒng kÃ½ IObject vÃ o GUI Map (screen-space, khÃ´ng camera offset).
+// GUI Map Ä‘Æ°á»£c táº¡o tá»± Ä‘á»™ng náº¿u chÆ°a tá»“n táº¡i.
 func (s *Scene) AddGUIObject(obj IObject) {
 	if s.guiMap == nil {
 		s.guiMap = NewGUIMap(s.input, s.camera.Width(), s.camera.Height())
@@ -73,17 +79,17 @@ func (s *Scene) AddGUIObject(obj IObject) {
 	s.guiMap.AddObject(obj)
 }
 
-// World trả về donburi.World của Physical Map. Tương đương GetMap().World().
+// World tráº£ vá» donburi.World cá»§a Physical Map. TÆ°Æ¡ng Ä‘Æ°Æ¡ng GetMap().World().
 func (s *Scene) World() donburi.World {
 	return s.map_.World()
 }
 
-// ─── Getters ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Getters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// GetMap trả về Physical Map của Scene.
+// GetMap tráº£ vá» Physical Map cá»§a Scene.
 func (s *Scene) GetMap() IMap { return s.map_ }
 
-// GetGUIMap trả về GUI Map của Scene. Trả về nil nếu chưa khởi tạo.
+// GetGUIMap tráº£ vá» GUI Map cá»§a Scene. Tráº£ vá» nil náº¿u chÆ°a khá»Ÿi táº¡o.
 func (s *Scene) GetGUIMap() IMap {
 	if s.guiMap == nil {
 		return nil
@@ -91,12 +97,23 @@ func (s *Scene) GetGUIMap() IMap {
 	return s.guiMap
 }
 
-// GetCamera trả về Camera của Scene.
+// GetCamera tráº£ vá» Camera cá»§a Scene.
 func (s *Scene) GetCamera() ICamera { return s.camera }
 
-// ─── Setters ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Setters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // SetGuiMap
 func (s *Scene) SetGUIMap(input domain.IInputManager, mapW, mapH int) {
 	s.guiMap = NewMap(input, mapW, mapH)
 }
+
+// setID sets the scene's ID internally
+func (s *Scene) setID(id string) {
+	s.id = id
+}
+
+// GetID returns the ID of the scene
+func (s *Scene) GetID() string {
+	return s.id
+}
+

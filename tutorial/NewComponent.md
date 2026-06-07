@@ -40,7 +40,7 @@ Sử dụng hàm từ module `enginetype` hoặc `napi.NewComponentType` (đại
 import "autoworld/modules/napi"
 
 // Token (chuỗi 3 ký tự) dùng cho hàm napi.Obj.NewObject() sau này
-var StatsComp = napi.NewComponentType[HealthData]("sta")
+var StatsComp = *napi.NewComponentType[HealthData]("sta")
 ```
 > *Lưu ý: API nội bộ cho NewComponentType có thể nằm ở `napi.NewComponentType` hoặc `enginetype.NewComponentType`. Dưới góc độ user, ta tham chiếu qua module tương ứng.*
 
@@ -49,8 +49,11 @@ Tạo một Mixin bao bọc lấy generic component để viết thêm các meth
 ```go
 // StatsComponent - wrapper component với methods tiện ích
 type StatsComponent struct {
-	napi.GenericComponent[HealthData]
+	data napi.GenericComponent[HealthData]
 }
+
+
+
 
 // Hàm nhận sát thương (sẽ tự động hiển thị cho Object nào nhúng StatsComponent)
 func (s *StatsComponent) TakeDamage(dmg int) {
@@ -65,9 +68,11 @@ func (s *StatsComponent) TakeDamage(dmg int) {
 func (s *StatsComponent) IsAlive() bool {
 	return s.Get().Current > 0
 }
+
+// get-set-other function ...
 ```
 
-### Bước 4 & 5: Nhúng và Khởi tạo / Step 4 & 5: Embed & Init
+### Sử dụng: Nhúng và Khởi tạo / Using: Embed & Init
 
 ```go
 type Hero struct {
@@ -87,11 +92,7 @@ func NewHero() *Hero {
 
 	// Đưa chuỗi "sta" vào để Engine sinh Component cho object này
 	napi.Obj.NewObject(h, "MainHero", "pos spr sta sce-main")
-
-	// Set data ban đầu
-	h.Get().Max = 100
-	h.Get().Current = 100
-	h.Get().Regen = 1.5
+	// Set init value...
 
 	return h
 }

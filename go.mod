@@ -2,7 +2,16 @@ module autoworld
 
 go 1.25.3
 
-require github.com/hajimehoshi/ebiten/v2 v2.9.9
+require (
+	github.com/hajimehoshi/ebiten/v2 v2.9.9
+	golang.org/x/image v0.31.0
+)
+
+require (
+	github.com/go-text/typesetting v0.3.0 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
+	golang.org/x/text v0.29.0 // indirect
+)
 
 require (
 	github.com/BurntSushi/toml v1.6.0

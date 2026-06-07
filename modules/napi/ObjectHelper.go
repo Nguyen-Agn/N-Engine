@@ -14,67 +14,38 @@ import (
 
 type objGroup struct{}
 
-// Obj là nhóm hàm tạo và đăng ký Game Object.
+// Obj lÃ  nhÃ³m hÃ m táº¡o vÃ  Ä‘Äƒng kÃ½ Game Object.
 // Obj is the function group for creating and registering Game Objects.
 var Obj = &objGroup{}
 
-// ─── Object Interface ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Object Interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// Object là interface tối thiểu mà Custom Object phải implement để dùng với NewObject.
-// Game object chỉ cần có Create() — các lifecycle khác (StepUpdate, Destroy) là optional override.
+// Object lÃ  interface tá»‘i thiá»ƒu mÃ  Custom Object pháº£i implement Ä‘á»ƒ dÃ¹ng vá»›i NewObject.
+// Game object chá»‰ cáº§n cÃ³ OnCreate() — cÃ¡c lifecycle khÃ¡c (OnStep, OnDestroy) lÃ  optional override.
 // type Object interface {
-// 	Create()
+// 	OnCreate()
 // }
 
-// ─── Object ID Counter ────────────────────────────────────────────────────────
+// â”€â”€â”€ Object ID Counter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// objectIDCounter là bộ đếm ID tự tăng thread-safe cho mọi Object được tạo.
+// objectIDCounter lÃ  bá»™ Ä‘áº¿m ID tá»± tÄƒng thread-safe cho má» i Object Ä‘Æ°á»£c táº¡o.
 var objectIDCounter int64 = 0
 
-// getNextObjectID trả về ID tiếp theo (bắt đầu từ 1), thread-safe dùng atomic.
+// getNextObjectID tráº£ vá» ID tiáº¿p theo (báº¯t Ä‘áº§u tá»« 1), thread-safe dÃ¹ng atomic.
 func getNextObjectID() int {
 	return int(atomic.AddInt64(&objectIDCounter, 1))
 }
 
-// ─── NewObject ────────────────────────────────────────────────────────────────
-
-// NewObject tạo game object theo component code, inject vào target và tự động
-// khởi tạo giá trị mặc định cho từng component.
-//
-// Auto Register: Thêm "sce-tên_scene" hoặc "sce-glo" vào chuỗi cấu hình
-// để tự động đăng ký object vào scene đó (không cần gọi Obj.Reg thủ công).
-//
-// target phải là con trỏ tới struct có nhúng napi.IObject và các Component Mixin.
-// name là tên định danh — object sẽ được lưu vào global store để tra cứu sau.
-//
-// componentCode là chuỗi token cách nhau bởi khoảng trắng:
-//
-//		pos  — Position component (X, Y)
-//		spr  — Sprite component   (hình ảnh, animation)
-//		box  — Box component      (hitbox, collision)
-//		aud  — Audio component    (âm thanh)
-//		dir  — Direction component (góc hướng)
-//		sce-*    — modifier: đăng ký vào scene cụ thể (vd: sce-main)
-//			sce-glo  — modifier: tạo object trong Global Scene (persistent)
-//			sce-cur  — modifier: tạo object trong Current Scene (persistent)
-//	 	inp  — Input component (lắng nghe sự kiện từ bàn phím, chuột)
-//	 	bg   — BackGround component (ảnh nền)
-//	 	til  — TileMap component (vẽ nền tilemap)
-//	 	alr  — Alarm component (chạy hàm theo hẹn giờ)
-//	 	vel  — Velocity component (vận tốc)
-//	 	twn  — Tween component (gia ảnh)
-//
-// inf (Infor) được thêm tự động vào mọi object.
 func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 	tokens := strings.Fields(componentCode)
 	tokenSet, sceneName := filter(tokens)
 
-	// Lấy map từ scene phù hợp để tạo entry
+	// Láº¥y map tá»« scene phÃ¹ há»£p Ä‘á»ƒ táº¡o entry
 	var targetScene = getScene(sceneName)
 
 	targetMap := targetScene.GetMap()
 
-	// Xây danh sách component types từ token
+	// XÃ¢y danh sÃ¡ch component types tá»« token
 	componentsList := []donburi.IComponentType{}
 	for token := range tokenSet {
 		comp := getComponentType(token)
@@ -83,15 +54,15 @@ func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 		}
 	}
 
-	// Tạo ECS entry trong world của map
+	// Táº¡o ECS entry trong world cá»§a map
 	entry := targetMap.World().Entry(targetMap.World().Create(componentsList...))
 
-	// Khởi tạo data mặc định từ registry cho từng component
+	// Khá»Ÿi táº¡o data máº·c Ä‘á»‹nh tá»« registry cho tá»«ng component
 	for token := range tokenSet {
 		enginetype.InitializeComponent(token, entry)
 	}
 
-	// Luôn ghi InforData (bắt buộc): ID tự tăng + name
+	// LuÃ´n ghi InforData (báº¯t buá»™c): ID tá»± tÄƒng + name
 	nextID := getNextObjectID()
 	donburi.SetValue(entry, enginetype.Infor, components.InforData{
 		Id:   nextID,
@@ -102,21 +73,17 @@ func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 	bind(target, obj)
 	specilalCase(obj, tokenSet)
 
-	// Lưu vào global store nếu có tên (để tra cứu sau bằng napi.GetObject)
+	// LÆ°u vÃ o global store náº¿u cÃ³ tÃªn (Ä‘á»ƒ tra cá»©u sau báº±ng napi.GetObject)
 	if target != nil {
 		o.RegisterIn(target, targetScene)
 	}
 }
 
-func specilalCase(target Object, tokenSet map[string]bool) {
-	if tokenSet["col"] == tokenSet["box"] && tokenSet["col"] == true {
-		enginetype.GetComponent[BoxData](target, enginetype.Box).IsCollidable = true
-	}
-}
+func specilalCase(target Object, tokenSet map[string]bool) {}
 
-// ─── Register Helpers ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Register Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-// Register đăng ký một IObject vào scene's update loop.
+// Register Ä‘Äƒng kÃ½ má»™t IObject vÃ o scene's update loop.
 //
 // scene: name of scene, if nil -> global var
 func (o *objGroup) Register(obj IObject, scene string) {
@@ -128,16 +95,31 @@ func (o *objGroup) Register(obj IObject, scene string) {
 	}
 }
 
-// RegisterIn đăng ký một IObject vào scene cụ thể do caller chỉ định.
+// RegisterIn Ä‘Äƒng kÃ½ má»™t IObject vÃ o scene cá»¥ thá»ƒ do caller chá»‰ Ä‘á»‹nh.
 func (o *objGroup) RegisterIn(obj IObject, scene IScene) {
 	if scene != nil {
 		scene.AddObject(obj)
 	}
 }
 
-// ─── Internal Helpers ─────────────────────────────────────────────────────────
+// Remove xóa IObject khỏi scene hiện tại theo cơ chế deferred (cuối frame).
+// MarkDead() được gọi ngay; OnDestroy() sẽ được gọi ở frame tiếp theo.
+// Nếu object đã bị remove trước đó, hàm không làm gì thêm.
+func (o *objGroup) Remove(obj IObject) {
+	currentScene := Scene.GetCurrentScene()
+	if currentScene == nil {
+		return
+	}
+	m := currentScene.GetMap()
+	if m == nil {
+		return
+	}
+	m.RemoveObject(obj)
+}
 
-// getScene trả về scene phù hợp: Global Scene nếu global=true, Current Scene nếu false.
+// â”€â”€â”€ Internal Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// getScene tráº£ vá»  scene phÃ¹ há»£p: Global Scene náº¿u global=true, Current Scene náº¿u false.
 func getScene(name string) IScene {
 	switch name {
 	case "glo":
@@ -149,8 +131,8 @@ func getScene(name string) IScene {
 	}
 }
 
-// filter phân tích danh sách token, tách modifier "sce-*" (hoặc "glo").
-// Trả về: set token duy nhất và tên scene để auto-register.
+// filter phÃ¢n tÃ­ch danh sÃ¡ch token, tÃ¡ch modifier "sce-*" (hoáº·c "glo").
+// Tráº£ vá»: set token duy nháº¥t vÃ  tÃªn scene Ä‘á»ƒ auto-register.
 func filter(tokens []string) (map[string]bool, string) {
 	tokenSet := make(map[string]bool, len(tokens))
 	var sceneName string = ""
@@ -162,22 +144,22 @@ func filter(tokens []string) (map[string]bool, string) {
 		tokenSet[t] = true
 	}
 
-	// Infor là component bắt buộc đối với mọi Object
+	// Infor lÃ  component báº¯t buá»™c Ä‘á»‘i vá»›i má»i Object
 	tokenSet["info"] = true
 	return constraint(tokenSet), sceneName
 }
 
-// bind inject IObject vào target struct và tất cả Component Mixin nhúng trong nó.
-// Dùng reflection để tự động gán — game dev không cần khởi tạo thủ công từng mixin.
+// bind inject IObject vÃ o target struct vÃ  táº¥t cáº£ Component Mixin nhÃºng trong nÃ³.
+// DÃ¹ng reflection Ä‘á»ƒ tá»± Ä‘á»™ng gÃ¡n â€” game dev khÃ´ng cáº§n khá»Ÿi táº¡o thá»§ cÃ´ng tá»«ng mixin.
 //
-// Quy tắc inject:
-//  1. Field tên "IObject" → gán trực tiếp IObject base.
-//  2. Field là struct có sub-field "IObject" → gán vào sub-field đó.
-//  3. Field implement interface BindComponent(IObject) → gọi BindComponent.
+// Quy táº¯c inject:
+//  1. Field tÃªn "IObject" â†’ gÃ¡n trá»±c tiáº¿p IObject base.
+//  2. Field lÃ  struct cÃ³ sub-field "IObject" â†’ gÃ¡n vÃ o sub-field Ä‘Ã³.
+//  3. Field implement interface BindComponent(IObject) â†’ gá»i BindComponent.
 func bind(target any, base IObject) {
 	v := reflect.ValueOf(target)
 	if v.Kind() != reflect.Pointer || v.Elem().Kind() != reflect.Struct {
-		panic("[napi.Bind] target phải là con trỏ tới struct (ví dụ: *Player)")
+		panic("[napi.Bind] target pháº£i lÃ  con trá» tá»›i struct (vÃ­ dá»¥: *Player)")
 	}
 	v = v.Elem()
 	t := v.Type()
@@ -186,7 +168,7 @@ func bind(target any, base IObject) {
 		fieldVal := v.Field(i)
 		fieldType := t.Field(i)
 
-		// 1. Gán IObject chính của Custom Object
+		// 1. GÃ¡n IObject chÃ­nh cá»§a Custom Object
 		if fieldType.Name == "IObject" {
 			if fieldVal.CanSet() {
 				fieldVal.Set(reflect.ValueOf(base))
@@ -194,7 +176,7 @@ func bind(target any, base IObject) {
 			continue
 		}
 
-		// 2. Gán IObject cho các Component Mixin nhúng (PositionComponent, SpriteComponent…)
+		// 2. GÃ¡n IObject cho cÃ¡c Component Mixin nhÃºng (PositionComponent, SpriteComponentâ€¦)
 		if fieldVal.Kind() == reflect.Struct {
 			subField := fieldVal.FieldByName("IObject")
 			if subField.IsValid() && subField.CanSet() {
@@ -202,7 +184,7 @@ func bind(target any, base IObject) {
 			}
 		}
 
-		// 3. Gọi BindComponent nếu mixin implement interface đó
+		// 3. Gá»i BindComponent náº¿u mixin implement interface Ä‘Ã³
 		if fieldType.PkgPath == "" && fieldVal.CanAddr() {
 			if binder, ok := fieldVal.Addr().Interface().(interface{ BindComponent(IObject) }); ok {
 				binder.BindComponent(base)
@@ -210,11 +192,6 @@ func bind(target any, base IObject) {
 			}
 		}
 	}
-}
-
-func (o *objGroup) NewObjectAndResgiter(target Object, name string, componentCode, scene string) {
-	o.NewObject(target, name, componentCode)
-	o.Register(target, scene)
 }
 
 func constraint(tokenSet map[string]bool) map[string]bool {
@@ -225,6 +202,10 @@ func constraint(tokenSet map[string]bool) map[string]bool {
 		tokenSet["spr"] = true
 	}
 	if tokenSet["back"] || tokenSet["velo"] || tokenSet["spr"] {
+		tokenSet["pos"] = true
+	}
+	// DrawComponent requires a Position to anchor coordinates
+	if tokenSet["drw"] {
 		tokenSet["pos"] = true
 	}
 	return tokenSet

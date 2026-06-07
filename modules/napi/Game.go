@@ -3,13 +3,14 @@ package napi
 import (
 	"log"
 
+	"autoworld/domain"
 	"autoworld/modules/nasset"
 	"autoworld/modules/nsys"
 )
 
 type gameGroup struct{}
 
-// Game là nhóm hàm quản lý vòng đời engine.
+// Game là nhóm hàm quản lý vòng đời engine và Save/Load game.
 // Game is the function group for engine lifecycle management.
 var Game = &gameGroup{}
 
@@ -57,4 +58,38 @@ func (g *gameGroup) LoadFromFile(path string) *gameGroup {
 // Đây là lời gọi cuối cùng trong main.go — hàm block cho đến khi game đóng.
 func (g *gameGroup) GameStart() {
 	_engine.Start()
+}
+
+// ─── Save / Load ──────────────────────────────────────────────────────────────
+
+// SaveGame lưu toàn bộ trạng thái game hiện tại vào file đường dẫn cho trước.
+// path = "" sẽ dùng file mặc định ("saves/default.json").
+func (g *gameGroup) SaveGame(path string) error {
+	return engine().Save.SaveGame(path)
+}
+
+// LoadGame tải trạng thái game từ file và áp dụng vào các Object/Variables.
+func (g *gameGroup) LoadGame(path string) error {
+	return engine().Save.LoadGame(path)
+}
+
+// HasSave kiểm tra xem path có tồn tại file save hay không.
+func (g *gameGroup) HasSave(path string) bool {
+	return engine().Save.HasSave(path)
+}
+
+// DeleteSave xóa file save tại path tương ứng.
+func (g *gameGroup) DeleteSave(path string) error {
+	return engine().Save.DeleteSave(path)
+}
+
+// ListSaveSlots trả về danh sách tất cả các tên file đang có trong thư mục lưu mặc định.
+func (g *gameGroup) ListSaveSlots() []string {
+	return engine().Save.ListSlots()
+}
+
+// ReadSaveSnapshot đọc file save (nếu có) và trả về metadata mà không áp dụng vào game.
+// Hữu ích để biết Save này dùng ở Scene nào (snap.CurrentSceneID) trước khi Load.
+func (g *gameGroup) ReadSaveSnapshot(path string) (domain.SaveSnapshot, error) {
+	return engine().Save.ReadSnapshot(path)
 }

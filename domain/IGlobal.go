@@ -61,4 +61,9 @@ type ShareGlobal interface {
 	GetConst(key string) any
 	// NewConst khai báo hoặc ghi đè một hằng số theo key.
 	NewConst(key string, value any) bool
+
+	// DumpVariables trả về bản sao của toàn bộ biến để lưu vào file save.
+	DumpVariables() map[string]any
+	// RestoreVariables khôi phục toàn bộ biến từ bản sao (file save).
+	RestoreVariables(data map[string]any)
 }

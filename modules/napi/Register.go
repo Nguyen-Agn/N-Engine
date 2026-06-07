@@ -9,25 +9,25 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-// ─── Core Concrete Types ──────────────────────────────────────────────────────
-// Re-export các struct cụ thể từ core — dùng trực tiếp trong game code.
+// â”€â”€â”€ Core Concrete Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Re-export cÃ¡c struct cá»¥ thá»ƒ tá»« core â€” dÃ¹ng trá»±c tiáº¿p trong game code.
 
-// Engine là *core.Engine — struct trung tâm chứa Scene, Store, AudioCtx.
+// Engine lÃ  *core.Engine â€” struct trung tÃ¢m chá»©a Scene, Store, AudioCtx.
 type Engine = core.Engine
 
-// GameConfig là cấu hình khởi động: Title, Width, Height, SampleRate.
+// GameConfig lÃ  cáº¥u hÃ¬nh khá»Ÿi Ä‘á»™ng: Title, Width, Height, SampleRate.
 type GameConfig = core.GameConfig
 
-// SceneType là *core.SceneType — một màn chơi độc lập với world donburi riêng.
+// SceneType lÃ  *core.SceneType â€” má»™t mÃ n chÆ¡i Ä‘á»™c láº­p vá»›i world donburi riÃªng.
 type SceneType = core.Scene
 
-// NewGame khởi tạo Engine từ GameConfig. Thường được gọi gián tiếp qua napi.Init().
+// NewGame khá»Ÿi táº¡o Engine tá»« GameConfig. ThÆ°á»ng Ä‘Æ°á»£c gá»i giÃ¡n tiáº¿p qua napi.Init().
 func NewGame(cfg GameConfig) *Engine {
 	return core.NewGame(cfg)
 }
 
-// ─── Domain Interface Aliases ─────────────────────────────────────────────────
-// Re-export các interface từ domain — game code không cần import domain trực tiếp.
+// â”€â”€â”€ Domain Interface Aliases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Re-export cÃ¡c interface tá»« domain â€” game code khÃ´ng cáº§n import domain trá»±c tiáº¿p.
 
 type IEngine = domain.IEngine
 type IScene = domain.IScene
@@ -38,8 +38,7 @@ type ISpriteLW = domain.ISpriteLW
 type IAudioLW = domain.IAudioLW
 type IGlobal = domain.IGlobal
 
-// ─── ECS Data Struct Aliases ──────────────────────────────────────────────────
-// Re-export các Component Data struct dùng trong ECS.
+// Re-export cÃ¡c Component Data struct dÃ¹ng trong ECS.
 
 type PositionData = domain.PositionData
 type SpriteData = domain.SpriteData
@@ -48,14 +47,19 @@ type AudioData = domain.AudioData
 type BackgroundData = domain.BackgroundData
 type TilemapData = domain.TilemapData
 type BoxShape = domain.BoxShape
+type DrawData = domain.DrawData
 
 const (
 	BSRectangle = domain.BSRectangle
 	BSCircle    = domain.BSCircle
 )
 
-// ─── ECS Component Type Variables ────────────────────────────────────────────
-// Trỏ thẳng đến biến static trong enginetype — đảm bảo chung ID với toàn hệ thống.
+// IDraw is the interface Objects implement so the engine calls Draw() each frame.
+// Combine with the Drw mixin (token "drw") to get drawing methods (Rect, Circle, Text...).
+type IDraw = domain.IDraw
+
+// IDrawComponent defines the drawing primitives exposed by DrawComponent.
+type IDrawComponent = domain.IDrawComponent
 
 var (
 	Position   = enginetype.Position
@@ -71,72 +75,30 @@ var (
 	Tween      = enginetype.Tween
 )
 
-// ─── Component Mixin Aliases ──────────────────────────────────────────────────
-// Re-export các Component Mixin struct từ modules/components.
-// Nhúng (embed) các struct này vào Custom Object để nhận đầy đủ getter/setter.
-// Ví dụ: type Player struct { napi.IObject; napi.IPosition; napi.ISprite }
+// â”€â”€â”€ Component Mixin Aliases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Re-export cÃ¡c Component Mixin struct tá»« modules/components.
+// NhÃºng (embed) cÃ¡c struct nÃ y vÃ o Custom Object Ä‘á»ƒ nháº­n Ä‘áº§y Ä‘á»§ getter/setter.
+// VÃ­ dá»¥: type Player struct { napi.IObject; napi.IPosition; napi.ISprite }
 
-type Pos = components.PositionComponent
-type Box = components.BoxComponent
-type Aud = components.AudioComponent
-type Spr = components.SpriteComponent
-type Info = components.InforComponent
-type Dir = components.DirectionComponent
-type Inp = components.InputComponent
-type Back = components.BackgroundComponent
-type Tile = components.TilemapComponent
-type Alrm = components.AlarmComponent
-type Velo = components.VelocityComponent
-type Twn = components.TweenComponent
+type pos = components.PositionComponent
+type box = components.BoxComponent
+type aud = components.AudioComponent
+type spr = components.SpriteComponent
+type info = components.InforComponent
+type dir = components.DirectionComponent
+type inp = components.InputComponent
+type back = components.BackgroundComponent
+type tile = components.TilemapComponent
+type alrm = components.AlarmComponent
+type velo = components.VelocityComponent
+type twn = components.TweenComponent
 type Object = domain.IObject
-type Col = components.CollisionComponent
+type col = components.CollisionComponent
+type drw = components.DrawComponent
+type deb = components.DebugComponent
 
-// ─── Custom Component (Generic Mixin) ────────────────────────────────────────
-// GenericComponent[T] là mixin generic để game dev tự tạo Component với method riêng.
-// Kết hợp với NewComponentType[T] để định nghĩa và sử dụng custom component
-// mà không cần import bất kỳ package engine nào khác.
-//
-// Workflow:
-//
-//	// Bước 1 — Khai báo data và ComponentType (1 lần, cấp package):
-//	type StatsData struct { Health int; Speed float32 }
-//	var StatsComp = napi.NewComponentType[StatsData]("sta")
-//
-//	// Bước 2 — (Tùy chọn) Bọc GenericComponent để thêm method:
-//	type StatsComponent struct {
-//	    napi.GenericComponent[StatsData]
-//	}
-//	func (s *StatsComponent) TakeDamage(n int) { s.Get().Health -= n }
-//	func (s *StatsComponent) IsAlive() bool    { return s.Get().Health > 0 }
-//
-//	// Bước 3 — Nhúng vào Custom Object:
-//	type Hero struct {
-//	    napi.IObject
-//	    napi.IPosition
-//	    StatsComponent
-//	}
-//
-//	// Bước 4 — Khởi tạo:
-//	func NewHero() *Hero {
-//	    h := &Hero{
-//	        StatsComponent: StatsComponent{
-//	            GenericComponent: napi.NewGenericComponent(StatsComp),
-//	        },
-//	    }
-//	    napi.NewObject(h, "hero", "pos sta")
-//	    napi.Register(h, "")
-//	    return h
-//	}
 type GenericComponent[T any] = components.GenericComponent[T]
 
-// NewGenericComponent tạo GenericComponent đã gắn sẵn ComponentType.
-// Phải được gọi khi khởi tạo struct, trước khi gọi napi.NewObject.
-//
-// Ví dụ:
-//
-//	h := &Hero{
-//	    GenericComponent: napi.NewGenericComponent(StatsComp),
-//	}
 func NewGenericComponent[T any](comp *donburi.ComponentType[T]) components.GenericComponent[T] {
 	return components.NewGenericComponent(comp)
 }

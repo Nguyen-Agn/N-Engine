@@ -117,6 +117,27 @@ const (
 	MouseButtonMiddle
 )
 
+// EventType xác định khi nào handler của một binding được kích hoạt.
+type EventType int
+
+const (
+	// EventPressed: handler được gọi mỗi frame khi phím/nút đang được GIỮ.
+	EventPressed EventType = iota
+	// EventJustPressed: handler được gọi DUY NHẤT 1 LẦN ngay khi phím/nút vừa NHẤN XUỐNG.
+	EventJustPressed
+	// EventJustReleased: handler được gọi DUY NHẤT 1 LẦN ngay khi phím/nút vừa ĐƯỢC THẢ RA.
+	EventJustReleased
+)
+
+// EventTypeNameMap ánh xạ tên chuỗi sang EventType hằng số.
+var EventTypeNameMap = map[string]EventType{
+	"":         EventPressed,
+	"pressed":  EventJustPressed,
+	"released": EventJustReleased,
+	"p":        EventJustPressed,
+	"r":        EventJustReleased,
+}
+
 // IInputManager quản lý input từ keyboard và mouse, không phụ thuộc thư viện ngoài.
 type IInputManager interface {
 	Update()
@@ -165,8 +186,58 @@ var KeyNameMap = map[string]Key{
 	"ctrl":      KeyLeftControl,
 	"alt":       KeyLeftAlt,
 	"f1":        KeyF1, "f2": KeyF2, "f3": KeyF3, "f4": KeyF4,
-	"f5":        KeyF5, "f6": KeyF6, "f7": KeyF7, "f8": KeyF8,
-	"f9":        KeyF9, "f10": KeyF10, "f11": KeyF11, "f12": KeyF12,
+	"f5": KeyF5, "f6": KeyF6, "f7": KeyF7, "f8": KeyF8,
+	"f9": KeyF9, "f10": KeyF10, "f11": KeyF11, "f12": KeyF12,
+}
+
+// KeyReverseMap ánh xạ ngược Key hằng số → tên chuỗi dễ đọc.
+// Dùng để truyền tên phím vào handler func(key string) khi binding kích hoạt.
+var KeyReverseMap = map[Key]string{
+	KeyA: "a", KeyB: "b", KeyC: "c", KeyD: "d", KeyE: "e",
+	KeyF: "f", KeyG: "g", KeyH: "h", KeyI: "i", KeyJ: "j",
+	KeyK: "k", KeyL: "l", KeyM: "m", KeyN: "n", KeyO: "o",
+	KeyP: "p", KeyQ: "q", KeyR: "r", KeyS: "s", KeyT: "t",
+	KeyU: "u", KeyV: "v", KeyW: "w", KeyX: "x", KeyY: "y",
+	KeyZ: "z",
+	Key0: "0", Key1: "1", Key2: "2", Key3: "3", Key4: "4",
+	Key5: "5", Key6: "6", Key7: "7", Key8: "8", Key9: "9",
+	KeySpace:        "space",
+	KeyEnter:        "enter",
+	KeyEscape:       "escape",
+	KeyBackspace:    "backspace",
+	KeyDelete:       "delete",
+	KeyTab:          "tab",
+	KeyUp:           "up",
+	KeyDown:         "down",
+	KeyLeft:         "left",
+	KeyRight:        "right",
+	KeyLeftShift:    "shift",
+	KeyRightShift:   "rshift",
+	KeyLeftControl:  "ctrl",
+	KeyRightControl: "rctrl",
+	KeyLeftAlt:      "alt",
+	KeyRightAlt:     "ralt",
+	KeyF1:           "f1", KeyF2: "f2", KeyF3: "f3", KeyF4: "f4",
+	KeyF5: "f5", KeyF6: "f6", KeyF7: "f7", KeyF8: "f8",
+	KeyF9: "f9", KeyF10: "f10", KeyF11: "f11", KeyF12: "f12",
+}
+
+// MouseButtonNameMap ánh xạ tên chuỗi dễ nhớ → MouseButton hằng số.
+// Dùng trong ListenMouseOn/Just/Release để chuyển "left"/"l", "right"/"r", "middle"/"m" sang hằng số.
+var MouseButtonNameMap = map[string]MouseButton{
+	"left":   MouseButtonLeft,
+	"right":  MouseButtonRight,
+	"middle": MouseButtonMiddle,
+	"l":      MouseButtonLeft,
+	"r":      MouseButtonRight,
+	"m":      MouseButtonMiddle,
+}
+
+// MouseButtonReverseMap ánh xạ ngược MouseButton hằng số → tên chuỗi.
+var MouseButtonReverseMap = map[MouseButton]string{
+	MouseButtonLeft:   "left",
+	MouseButtonRight:  "right",
+	MouseButtonMiddle: "middle",
 }
 
 // KeyGroupMap ánh xạ tên nhóm đặc biệt sang danh sách các Key.

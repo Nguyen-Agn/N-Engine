@@ -62,3 +62,18 @@ func (p InforComponent) MarkDead() {
 		data.IsDead = true
 	}
 }
+
+func (p InforComponent) SaveTag() string {
+	data := enginetype.GetComponent(p.IObject, Infor)
+	if data == nil {
+		return ""
+	}
+	return data.SaveTag
+}
+
+func (p InforComponent) SetSaveTag(tag string) {
+	data := enginetype.GetComponent(p.IObject, Infor)
+	if data != nil {
+		data.SaveTag = tag
+	}
+}

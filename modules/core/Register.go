@@ -49,6 +49,7 @@ type IGlobal = domain.IGlobal
 type IAudioLoader = domain.IAudioLoader
 type ISpriteLoader = domain.ISpriteLoader
 type IManifestLoader = domain.IManifestLoader
+type ISaveManager = domain.ISaveManager
 
 // ─── Misc Type & Constant Aliases ────────────────────────────────────────────
 

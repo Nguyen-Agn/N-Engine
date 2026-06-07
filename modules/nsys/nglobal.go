@@ -170,3 +170,25 @@ func (g *globalStore) GetBool(key string) bool {
 		return false
 	}
 }
+
+func (g *globalStore) DumpVariables() map[string]any {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	res := make(map[string]any)
+	for k, v := range g.variable {
+		// Only dump primitives to ensure save compatibility
+		switch v.(type) {
+		case int, int64, float32, float64, string, bool:
+			res[k] = v
+		}
+	}
+	return res
+}
+
+func (g *globalStore) RestoreVariables(data map[string]any) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for k, v := range data {
+		g.variable[k] = v
+	}
+}

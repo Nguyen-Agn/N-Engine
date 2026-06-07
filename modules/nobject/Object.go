@@ -21,8 +21,12 @@ func (this *Object) Entry() *donburi.Entry {
 // #region Event
 
 // step update (call every frame)
-func (this *Object) Create()     {}
-func (this *Object) StepUpdate() {}
-func (this *Object) Destroy()    {}
+func (this *Object) OnCreate()                     {}
+func (this *Object) OnStep()                       {}
+func (this *Object) OnDestroy()                    {}
+func (this *Object) OnSave(data map[string]any)    {}
+func (this *Object) OnLoad(data map[string]any)    {}
+func (this *Object) SetTokens(tokenClasses string) {}
+func (this *Object) Remove()                       {}
 
 // #endregion

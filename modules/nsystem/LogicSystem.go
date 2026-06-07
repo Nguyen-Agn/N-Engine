@@ -13,21 +13,21 @@ func NewLogicSystem() *LogicSystem {
 	}
 }
 
-// Update duyệt qua tất cả thực thể và gọi StepUpdate.
+// Update duyệt qua tất cả thực thể và gọi OnStep.
 func (this *LogicSystem) Update(objectList []IObject) {
 	// Create
 	for _, obj := range this.CreateQuery {
-		obj.Create()
+		obj.OnCreate()
 	}
 
 	// Step
 	for _, obj := range objectList {
-		obj.StepUpdate()
+		obj.OnStep()
 	}
 
 	// Destroy
 	for _, obj := range this.DestroyQuery {
-		obj.Destroy()
+		obj.OnDestroy()
 	}
 
 	//Clear

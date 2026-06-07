@@ -1,45 +1,78 @@
 package nsystem
 
 import (
+	"fmt"
+
+	"autoworld/domain"
+
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/filter"
+	"golang.org/x/image/font/basicfont"
 )
 
-// DrawSystem chịu trách nhiệm vẽ tất cả các thực thể: Background, Tilemap, và Sprite.
-// Nó chỉ đọc dữ liệu từ Component, không thay đổi trạng thái game.
+// DrawSystem is responsible for rendering all entities: Background, Tilemap, Sprite,
+// and custom IDraw objects. It only reads Component data — never mutates game state.
 //
-// Camera offset (camX, camY) được trừ khỏi tọa độ entity trước khi vẽ,
-// chuyển từ map space sang screen space. Truyền 0, 0 cho GUI layer.
+// Camera offset (camX, camY) is subtracted from entity positions to convert
+// from map space to screen space. Pass 0, 0 for GUI layers (screen space).
 type DrawSystem struct {
-	// query lọc thực thể có đủ Sprite + Position
+	// query filters entities with Sprite + Position components
 	query *donburi.Query
-	// bgQuery lọc thực thể Background
+	// bgQuery filters Background entities
 	bgQuery *donburi.Query
-	// tilemapQuery lọc thực thể Tilemap
+	// tilemapQuery filters Tilemap entities
 	tilemapQuery *donburi.Query
-	// screen là canvas vẽ, được set mỗi frame
+	// drawQuery filters entities with the Draw component (to inject screen/cam before Draw())
+	drawQuery *donburi.Query
+	// debugQuery filters entities with the Debug component
+	debugQuery *donburi.Query
+	// drawObjects holds objects that implement IDraw; populated by AddDrawObject
+	drawObjects []domain.IObject
+	// screen is the render target; set every frame via SetScreen
 	screen *ebiten.Image
 }
 
-// NewDrawSystem khởi tạo DrawSystem với các bộ lọc Component.
+// NewDrawSystem initialises DrawSystem with all required component filters.
 func NewDrawSystem() *DrawSystem {
 	return &DrawSystem{
 		query:        donburi.NewQuery(filter.Contains(Sprite, Position)),
 		bgQuery:      donburi.NewQuery(filter.Contains(Background)),
 		tilemapQuery: donburi.NewQuery(filter.Contains(Tilemap)),
+		drawQuery:    donburi.NewQuery(filter.Contains(Draw)),
+		debugQuery:   donburi.NewQuery(filter.Contains(Debug)),
 	}
 }
 
-// SetScreen thiết lập canvas đích cho frame hiện tại.
-// Phải gọi hàm này trước Draw() mỗi frame từ ebiten.Game.Draw().
+// SetScreen sets the render target for the current frame.
+// Must be called before Draw() every frame (done by Camera).
 func (ds *DrawSystem) SetScreen(screen *ebiten.Image) {
 	ds.screen = screen
 }
 
-// Draw duyệt qua các thực thể và vẽ theo thứ tự: Background → Tilemap → Sprite.
-// camX, camY là tọa độ camera trong map space — được trừ khỏi tọa độ entity.
-// Truyền 0, 0 cho GUI layer để vẽ ở screen space không bị offset.
+// AddDrawObject registers an object whose Draw() method will be called each frame.
+// Called automatically by Map.AddObject when it detects an IDraw implementation.
+func (ds *DrawSystem) AddDrawObject(obj domain.IObject) {
+	ds.drawObjects = append(ds.drawObjects, obj)
+}
+
+// RemoveDrawObject unregisters an object from the draw loop.
+// Safe to call even if the object was never registered.
+func (ds *DrawSystem) RemoveDrawObject(obj domain.IObject) {
+	list := ds.drawObjects[:0]
+	for _, o := range ds.drawObjects {
+		if o != obj {
+			list = append(list, o)
+		}
+	}
+	ds.drawObjects = list
+}
+
+// Draw renders all entities in order: Background → Tilemap → Sprite → IDraw.
+// camX, camY are camera coordinates in map space used as screen offset.
+// Pass 0, 0 for GUI layers that have no camera offset.
 func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 	if ds.screen == nil {
 		return
@@ -49,7 +82,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 	screenH := float32(ds.screen.Bounds().Dy())
 
 	// ─── 1. Background ────────────────────────────────────────────────────────
-	// Background luôn fill screen — không áp dụng camera offset
+	// Background always fills the screen — no camera offset applied.
 	ds.bgQuery.Each(w, func(entry *donburi.Entry) {
 		bgData := donburi.Get[BackgroundData](entry, Background)
 		if !bgData.IsVisible {
@@ -124,7 +157,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 	})
 
 	// ─── 2. Tilemap ───────────────────────────────────────────────────────────
-	// Tile-level culling: chỉ vẽ tile nằm trong viewport
+	// Tile-level culling: only render tiles inside the viewport.
 	ds.tilemapQuery.Each(w, func(entry *donburi.Entry) {
 		tilemapData := donburi.Get[TilemapData](entry, Tilemap)
 		if !tilemapData.IsVisible || tilemapData.Sprite == nil || len(tilemapData.Grid) == 0 {
@@ -141,7 +174,6 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 		tw := tilemapData.TileWidth
 		th := tilemapData.TileHeight
 
-		// Tính range tile cần vẽ dựa trên viewport (culling)
 		startCol := int((camX-originX)/float32(tw)) - 1
 		startRow := int((camY-originY)/float32(th)) - 1
 		endCol := int((camX-originX+screenW)/float32(tw)) + 1
@@ -180,7 +212,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 	})
 
 	// ─── 3. Sprite ────────────────────────────────────────────────────────────
-	// AABB culling: bỏ qua entity nằm hoàn toàn ngoài viewport
+	// AABB culling: skip entities fully outside the viewport.
 	ds.query.Each(w, func(entry *donburi.Entry) {
 		sprData := donburi.Get[SpriteData](entry, Sprite)
 		if !sprData.IsVisible || sprData.CurrentSprite == "" {
@@ -189,11 +221,9 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 
 		posData := donburi.Get[PositionData](entry, Position)
 
-		// Chuyển tọa độ sang screen space
 		screenX := posData.X - camX
 		screenY := posData.Y - camY
 
-		// Lấy kích thước sprite để culling chính xác
 		currentSpr := sprData.Sprite[sprData.CurrentSprite]
 		if currentSpr == nil {
 			return
@@ -202,7 +232,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 		sprW := float32(currentSpr.Width()) * sprData.ScaleX
 		sprH := float32(currentSpr.Height()) * sprData.ScaleY
 
-		// AABB culling: bỏ qua nếu nằm hoàn toàn ngoài viewport
+		// AABB cull
 		if screenX+sprW < 0 || screenY+sprH < 0 || screenX > screenW || screenY > screenH {
 			return
 		}
@@ -215,10 +245,95 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 			ds.screen.DrawImage(drawOpts.Image, drawOpts.Opts)
 		}
 
-		// Chuyển frame animation
+		// Advance animation frame
 		if currentSpr.Length() > 0 {
 			sprData.SpriteIdx += int(sprData.ImageSpeed)
 			sprData.SpriteIdx %= currentSpr.Length()
+		}
+	})
+
+	// ─── 4. IDraw objects ─────────────────────────────────────────────────────
+	// Inject current screen and camera offset into DrawData for each Draw entity,
+	// then call Draw() on objects that implement IDraw.
+	ds.drawQuery.Each(w, func(entry *donburi.Entry) {
+		drawData := donburi.Get[DrawData](entry, Draw)
+		drawData.Screen = ds.screen
+		drawData.CamX = camX
+		drawData.CamY = camY
+	})
+	for _, obj := range ds.drawObjects {
+		if drawer, ok := obj.(domain.IDraw); ok {
+			drawer.Draw()
+		}
+	}
+
+	// ─── 5. Debug ─────────────────────────────────────────────────────────────
+	var logYOffset float32 = 0
+	basicFace := text.NewGoXFace(basicfont.Face7x13)
+
+	ds.debugQuery.Each(w, func(entry *donburi.Entry) {
+		debugData := donburi.Get[domain.DebugData](entry, Debug)
+		if !debugData.ShowBox && !debugData.ShowPos && !debugData.ShowInfo && debugData.CustomLog == "" {
+			return
+		}
+
+		hasPos := entry.HasComponent(Position)
+		var screenX, screenY float32
+		if hasPos {
+			pos := donburi.Get[domain.PositionData](entry, Position)
+			screenX = pos.X - camX
+			screenY = pos.Y - camY
+		} else {
+			screenX = 5
+			screenY = logYOffset
+			logYOffset += 16
+		}
+
+		// Vẽ chữ Info / CustomLog
+		var textToDraw string
+		if debugData.ShowInfo && entry.HasComponent(Infor) {
+			info := donburi.Get[domain.InforData](entry, Infor)
+			textToDraw = fmt.Sprintf("[%d] %s", info.Id, info.Name)
+		}
+		if debugData.CustomLog != "" {
+			if textToDraw != "" {
+				textToDraw += " | " + debugData.CustomLog
+			} else {
+				textToDraw = debugData.CustomLog
+			}
+		}
+
+		if textToDraw != "" {
+			op := &text.DrawOptions{}
+			if hasPos {
+				op.GeoM.Translate(float64(screenX), float64(screenY)-16)
+			} else {
+				op.GeoM.Translate(float64(screenX), float64(screenY))
+			}
+			op.ColorScale.ScaleWithColor(debugData.Color)
+			text.Draw(ds.screen, textToDraw, basicFace, op)
+		}
+
+		// Chỉ vẽ pos/box khi entity CÓ Position thực sự trên map
+		if !hasPos {
+			return
+		}
+
+		if debugData.ShowPos {
+			vector.StrokeLine(ds.screen, screenX-4, screenY, screenX+4, screenY, 1, debugData.Color, false)
+			vector.StrokeLine(ds.screen, screenX, screenY-4, screenX, screenY+4, 1, debugData.Color, false)
+		}
+
+		if debugData.ShowBox && entry.HasComponent(Box) {
+			box := donburi.Get[domain.BoxData](entry, Box)
+			boxScreenX := screenX + box.BoxX
+			boxScreenY := screenY + box.BoxY
+			if box.Shape == domain.BSCircle {
+				radius := box.BoxW / 2
+				vector.StrokeCircle(ds.screen, boxScreenX+radius, boxScreenY+radius, radius, 1, debugData.Color, false)
+			} else {
+				vector.StrokeRect(ds.screen, boxScreenX, boxScreenY, box.BoxW, box.BoxH, 1, debugData.Color, false)
+			}
 		}
 	})
 }

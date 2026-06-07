@@ -22,6 +22,7 @@ N-Engine focuses on developer experience: game code stays clean and OOP-style, w
 | **Velocity/Physics** | Per-object velocity, friction, and max-speed, auto-applied to position |
 | **Tween System** | Smooth lerp transitions for position, scale, and alpha |
 | **Asset Manifest** | Load all sprites & audio from a single `.toml` file |
+| **Draw System**| Draw simple shape, text on screen.
 
 ---
 

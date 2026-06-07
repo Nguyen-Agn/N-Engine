@@ -82,6 +82,9 @@ func (r *SceneManager) AddScene(id string, scene IScene) error {
 	if _, exists := r.sceneList[id]; exists {
 		return fmt.Errorf("scene '%s' already exists in list", id)
 	}
+	if s, ok := scene.(interface{ setID(string) }); ok {
+		s.setID(id)
+	}
 	r.sceneList[id] = &sceneEntry{
 		scene:    scene,
 		isPaused: true, // Mặc định pause khi mới thêm vào

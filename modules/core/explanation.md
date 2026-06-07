@@ -49,12 +49,22 @@ Quản lý một màn chơi độc lập, sở hữu `donburi.World` và 4 Syste
 
 | System | Nguồn | Trách nhiệm |
 |--------|-------|-------------|
-| logicSystem | nobject | Gọi StepUpdate mỗi frame |
+| logicSystem | nobject | Gọi OnStep mỗi frame |
 | drawSystem | nsprite | Render entity lên screen |
 | audioSystem | naudio | Phát/dừng âm thanh |
 | inputSystem | nobject | Kích hoạt KeyBinding callback |
 
 Thứ tự Update mỗi frame: **Input → Logic → Audio**.
+
+### `Map.go` — Map (Physical/GUI)
+Quản lý ECS World và vòng lặp update cho một bản đồ:
+
+- `AddObject(obj)` — đăng ký object vào update loop; auto-register IDraw vào DrawRegistry.
+- `RemoveObject(obj)` — xóa object theo cơ chế **deferred** (cuối frame):
+  - Gọi `MarkDead()` ngay lập tức để Collector/Applier bỏ qua object này.
+  - Đưa vào `pendingRemove` queue.
+  - Cuối frame (`flushRemove`): cắt khỏi `objectList`, xóa khỏi `DrawRegistry`, gọi `AddObjectDestroy` để `OnDestroy()` chạy ở frame tiếp theo.
+- **Lý do deferred**: tránh race condition khi đang duyệt objectList giữa frame.
 
 ### `SceneManager.go` — SceneManager
 Quản lý stack/list Scene, xử lý chuyển cảnh:
@@ -81,8 +91,9 @@ Update Flow:
                     ├─ globalScene.Update() [luôn chạy]
                     └─ currentScene.Update()
                            ├─ InputSystem
-                           ├─ LogicSystem
-                           └─ AudioSystem
+                           ├─ LogicSystem (OnCreate → OnStep → OnDestroy)
+                           ├─ AudioSystem
+                           └─ Map.flushRemove() ← Deferred Remove
 
 Draw Flow:
   ebiten → EbitenGame.Draw(screen)

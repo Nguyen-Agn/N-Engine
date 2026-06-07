@@ -54,7 +54,6 @@ func (p BoxComponent) BoxH() float32 {
 }
 
 func (p BoxComponent) SetBoxH(boxH float32) {
-
 	if p.data != nil {
 		p.data.BoxH = boxH
 	}

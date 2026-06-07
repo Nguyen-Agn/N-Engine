@@ -18,6 +18,12 @@ type IMap interface {
 	// LogicSystem sẽ gọi Create() vào frame tiếp theo, StepUpdate() mỗi frame sau đó.
 	AddObject(obj IObject)
 
+	// RemoveObject yêu cầu xóa IObject khỏi Map theo cơ chế deferred (cuối frame).
+	// MarkDead() được gọi ngay lập tức; object sẽ bị cắt khỏi objectList và
+	// DrawRegistry sau khi tất cả System trong frame đó chạy xong.
+	// OnDestroy() sẽ được gọi ở đầu frame tiếp theo.
+	RemoveObject(obj IObject)
+
 	// Update chạy toàn bộ logic mỗi frame theo thứ tự: Input → Logic → Audio.
 	// Trả về error nếu cần dừng game.
 	Update() error
@@ -27,6 +33,9 @@ type IMap interface {
 
 	// Height trả về chiều cao bản đồ (pixel). 0 = không giới hạn.
 	Height() int
+
+	// GetObjects trả về danh sách các IObject hiện có trong Map.
+	GetObjects() []IObject
 }
 
 // ─── ICamera ──────────────────────────────────────────────────────────────────

@@ -25,6 +25,11 @@ type InforData = domain.InforData
 type DirectionData = domain.DirectionData
 type InputData = domain.InputData
 type KeyBinding = domain.KeyBinding
+type MouseBinding = domain.MouseBinding
+type EventType = domain.EventType
 type BackgroundData = domain.BackgroundData
 type TilemapData = domain.TilemapData
 type CollisionData = domain.CollisionData
+
+type DrawData = domain.DrawData
+type DebugData = domain.DebugData

@@ -2,6 +2,8 @@ package domain
 
 import (
 	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // base
@@ -9,7 +11,7 @@ type PositionData struct {
 	X, Y float32
 }
 
-// NineSlice chứa cấu hình 9-slice cho sprite.
+// NineSlice holds 9-slice configuration for a sprite.
 type NineSlice struct {
 	Top, Right, Bottom, Left int
 }
@@ -19,7 +21,7 @@ type SpriteData struct {
 	Sprite           map[string]ISpriteLW
 	CurrentSprite    string
 	SpriteIdx        int
-	IsVisible        bool // false = không vẽ thực thể này
+	IsVisible        bool // false = skip rendering this entity
 	ImageSpeed       float32
 	Rotation         float32
 	OffsetX, OffsetY float32
@@ -29,29 +31,29 @@ type SpriteData struct {
 	NineSlice        NineSlice
 }
 
-// BackgroundData lưu thông tin hình nền hoặc màu nền của Scene.
+// BackgroundData holds background image or color data for a Scene.
 type BackgroundData struct {
-	Sprite       ISpriteLW  // Ảnh nền (nil nếu chỉ dùng màu nền)
-	Color        color.RGBA // Màu nền để fill màn hình (thường dùng làm màu gốc)
-	RepeatX      bool       // Lặp lại ảnh nền theo chiều ngang
-	RepeatY      bool       // Lặp lại ảnh nền theo chiều dọc
-	Stretch      bool       // Co giãn ảnh nền vừa kích thước màn hình
-	ScrollSpeedX float32    // Tốc độ tự động cuộn ngang (auto scroll)
-	ScrollSpeedY float32    // Tốc độ tự động cuộn dọc (auto scroll)
-	OffsetX      float32    // Offset cuộn X hiện tại
-	OffsetY      float32    // Offset cuộn Y hiện tại
-	IsVisible    bool       // Trạng thái hiển thị
+	Sprite       ISpriteLW  // background image (nil = color only)
+	Color        color.RGBA // background fill color
+	RepeatX      bool       // tile image horizontally
+	RepeatY      bool       // tile image vertically
+	Stretch      bool       // stretch image to screen size
+	ScrollSpeedX float32    // auto-scroll speed X (pixels/frame)
+	ScrollSpeedY float32    // auto-scroll speed Y (pixels/frame)
+	OffsetX      float32    // current scroll offset X
+	OffsetY      float32    // current scroll offset Y
+	IsVisible    bool       // visibility flag
 }
 
-// TilemapData lưu trữ thông tin bản đồ gạch.
+// TilemapData holds tilemap grid data.
 type TilemapData struct {
-	Sprite     ISpriteLW // Tileset sprite sheet (chứa các frame ảnh tile)
-	TileWidth  int       // Chiều rộng mỗi tile (pixel)
-	TileHeight int       // Chiều cao mỗi tile (pixel)
-	Cols       int       // Số cột của bản đồ
-	Rows       int       // Số hàng của bản đồ
-	Grid       []int     // Mảng 1 chiều lưu ID của Tile kích thước Cols * Rows (-1 nghĩa là trống)
-	IsVisible  bool      // Trạng thái hiển thị
+	Sprite     ISpriteLW // tileset sprite sheet
+	TileWidth  int       // tile width in pixels
+	TileHeight int       // tile height in pixels
+	Cols       int       // number of columns
+	Rows       int       // number of rows
+	Grid       []int     // flat array of tile IDs (Cols*Rows); -1 = empty
+	IsVisible  bool      // visibility flag
 }
 
 // physics
@@ -65,10 +67,11 @@ type BoxData struct {
 // information
 
 type InforData struct {
-	Id     int
-	Name   string
-	Tags   []uint64
-	IsDead bool
+	Id      int
+	Name    string
+	Tags    []uint64
+	IsDead  bool
+	SaveTag string
 }
 
 // collision
@@ -122,15 +125,25 @@ type DirectionData struct {
 
 // input
 
-// KeyBinding liên kết một nhóm phím (Keys) với một hàm xử lý (Handler).
-// OR logic: bất kỳ phím nào trong Keys được nhấn thì Handler được kích hoạt.
+// KeyBinding liên kết một tập hợp phím (OR logic) với một handler function.
+// EventType xác định loại sự kiện cần bắt (giữ, vừa nhấn, vừa thả).
+// Handler nhận tên phím đã kích hoạt dưới dạng chuỗi (e.g. "w", "space").
 type KeyBinding struct {
-	Keys    []Key
-	Handler func()
+	Keys      []Key
+	EventType EventType
+	Handler   func(key string) // nhận tên phím đã trigger
 }
 
-// InputData là dữ liệu ECS của Input Component.
-// Lưu danh sách các KeyBinding mà Object muốn lắng nghe.
+// MouseBinding liên kết một nút chuột với một handler function.
+// EventType xác định loại sự kiện (giữ, vừa nhấn, vừa thả).
+type MouseBinding struct {
+	Button    MouseButton
+	EventType EventType
+	Handler   func(button string) // nhận tên nút chuột đã trigger
+}
+
+// InputData là ECS data cho Input Component (keyboard).
+// Chứa toàn bộ KeyBindings mà object muốn lắng nghe.
 type InputData struct {
 	Bindings []KeyBinding
 }
@@ -142,11 +155,21 @@ type AudioData struct {
 	AudioSpeed float32
 	Volume     float32
 	Pitch      float32
-	// ShouldPlay là cờ ra lệnh cho AudioSystem phát âm thanh.
-	// Object đặt thành true, AudioSystem sẽ đọc và reset về false.
+	// ShouldPlay signals AudioSystem to play audio. Reset to false after processing.
 	ShouldPlay bool
-	// ShouldStop là cờ ra lệnh cho AudioSystem dừng âm thanh hiện tại.
+	// ShouldStop signals AudioSystem to stop current audio.
 	ShouldStop bool
+}
+
+// draw
+
+// DrawData is the ECS data for the Draw Component (token "drw").
+// Screen, CamX, CamY are transient — injected by DrawSystem before each Draw() call.
+// Dev does not interact with this struct directly.
+type DrawData struct {
+	Screen *ebiten.Image // current render canvas — set by DrawSystem each frame
+	CamX   float32       // camera offset X — set by DrawSystem each frame
+	CamY   float32       // camera offset Y — set by DrawSystem each frame
 }
 
 type BoxShape string
@@ -156,9 +179,11 @@ const (
 	BSCircle    BoxShape = "circle"
 )
 
-// var (
-// 	Position = donburi.NewComponentType[PositionData]()
-// 	Sprite   = donburi.NewComponentType[SpriteData]()
-// 	Box      = donburi.NewComponentType[BoxData]()
-// 	Audio    = donburi.NewComponentType[AudioData]()
-// )
+// DebugData lưu trữ cấu hình hiển thị overlay debug và log tạm thời của Object.
+type DebugData struct {
+	ShowBox      bool       // Có vẽ hitbox không
+	ShowPos      bool       // Có vẽ origin crosshair không
+	ShowInfo     bool       // Có hiển thị info (ID, Name) không
+	Color        color.RGBA // Màu vẽ debug overlay
+	CustomLog    string     // Log text từ lệnh Log()
+}

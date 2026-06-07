@@ -29,7 +29,7 @@ import (
 //	    return h
 //	}
 //
-//	func (h *Hero) StepUpdate() {
+//	func (h *Hero) OnStep() {
 //	    h.Get().Health -= 1
 //	}
 //

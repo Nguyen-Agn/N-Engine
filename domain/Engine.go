@@ -27,4 +27,8 @@ type GameConfig struct {
 	Height int
 	// Sample rate cho âm thanh (thường là 44100)
 	SampleRate int
+	// SaveDir là thư mục lưu trữ file save (mặc định "./saves")
+	SaveDir string
+	// AutoSaveVars cho biết có tự động lưu toàn bộ biến từ nsys/Global không
+	AutoSaveVars bool
 }

@@ -46,3 +46,14 @@ type IUpdateSystem interface {
 type IAlarmSystem = IUpdateSystem
 type ITweenSystem = IUpdateSystem
 type IVelocitySystem = IUpdateSystem
+
+// IDrawObjectRegistry allows Map to register IDraw objects into DrawSystem
+// without depending directly on the nsystem package.
+// DrawSystem implements this interface.
+type IDrawObjectRegistry interface {
+	// AddDrawObject registers an object whose Draw() will be called each frame.
+	AddDrawObject(obj IObject)
+	// RemoveDrawObject unregisters an object from the draw loop.
+	// Safe to call even if the object was never registered.
+	RemoveDrawObject(obj IObject)
+}

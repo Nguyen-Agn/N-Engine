@@ -5,7 +5,7 @@ Quản lý các tài nguyên toàn cục (Global resources) của game bao gồm
 - **Sprites**: Hình ảnh, hoạt ảnh.
 - **Audios**: Âm thanh, nhạc nền.
 - **Global Objects**: Các đối tượng tồn tại xuyên suốt trò chơi.
-- **Variables**: Các biến số cấu hình/trạng thái thay đổi được.
+- **Variables**: Các biến số cấu hình/trạng thái thay đổi được. (Hỗ trợ Dump/Restore cho Save System).
 - **Constants**: Các hằng số cài đặt ít bị thay đổi.
 
 ## Kiến trúc

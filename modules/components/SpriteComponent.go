@@ -2,6 +2,8 @@ package components
 
 import (
 	"image/color"
+	"strconv"
+	"strings"
 
 	"autoworld/modules/enginetype"
 
@@ -214,4 +216,41 @@ func (p SpriteComponent) IsVisible() bool {
 
 func (p SpriteComponent) SetVisible(turn bool) {
 	p.data.IsVisible = turn
+}
+
+// Enable / Disable 9Slice Mode
+// String Ex: "5" ->5:all, "5 6" -> 5:top&bottom, 6:right&left, "1 2 3 4" -> each
+func (p SpriteComponent) Set9Slice(turn bool, TopRightBottomLeft string) {
+	p.data.IsNineSlice = turn
+	if !turn {
+		return
+	}
+	tokens := strings.Fields(TopRightBottomLeft)
+	tokensLen := len(tokens)
+	if tokensLen < 1 {
+		return
+	}
+	values := make([]int, tokensLen)
+	for idx, tok := range tokens {
+		var err error
+		values[idx], err = strconv.Atoi(tok)
+		if err != nil {
+			values[idx] = 0
+		}
+	}
+	var indexs []int
+	switch tokensLen {
+	case 3:
+		indexs = []int{0, 1, 2, 1}
+	case 2:
+		indexs = []int{0, 1, 0, 1}
+	case 1:
+		indexs = []int{0, 0, 0, 0}
+	default:
+		indexs = []int{0, 1, 2, 3}
+	}
+	p.data.NineSlice.Top = values[indexs[0]]
+	p.data.NineSlice.Right = values[indexs[1]]
+	p.data.NineSlice.Bottom = values[indexs[2]]
+	p.data.NineSlice.Left = values[indexs[3]]
 }

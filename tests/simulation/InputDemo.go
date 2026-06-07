@@ -44,11 +44,17 @@ type InputTester struct {
 	ncom.Drw   // token "drw"
 	ncom.Inp   // token "inp" — keyboard bindings
 	ncom.Mouse // không cần ECS token — mouse bindings
+	ncom.Deb   // token "deb" — hiển thị debug
+	ncom.Box   // token "box" — hiển thị debug
 }
 
 func (t *InputTester) OnCreate() {
-	t.SetX(0)
-	t.SetY(0)
+	t.SetX(100)
+	t.SetY(100)
+
+	// Bật debug
+	t.Debug("pos box info")
+	t.Log("Demo Object")
 
 	// ── Keyboard: phím đơn & phím gộp bằng khoảng trắng ─────────────────
 
@@ -173,7 +179,7 @@ func lineColor(line string) color.RGBA {
 
 func NewInputTester() *InputTester {
 	t := &InputTester{}
-	napi.Obj.NewObject(t, "input_tester", "drw inp sce-cur")
+	napi.Obj.NewObject(t, "input_tester", "pos drw inp deb box sce-cur")
 	return t
 }
 

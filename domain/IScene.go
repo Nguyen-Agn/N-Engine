@@ -37,6 +37,9 @@ type IScene interface {
 
 	// GetCamera trả về Camera của Scene.
 	GetCamera() ICamera
+
+	// GetID trả về ID của Scene hiện tại.
+	GetID() string
 }
 
 // ISceneManager đại diện cho trình quản lý scene — điều phối stack các Scene.

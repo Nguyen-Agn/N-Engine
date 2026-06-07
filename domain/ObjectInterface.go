@@ -11,20 +11,37 @@ import (
 // IObject là interface gốc của mọi thực thể (entity) trong Engine.
 // Bất kỳ đối tượng nào tham gia vào vòng lặp game đều phải implement interface này.
 type IObject interface {
-	// Create được gọi một lần duy nhất khi Object được khởi tạo vào Scene.
+	// OnCreate được gọi một lần duy nhất khi Object được khởi tạo vào Scene.
 	// Dùng để thiết lập dữ liệu ban đầu, đăng ký event, v.v.
-	Create()
+	OnCreate()
 
-	// StepUpdate được gọi mỗi frame để cập nhật logic của Object.
-	StepUpdate()
+	// OnStep được gọi mỗi frame để cập nhật logic của Object.
+	OnStep()
 
-	// Destroy được gọi khi Object bị xóa khỏi Scene.
+	// OnDestroy được gọi khi Object bị xóa khỏi Scene.
 	// Dùng để giải phóng tài nguyên, hủy đăng ký event, v.v.
-	Destroy()
+	OnDestroy()
+
+	// OnSave được gọi khi game thực hiện lưu lại.
+	// Nhận vào một map trống để developer gắn dữ liệu cần lưu.
+	OnSave(data map[string]any)
+
+	// OnLoad được gọi khi load game tương ứng cho Object.
+	OnLoad(data map[string]any)
 
 	// Entry trả về ECS entry (donburi) của Object.
 	// Dùng để đọc/ghi dữ liệu Component trong hệ thống ECS.
 	Entry() *donburi.Entry
+
+	// Using classes to set value of each component
+	// Ex: pos-x-5 to set x = 5
+	// Ex: spr-c-run to set current sprite to sprite name "run"
+	// Format: <component's name>-<variable's name>-<value>
+	// Note that: this way only suit for integer/string type value
+	SetTokens(tokenClasses string)
+
+	// Remove IObject from Game
+	Remove()
 }
 
 // ─── Component Interfaces ─────────────────────────────────────────────────────
@@ -105,6 +122,10 @@ type ISprite interface {
 	ImageIndex() int
 	// SetImageIndex thiết lập index frame ảnh trong sprite active.
 	SetImageIndex(imageIndex int)
+
+	// Enable / Disable 9Slice Mode
+	// String Ex: "5" ->5:all, "5 6" -> 5:top&bottom, 6:right&left, "1 2 3 4" -> each
+	Set9Slice(turn bool, TopRightBottomLeft string)
 }
 
 // IBox cung cấp hitbox hình học cho Object dùng trong va chạm (ánh xạ tới BoxData).
@@ -192,6 +213,10 @@ type IInfor interface {
 	IsDead() bool
 	// MarkDead đánh dấu Object là đã chết. Deferred destruction.
 	MarkDead()
+	// SaveTag trả về mã tag để phân biệt object khi lưu game.
+	SaveTag() string
+	// SetSaveTag thiết lập mã tag để lưu game.
+	SetSaveTag(tag string)
 }
 
 // ICollision cung cấp khả năng xử lý va chạm.
@@ -212,14 +237,41 @@ type IDirection interface {
 
 // IInput cung cấp khả năng đăng ký lắng nghe phím bấm cho Object (ánh xạ tới InputData).
 type IInput interface {
-	// ListenOn đăng ký một handler được gọi mỗi frame khi phím (hoặc nhóm phím) được giữ.
-	// key là tên phím đơn ("w", "space", "enter"...) hoặc tên nhóm đặc biệt:
+	// ListenOn đăng ký một handler được gọi khi phím (hoặc nhóm phím) kích hoạt.
+	// key: tên phím đơn ("w", "space", "enter"...) hoặc tên nhóm đặc biệt.
+	// Hỗ trợ truyền nhiều phím/nhóm phím cách nhau bằng dấu cách (VD: "w a s d alpha").
 	//   "alpha"  — bất kỳ phím chữ nào (a-z)
 	//   "number" — bất kỳ phím số nào (0-9)
 	//   "arrows" — bất kỳ phím mũi tên nào (↑↓←→)
 	//   "wasd"   — bất kỳ phím W/A/S/D nào
 	//   "all"    — bất kỳ phím nào (dùng cho nhập liệu tổng quát)
-	ListenOn(key string, handler func())
+	// eventType xác định khi nào handler được gọi, là một chuỗi:
+	//   ""       — mỗi frame khi phím đang được GIỮ
+	//   "pressed"/"p"  — duy nhất 1 lần khi phím vừa được NHẤN XUỐNG
+	//   "released"/"r" — duy nhất 1 lần khi phím vừa được THẢ RA
+	// handler nhận tên phím đã trigger (ví dụ: "w", "space", "a"...).
+	ListenOn(key string, eventType string, handler func(key string))
+}
+
+// IMouse cung cấp khả năng đọc trạng thái chuột và đăng ký lắng nghe nút chuột cho Object.
+type IMouse interface {
+	// MouseX trả về tọa độ ngang của con trỏ chuột (pixel, tính từ góc trên-trái màn hình).
+	MouseX() int
+	// MouseY trả về tọa độ dọc của con trỏ chuột (pixel, tính từ góc trên-trái màn hình).
+	MouseY() int
+
+	// WheelX trả về độ cuộn bánh xe chuột theo trục X trong frame hiện tại.
+	// Dương = cuộn phải, âm = cuộn trái.
+	WheelX() float64
+	// WheelY trả về độ cuộn bánh xe chuột theo trục Y trong frame hiện tại.
+	// Dương = cuộn xuống, âm = cuộn lên.
+	WheelY() float64
+
+	// ListenMouseOn đăng ký một handler được gọi theo loại sự kiện khi nút chuột kích hoạt.
+	// button: "left"/"l", "right"/"r", "middle"/"m" (hoặc nhiều nút cách nhau bằng dấu cách, VD: "left right")
+	// eventType: "" (giữ), "pressed"/"p" (vừa nhấn), "released"/"r" (vừa thả)
+	// handler nhận tên nút chuột đã trigger (ví dụ: "left").
+	ListenMouseOn(button string, eventType string, handler func(button string))
 }
 
 // IAlarm cung cấp bộ đếm thời gian để thực thi callback sau N frames (ánh xạ tới AlarmData).
@@ -241,10 +293,10 @@ type IVelocity interface {
 	SetVelocityY(vy float32)
 	SetVelocity(vx, vy float32)
 	AddVelocity(vx, vy float32)
-	
+
 	Friction() float32
 	SetFriction(f float32)
-	
+
 	MaxSpeed() float32
 	SetMaxSpeed(speed float32)
 }
@@ -257,4 +309,60 @@ type ITween interface {
 	TweenScale(targetScaleX, targetScaleY float32, duration int)
 	// TweenAlpha làm mờ/rõ mượt mà Object từ Alpha hiện tại đến targetAlpha (0-255) trong duration.
 	TweenAlpha(targetAlpha uint8, duration int)
+}
+
+// IDraw is implemented by Objects that want to perform custom drawing each frame.
+// The Object must also have the DrawComponent (token "drw") embedded.
+// DrawSystem automatically detects IDraw and calls Draw() after all Sprite entities are rendered.
+type IDraw interface {
+	// Draw is called every frame by DrawSystem after Sprite rendering.
+	// Call drawing methods (Rect, Circle, Text...) from the embedded DrawComponent inside here.
+	Draw()
+}
+
+// IDrawComponent defines the primitive drawing methods provided by DrawComponent.
+// Dev receives these methods via embedding napi.Drw in a Custom Object.
+// All coordinates are in map space — camera offset is applied automatically.
+//
+// Advanced path-based methods (PathFill, PathStroke) and coordinate helpers
+// (ScreenX, ScreenY) are available directly on napi.Drw but are not part of
+// this interface to keep domain free of ebiten/vector dependencies.
+type IDrawComponent interface {
+	// --- Filled shapes ---
+
+	// Rect draws a filled rectangle at (x, y) with size (w, h).
+	Rect(x, y, w, h float32, c color.RGBA)
+
+	// Circle draws a filled circle centered at (x, y) with radius r.
+	Circle(x, y, r float32, c color.RGBA)
+
+	// --- Stroke (outline) shapes ---
+
+	// RectStroke draws a rectangle outline at (x, y) with size (w, h).
+	// strokeWidth controls the border thickness in pixels.
+	RectStroke(x, y, w, h float32, c color.RGBA, strokeWidth float32)
+
+	// CircleStroke draws a circle outline centered at (x, y) with radius r.
+	// strokeWidth controls the border thickness in pixels.
+	CircleStroke(x, y, r float32, c color.RGBA, strokeWidth float32)
+
+	// Line draws a straight line from (x0, y0) to (x1, y1).
+	// strokeWidth controls the line thickness in pixels.
+	Line(x0, y0, x1, y1 float32, c color.RGBA, strokeWidth float32)
+
+	// --- Text ---
+
+	// Text draws a string at (x, y) with the default font and color c.
+	// Use napi.SetDefaultFont() to change the engine-wide font.
+	Text(text string, x, y float32, c color.RGBA)
+
+	// TextEx draws a string at (x, y) with a uniform scale applied.
+	// scale 1.0 = default size, 2.0 = double size.
+	TextEx(text string, x, y float32, c color.RGBA, scale float64)
+
+	// --- Image ---
+
+	// Image draws frame idx of the given ISpriteLW at (x, y).
+	// Allows manual sprite rendering without a SpriteComponent.
+	Image(sprite ISpriteLW, idx int, x, y float32)
 }

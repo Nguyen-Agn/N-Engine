@@ -13,14 +13,15 @@ Nó che giấu sự phức tạp của ECS (donburi), asset loading và audio, g
 
 | File | Mô tả |
 |------|-------|
-| `Game.go` | Singleton Engine — `Init`, `GetEngine`, `LoadFromFile`, `GameStart` |
-| `Register.go` | Type alias gateway + `NewGame` helper |
+| `Game.go` | Singleton Engine — `Init`, `GetEngine`, `LoadFromFile`, `GameStart`, **`SaveGame`, `LoadGame`, ...** |
+| `Register.go` | Type alias gateway + `NewGame` helper (các aliases legacy giữ lại cho tham chiếu nội bộ) |
 | `Scene.go` | Scene management — `NewScene`, `GoToScene`, `ReplaceScene`... |
-| `ObjectHelper.go` | Object factory — `NewObject`, `Register`, `bind` (internal) |
+| `ObjectHelper.go` | Object factory — `NewObject`, `Register`, `Remove`, `bind` (internal) |
 | `StoreHelper.go` | Asset & audio helpers — `LoadManifest`, `GetSprite`, `Play`... |
 | `Config.go` | Global config accessors — `VarInt`, `VarString`, `VarBool`... |
 | `Component.go` | Generic component helpers — `SetComponent`, `GetComponent` |
 | `ComponentType.go` | Custom component creation — `NewComponentType`, `NewEntry` |
+| `ncom/Components.go` | **Sub-package** chứa toàn bộ Component Mixin type aliases — `Pos`, `Spr`, `Drw`... |
 
 ---
 
@@ -80,17 +81,31 @@ napi.GameStart() // block đến khi đóng cửa sổ
 | `box` | BoxData | Hitbox W/H, IsCollidable, Shape |
 | `aud` | AudioData | Audio map, Volume, Pitch |
 | `dir` | DirectionData | Góc hướng di chuyển |
+| `"twn"` | `ncom.Twn` / `TweenComponent` | Hoạt ảnh thay đổi thông số |
+| `"col"` | `ncom.Col` / `CollisionComponent` | Logic va chạm |
+| `"drw"` | `ncom.Drw` / `DrawComponent` | Tự định nghĩa hàm Draw() |
+| `"deb"` | `ncom.Deb` / `DebugComponent` | Hiển thị hitbox, log, origin |
+| `inp` | InputData | Keyboard bindings (ListenOn + EventType) |
 | `glo` | *(modifier)* | Tạo / đăng ký vào Global Scene |
 | `inf` | InforData | ID + Name — **tự động thêm vào mọi object** |
 
-#### Custom Object (có type riêng)
+#### Custom Object (có type riêng) — dùng `ncom`
+
+Dev import `autoworld/modules/napi/ncom` để nhúng các Component Mixin:
 
 ```go
-// player/player.go
+import (
+    "autoworld/modules/napi"
+    "autoworld/modules/napi/ncom"
+)
+
 type Player struct {
-    napi.IObject           // lifecycle: Create, StepUpdate, Destroy, Entry
-    napi.IPosition         // getter/setter: X, Y, SetX, SetY
-    napi.ISprite           // getter/setter: Sprite, Scale, Color...
+    napi.IObject   // lifecycle: OnCreate, OnStep, OnDestroy, OnSave, OnLoad
+    ncom.Pos       // X(), Y(), SetX(), SetY()
+    ncom.Spr       // AddSprite(), SetCurrentSprite()...
+    ncom.Info      // GetId(), SaveTag(), SetSaveTag(), IsDead()...
+    ncom.Inp       // ListenOn(key, eventType, handler)
+    ncom.Mouse     // MouseX/Y, WheelX/Y, ListenMouseOn(btn, eventType, handler)
 
     Health int
     Speed  float32
@@ -98,22 +113,13 @@ type Player struct {
 
 func NewPlayer(x, y float32) *Player {
     p := &Player{Health: 100, Speed: 3.0}
-
-    // Tạo ECS entry + inject component mixin vào p
-    napi.NewObject(p, "player", "pos spr")
-
-    // Dùng getter/setter ngay sau NewObject
-    p.SetX(x)
-    p.SetY(y)
-    p.SetSprite("idle", napi.GetSprite("hero_idle"))
-
-    // Đăng ký vào current scene
-    napi.Register(p, false)
+    napi.Obj.NewObject(p, "player", "pos spr inf inp sce-cur")
+    // Đăng ký input (token "inp" cần thiết cho keyboard)
+    p.ListenOn("wasd", "pressed", func(key string) { /* di chuyển */ })
+    p.ListenOn("space", "just_pressed", func(key string) { /* nhảy */ })
+    // Mouse không cần token ECS
+    p.ListenMouseOn("left", "just_pressed", func(btn string) { /* bắn */ })
     return p
-}
-
-func (p *Player) StepUpdate() {
-    p.SetX(p.X() + p.Speed)
 }
 ```
 
@@ -121,9 +127,11 @@ func (p *Player) StepUpdate() {
 
 | Hàm | Mô tả |
 |-----|-------|
-| `Register(obj, global)` | Đăng ký vào current scene (false) hoặc Global Scene (true) |
-| `RegisterIn(scene, obj)` | Đăng ký vào scene cụ thể |
-| `RegisterGlobal(obj)` | Shortcut: đăng ký vào Global Scene |
+| `Obj.Register(obj, scene)` | Đăng ký vào scene theo tên ("" = current) |
+| `Obj.RegisterIn(scene, obj)` | Đăng ký vào scene cụ thể |
+| `Obj.Remove(obj)` | Xóa object khỏi scene hiện tại (deferred, cuối frame). Gọi `MarkDead()` ngay; `OnDestroy()` ở frame tiếp. |
+
+> **Lưu ý**: `Remove` chỉ hoạt động với Current Scene. Với object trong Global Scene, gọi trực tiếp trên `IMap` của Global Scene.
 
 ---
 
@@ -141,6 +149,19 @@ napi.Play("bgm_main")                 // phát với vol=1.0, pitch=1.0
 napi.PlayAt("sfx_jump", 0.8, 1.0)    // phát với tùy chỉnh
 napi.Stop("bgm_main")                 // dừng âm thanh
 ```
+
+### Save/Load System — `napi.Game`
+
+Save/Load được gộm vào `napi.Game` cùng với các hàm vòng đời Engine:
+
+| Hàm | Mô tả |
+|-----|-------|
+| `napi.Game.SaveGame(path)` | Lưu toàn bộ state game vào file (path đầy đủ hoặc "" = "default"). |
+| `napi.Game.LoadGame(path)` | Nạp lại state từ file. |
+| `napi.Game.HasSave(path)` | Trả về `true` nếu file tồn tại. |
+| `napi.Game.DeleteSave(path)` | Xóa file save theo path. |
+| `napi.Game.ListSaveSlots()` | Trả về mảng `[]string` chứa tất cả file save trong `SaveDir`. |
+| `napi.Game.ReadSaveSnapshot(path)` | Trả về data (kèm `CurrentSceneID`) mà không tự động load. |
 
 ---
 

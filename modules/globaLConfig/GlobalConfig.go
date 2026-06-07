@@ -1,5 +1,7 @@
 package globalconfig
 
+import "maps"
+
 // GlobalConfig triển khai domain.IGlobalConfig với Observer Pattern.
 type GlobalConfig struct {
 	values    map[string]any
@@ -118,4 +120,20 @@ func (c *GlobalConfig) GetBool(key string) bool {
 
 func (c *GlobalConfig) GetConst(key string) any {
 	return c.consts[key]
+}
+
+// DumpVariables trả về bản sao của toàn bộ biến đang lưu.
+func (c *GlobalConfig) DumpVariables() map[string]any {
+	dump := make(map[string]any)
+	maps.Copy(dump, c.values)
+	return dump
+}
+
+// RestoreVariables nạp lại các biến từ data.
+func (c *GlobalConfig) RestoreVariables(data map[string]any) {
+	if data == nil {
+		return
+	}
+	maps.Copy(c.values, data)
+	c.NotifyChange()
 }

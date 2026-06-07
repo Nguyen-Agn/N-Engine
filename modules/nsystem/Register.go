@@ -10,15 +10,20 @@ type PositionData = domain.PositionData
 type SpriteData = domain.SpriteData
 type BoxData = domain.BoxData
 type AudioData = domain.AudioData
+type InputData = domain.InputData
 
 type BackgroundData = domain.BackgroundData
+type DrawData = domain.DrawData
 type TilemapData = domain.TilemapData
 
 var (
+	Draw       = enginetype.Draw
 	Position   = enginetype.Position
 	Sprite     = enginetype.Sprite
 	Box        = enginetype.Box
 	Background = enginetype.Background
 	Tilemap    = enginetype.Tilemap
 	Audio      = enginetype.Audio
+	Debug      = enginetype.Debug
+	Infor      = enginetype.Infor
 )

@@ -3,7 +3,9 @@ package core
 import (
 	"log"
 
+	"autoworld/modules/components"
 	globalconfig "autoworld/modules/globaLConfig"
+	"autoworld/modules/nsave"
 	"autoworld/modules/nsys"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -18,6 +20,7 @@ type Engine struct {
 	Input    IInputManager
 	Store    IGlobal              // Global resource store (Singleton từ nglobal)
 	AudioCtx *ebitenAudio.Context // Ebitengine audio context dùng chung
+	Save     ISaveManager         // Save manager system
 }
 
 // GameConfig chứa các tham số cấu hình ban đầu khi khởi động game.
@@ -30,6 +33,10 @@ type GameConfig struct {
 	Height int
 	// Sample rate cho âm thanh (thường là 44100)
 	SampleRate int
+	// SaveDir là thư mục lưu trữ file save (mặc định "./saves")
+	SaveDir string
+	// AutoSaveVars cho biết có tự động lưu toàn bộ biến từ nsys/Global không
+	AutoSaveVars bool
 }
 
 // NewGame khởi tạo Engine với GameConfig cho sẵn.
@@ -48,13 +55,19 @@ func NewGame(cfg GameConfig) *Engine {
 	_config.SetValue("game-rate", cfg.SampleRate)
 
 	_input := NewInputManager()
+	_scene := NewSceneManager(cfg.Width, cfg.Height, _input)
+	_store := nsys.GetInstance()
+
+	// Inject IInputManager vào components package để MouseComponent có thể truy cập.
+	components.SetGlobalInputManager(_input)
 
 	return &Engine{
-		Scene:    NewSceneManager(cfg.Width, cfg.Height, _input),
+		Scene:    _scene,
 		Config:   _config,
 		Input:    _input,
-		Store:    nsys.GetInstance(),
+		Store:    _store,
 		AudioCtx: ebitenAudio.NewContext(sampleRate),
+		Save:     nsave.NewSaveManager(_scene, _store, cfg.SaveDir, cfg.AutoSaveVars),
 	}
 }
 
