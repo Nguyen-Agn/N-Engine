@@ -2,18 +2,19 @@ package sharedobject
 
 import (
 	"autoworld/modules/napi"
+	"autoworld/modules/napi/ncom"
 	"fmt"
 )
 
 type MovingBox struct {
-	napi.IObject
-	napi.Pos
-	napi.Box
-	napi.Velo
-	napi.Spr
+	ncom.Object
+	ncom.Pos
+	ncom.Box
+	ncom.Velo
+	ncom.Spr
 
-	napi.Col
-	napi.Info
+	ncom.Col
+	ncom.Info
 }
 
 func NewMovingBox(x, y int) *MovingBox {
@@ -62,7 +63,7 @@ func (this *MovingBox) StepUpdate() {
 
 func (this *MovingBox) Destroy() {}
 
-func (this *MovingBox) Handler(other napi.Object) {
+func (this *MovingBox) Handler(other napi.IObject) {
 	fmt.Print(".")
 	this.SetVelocityX(-this.VelocityX())
 	this.SetVelocityY(-this.VelocityY())

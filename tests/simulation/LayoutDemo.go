@@ -7,6 +7,7 @@ import (
 	"autoworld/domain"
 	"autoworld/domain/bridge"
 	"autoworld/modules/napi"
+	"autoworld/modules/napi/ncom"
 	layout "autoworld/modules/nlayout"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -18,81 +19,72 @@ const (
 )
 
 type ColorBox struct {
-	napi.IObject
-	napi.Spr
-	napi.Pos
+	ncom.Object
+	ncom.Spr
+	ncom.Pos
+	ncom.Box
 
-	// col lÃ  mÃ u fill cá»§a Ã´
 	col color.RGBA
-	// w, h lÃ  kÃ­ch thÆ°á»›c Ã´ (pixel)
-	w, h int
 }
 
 func NewColorBox(name string, x, y, w, h int, col color.RGBA) *ColorBox {
-	b := &ColorBox{col: col, w: w, h: h}
-	napi.Obj.NewObjectAndResgiter(b, name, "pos spr", "main")
+	b := &ColorBox{col: col}
+	napi.Obj.NewObject(b, name, "pos spr sce-main box")
 	b.SetX(float32(x))
 	b.SetY(float32(y))
 
+	b.SetBoxW(float32(w))
+	b.SetBoxH(float32(h))
 	return b
 }
 
 func (b *ColorBox) Create() {
-	img := ebiten.NewImage(b.w, b.h)
-	img.Fill(b.col)
-
-	spr := newSolidSprite(img, b.w, b.h)
-	b.SetSprite("default", spr)
+	b.SetSprite("default", napi.Assert.GetSprite("nine-slice"))
 	b.SetCurrentSprite("default")
-	b.SetScaleX(1)
-	b.SetScaleY(1)
 
-	b.SetOffsetX(float32(b.w) / 2)
-	b.SetOffsetY(float32(b.h) / 2)
+	b.SetScaleX(b.BoxW() / float32(b.GetCurrentSprite().Width()))
+	b.SetScaleY(b.BoxH() / float32(b.GetCurrentSprite().Height()))
+
+	b.Set9Slice(true, "4")
+
+	b.SetOffsetX(float32(b.BoxW()) / 2)
+	b.SetOffsetY(float32(b.BoxH()) / 2)
 }
 
 type BackgroundBox struct {
 	napi.IObject
-	napi.Back
+	ncom.Back
 }
-
-func NewBackground() *BackgroundBox {
-	bg := &BackgroundBox{}
-	napi.Obj.NewObject(bg, "backg", "back sce-main")
-	bg.SetColor(color.RGBA{18, 18, 28, 255})
-
-	return bg
-}
-
-func (b *BackgroundBox) Create() {}
 
 type HeaderBar struct {
 	napi.IObject
-	napi.Spr
-	napi.Pos
-
-	w, h int
-	col  color.RGBA
+	ncom.Spr
+	ncom.Pos
+	ncom.Box
+	col color.RGBA
 }
 
 func NewHeaderBar(name string, x, y, w, h int, col color.RGBA) *HeaderBar {
-	hb := &HeaderBar{w: w, h: h, col: col}
-	napi.Obj.NewObject(hb, name, "pos spr sce-main")
+	hb := &HeaderBar{col: col}
+	napi.Obj.NewObject(hb, name, "pos spr sce-main box")
 	hb.SetX(float32(x))
 	hb.SetY(float32(y))
+
+	hb.SetBoxW(float32(w))
+	hb.SetBoxH(float32(h))
+
 	return hb
 }
 
 func (hb *HeaderBar) Create() {
-	img := ebiten.NewImage(hb.w, hb.h)
+	img := ebiten.NewImage(int(hb.BoxW()), int(hb.BoxH()))
 	img.Fill(hb.col)
-	spr := newSolidSprite(img, hb.w, hb.h)
+	spr := newSolidSprite(img, int(hb.BoxW()), int(hb.BoxH()))
 	hb.SetSprite("default", spr)
 	hb.SetCurrentSprite("default")
 
-	// Äáº·t Offset Ä‘á»ƒ render top-left
-	hb.SetOffsetX(float32(hb.w) / 2)
-	hb.SetOffsetY(float32(hb.h) / 2)
+	hb.SetOffsetX(float32(hb.BoxW()) / 2)
+	hb.SetOffsetY(float32(hb.BoxH()) / 2)
 }
 
 func setupLayoutDemo() {
@@ -143,11 +135,6 @@ func setupLayoutDemo() {
 			{"r4-c", 120, 60, color.RGBA{134, 239, 172, 255}},
 		},
 	)
-
-	NewHeaderBar("divider-h", 0, 300, screenW, 4, color.RGBA{60, 60, 80, 255})
-	NewHeaderBar("divider-v", 400, 0, 4, screenH, color.RGBA{60, 60, 80, 255})
-
-	NewHeaderBar("header", 0, 0, screenW, 20, color.RGBA{30, 30, 50, 255})
 }
 
 func newSolidSprite(img *ebiten.Image, w, h int) domain.ISpriteLW {
@@ -180,37 +167,33 @@ func buildSection(sectionName string, rx, ry, rw, rh int, config, gap int, specs
 	entries := make([]entry, 0, len(specs))
 
 	for _, spec := range specs {
-		// A khÃ´ng cÃ³ object â†’ chá»‰ dÃ¹ng Ä‘á»ƒ tÃ­nh tá»a Ä‘á»™
+
 		anchor := layout.NewA(spec.name, nil, spec.w, spec.h)
 		root.AddChildren(anchor)
 		entries = append(entries, entry{spec: spec, a: anchor})
 	}
 
-	// TÃ­nh toÃ¡n layout â†’ anchor.BoxX(), BoxY() sáº½ chá»©a tá»a Ä‘á»™ chÃ­nh xÃ¡c
 	root.ComputeLayout(rx, ry, rw, rh)
 
-	// Táº¡o ColorBox táº¡i Ä‘Ãºng tá»a Ä‘á»™ layout Ä‘Ã£ tÃ­nh
 	for _, e := range entries {
 		NewColorBox(e.spec.name, e.a.BoxX(), e.a.BoxY(), e.spec.w, e.spec.h, e.spec.col)
 	}
 }
 
 func main() {
-	// 1. Khá»Ÿi táº¡o engine
 	napi.Game.Init(napi.GameConfig{
-		Title:  "AutoWorld â€” nLayout Visual Demo",
+		Title:  "AutoWorld nLayout Visual Demo",
 		Width:  screenW,
 		Height: screenH,
 	})
 
-	// 2. Táº¡o scene (chá»‰ Physical Map, khÃ´ng cáº§n GUI vÃ¬ layout tÃ­nh tá»a Ä‘á»™ screen-space)
+	napi.Game.LoadFromFile("./SharedObject/Config.toml")
+
 	_, err := napi.Scene.NewSceneAndGo("main", "gui-800-600")
 	if err != nil {
-		log.Fatalf("KhÃ´ng thá»ƒ khá»Ÿi táº¡o Scene: %v", err)
+		log.Fatalf("No Scene: %v", err)
 	}
 
-	// 3. Ná»n + cÃ¡c Ã´ layout
-	NewBackground()
 	setupLayoutDemo()
 
 	// 4. Cháº¡y vÃ²ng láº·p game

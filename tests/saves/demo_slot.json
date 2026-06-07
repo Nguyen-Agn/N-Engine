@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "path": "saves/demo_slot.json",
+  "saved_at": 1780646927,
+  "current_scene_id": "main",
+  "variables": null,
+  "objects": {
+    "hero_1": {
+      "x": 417,
+      "y": 113
+    }
+  }
+}

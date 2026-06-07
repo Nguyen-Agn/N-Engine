@@ -1,6 +1,6 @@
 [[sprites]]
 key = "character"
-path = "../test_resources/character.png"
+path = "./test_resources/character.png"
 mode = "sheet"
 frameW = 32
 frameH = 32
@@ -8,3 +8,7 @@ cols = 4
 rows = 1
 gapX = 0
 gapY = 0
+
+[[sprites]]
+key = "nine-slice"
+path = "./test_resources/nineSlice.png"

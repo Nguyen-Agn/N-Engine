@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "path": "./save_load_demo/demo_slot.json",
+  "saved_at": 1780648805,
+  "current_scene_id": "main",
+  "variables": null,
+  "objects": {
+    "ball_1": {
+      "vx": -2,
+      "vy": -3,
+      "x": 134,
+      "y": 223
+    },
+    "ball_2": {
+      "vx": -3,
+      "vy": 2,
+      "x": 51,
+      "y": 236
+    },
+    "ball_3": {
+      "vx": 4,
+      "vy": -2,
+      "x": 32,
+      "y": 214
+    },
+    "dyn_1": {
+      "x": 50,
+      "y": 350
+    },
+    "hero_1": {
+      "x": 477,
+      "y": 299
+    },
+    "spawner_sys": {
+      "count": 1,
+      "positions": [
+        {
+          "x": 50,
+          "y": 350
+        }
+      ]
+    },
+    "star_1": {
+      "alpha": 120,
+      "dir": 5
+    },
+    "star_2": {
+      "alpha": 120,
+      "dir": 5
+    }
+  }
+}
