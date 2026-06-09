@@ -63,21 +63,60 @@ The engine is organized in strict dependency layers. Higher layers use lower lay
 
 ## 🚀 Quick Start & Tutorials
 
-### Prerequisites
+### 1. Installation
 
-- **Go** 1.21+
-- Dependencies are vendored in `.libs/` — no additional `go get` needed
+If you are creating a new game project, initialize your module and get N-Engine:
 
-### Running the demo
+```powershell
+go mod init mygame
+go get github.com/Nguyen-Agn/N-Engine@latest
+```
+
+*(Note: N-Engine requires Go 1.21+)*
+
+### 2. Basic Setup (`main.go`)
+
+Here is the absolute minimum code to open a window and start the engine:
+
+```go
+package main
+
+import (
+	"log"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+)
+
+func main() {
+	// 1. Initialize engine
+	napi.Game.Init(napi.GameConfig{
+		Title:  "My First Game",
+		Width:  800,
+		Height: 600,
+	})
+
+	// 2. Create the first scene and transition to it
+	_, err := napi.Scene.NewSceneAndGo("main", "map-800-600")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 3. Start the game loop
+	napi.Game.GameStart()
+}
+```
+
+### 3. Running the built-in Demo
+
+If you cloned the repository locally, you can run the demo directly:
 
 ```powershell
 cd tests/simulation
 go run .\TilemapDemo.go
 ```
 
-### Learning N-Engine
+### 4. Learning N-Engine
 
-To learn how to use N-Engine, please refer to the detailed bilingual tutorials in the `tutorial/` folder:
+To master N-Engine, please refer to the detailed bilingual tutorials in the `tutorial/` folder:
 - **[createGame.md](tutorial/createGame.md)**: Initialize engine, load assets, and start the game loop.
 - **[CreateObject.md](tutorial/CreateObject.md)**: Create ECS objects using OOP structs and `ncom` mixins.
 - **[Global.md](tutorial/Global.md)**: Manage global variables, constants, and the `napi.Store`.
