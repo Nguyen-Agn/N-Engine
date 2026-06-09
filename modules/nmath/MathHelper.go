@@ -43,7 +43,7 @@ func (m MathHelper) Approach(current, target, amount float32) float32 {
 	if diff > amount {
 		return current + amount
 	}
-	if diff < amount {
+	if diff < -amount {
 		return current - amount
 	}
 	return target

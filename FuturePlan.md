@@ -10,7 +10,7 @@
 - [ ] B+ State Machine 
 - [ ] B- Camera Effect
 - [ ] B- Partical
-- [ ] B+ Math helper (high quality)
+- [x] B+ Math helper (high quality)
 - [x] A- Debuging
 - [x] A- Object pooling (high quality)
 
