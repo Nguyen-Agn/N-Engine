@@ -21,6 +21,9 @@ type jsonFileAdapter struct {
 	saveDir string
 }
 
+// newJsonFileAdapter initializes a new JSON file adapter to manage saves in a specific directory.
+// Inputs: saveDir - root folder path to store saved files. Default is "./saves".
+// Outputs: a configured jsonFileAdapter pointer.
 func newJsonFileAdapter(saveDir string) *jsonFileAdapter {
 	if saveDir == "" {
 		saveDir = "./saves"
@@ -28,6 +31,9 @@ func newJsonFileAdapter(saveDir string) *jsonFileAdapter {
 	return &jsonFileAdapter{saveDir: saveDir}
 }
 
+// getPath generates the exact file path for a given save slot name.
+// Inputs: path - identifier of the save. Falls back to "default.json" if empty.
+// Outputs: full filepath to the json save file.
 func (a *jsonFileAdapter) getPath(path string) string {
 	if path == "" {
 		return filepath.Join(a.saveDir, "default.json")
@@ -35,6 +41,9 @@ func (a *jsonFileAdapter) getPath(path string) string {
 	return path
 }
 
+// Write serializes the save snapshot data as JSON and commits it to disk.
+// Inputs: path - relative file path or slot name, snap - domain.SaveSnapshot to persist.
+// Outputs: error if file creation or encoding fails.
 func (a *jsonFileAdapter) Write(path string, snap domain.SaveSnapshot) error {
 	p := a.getPath(path)
 	// Create directory if not exists
@@ -55,6 +64,9 @@ func (a *jsonFileAdapter) Write(path string, snap domain.SaveSnapshot) error {
 	return nil
 }
 
+// Read loads and decodes a save snapshot from a given path.
+// Inputs: path - relative file path or slot name.
+// Outputs: parsed domain.SaveSnapshot and any encountered error.
 func (a *jsonFileAdapter) Read(path string) (domain.SaveSnapshot, error) {
 	var snap domain.SaveSnapshot
 	p := a.getPath(path)
@@ -71,12 +83,18 @@ func (a *jsonFileAdapter) Read(path string) (domain.SaveSnapshot, error) {
 	return snap, nil
 }
 
+// Exists checks if a save file already exists on disk.
+// Inputs: path - relative file path or slot name.
+// Outputs: true if file is present.
 func (a *jsonFileAdapter) Exists(path string) bool {
 	p := a.getPath(path)
 	_, err := os.Stat(p)
 	return err == nil
 }
 
+// Delete removes the specified save file from the disk.
+// Inputs: path - relative file path or slot name.
+// Outputs: error if the filesystem fails to delete the file.
 func (a *jsonFileAdapter) Delete(path string) error {
 	p := a.getPath(path)
 	if !a.Exists(path) {
@@ -85,6 +103,8 @@ func (a *jsonFileAdapter) Delete(path string) error {
 	return os.Remove(p)
 }
 
+// ListAll scans the save directory and returns all available valid save slot names.
+// Outputs: a string slice of save slot names without their .json extension.
 func (a *jsonFileAdapter) ListAll() []string {
 	var slots []string
 

@@ -13,6 +13,9 @@ type entryProvider interface {
 }
 
 // HashString băm chuỗi thành uint64 dùng FNV-1a.
+// Purpose: Hashes a string into a uint64 value using the FNV-1a algorithm.
+// Inputs: s string - The string to hash.
+// Outputs: uint64 - The resulting hash value.
 func HashString(s string) uint64 {
 	h := fnv.New64a()
 	h.Write([]byte(s))
@@ -26,6 +29,13 @@ func HashString(s string) uint64 {
 //
 //	var StatsComp = napi.NewComponentType[StatsData]("sta")
 //	napi.SetComponent(player, StatsComp, StatsData{Health: 100, Mana: 50})
+// Purpose: Assigns a value to a custom donburi component on an object.
+// Inputs:
+//   - obj IObject: The target game object.
+//   - comp *donburi.ComponentType[T]: The component type definition.
+//   - value T: The data to assign to the component.
+// Outputs: None.
+// Special requirements: The object must implement entryProvider to access its ECS entry.
 func SetComponent[T any](obj IObject, comp *donburi.ComponentType[T], value T) {
 	ep, ok := obj.(entryProvider)
 	if !ok {
@@ -43,6 +53,11 @@ func SetComponent[T any](obj IObject, comp *donburi.ComponentType[T], value T) {
 //	if stats != nil {
 //	    stats.Health -= 10
 //	}
+// Purpose: Retrieves a pointer to a custom component's data on an object.
+// Inputs:
+//   - obj IObject: The target game object.
+//   - comp *donburi.ComponentType[T]: The component type definition.
+// Outputs: *T - Pointer to the component data, or nil if the object lacks this component.
 func GetComponent[T any](obj IObject, comp *donburi.ComponentType[T]) *T {
 	ep, ok := obj.(entryProvider)
 	if !ok {
@@ -62,6 +77,11 @@ func GetComponent[T any](obj IObject, comp *donburi.ComponentType[T]) *T {
 //
 //	napi.AddComponentType(player, StatsComp)
 //	napi.SetComponent(player, StatsComp, StatsData{Health: 100})
+// Purpose: Dynamically adds a new component type to an existing object's ECS entry.
+// Inputs:
+//   - obj IObject: The target game object.
+//   - comp *donburi.ComponentType[T]: The component type to add.
+// Outputs: None.
 func AddComponentType[T any](obj IObject, comp *donburi.ComponentType[T]) {
 	ep, ok := obj.(entryProvider)
 	if !ok {

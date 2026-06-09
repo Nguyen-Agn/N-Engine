@@ -22,22 +22,34 @@ var ReadFileFn = func(path string) (io.ReadCloser, error) {
 
 // IImageDecoder defines the strategy for decoding different image formats.
 type IImageDecoder interface {
+	// Purpose: Decodes an image from a reader.
+	// Inputs: r (io.Reader) - The input stream containing the image data.
+	// Outputs: (image.Image) - The decoded image, (error) - Error if decoding fails.
 	Decode(r io.Reader) (image.Image, error)
 }
 
 // PNGDecoder implements IImageDecoder for .png
 type PNGDecoder struct{}
 
+// Purpose: Decodes a PNG image.
+// Inputs: r (io.Reader) - The input stream.
+// Outputs: (image.Image) - The decoded image, (error) - Error if decoding fails.
 func (d *PNGDecoder) Decode(r io.Reader) (image.Image, error) { return png.Decode(r) }
 
 // JPGDecoder implements IImageDecoder for .jpg/.jpeg
 type JPGDecoder struct{}
 
+// Purpose: Decodes a JPG/JPEG image.
+// Inputs: r (io.Reader) - The input stream.
+// Outputs: (image.Image) - The decoded image, (error) - Error if decoding fails.
 func (d *JPGDecoder) Decode(r io.Reader) (image.Image, error) { return jpeg.Decode(r) }
 
 // GIFDecoder implements IImageDecoder for .gif
 type GIFDecoder struct{}
 
+// Purpose: Decodes a GIF image.
+// Inputs: r (io.Reader) - The input stream.
+// Outputs: (image.Image) - The decoded image, (error) - Error if decoding fails.
 func (d *GIFDecoder) Decode(r io.Reader) (image.Image, error) { return gif.Decode(r) }
 
 // SpriteLoader implements domain.ISpriteLoader
@@ -45,7 +57,8 @@ type SpriteLoader struct {
 	decoders map[string]IImageDecoder
 }
 
-// NewSpriteLoader creates a new loader with default decoders.
+// Purpose: Creates a new SpriteLoader with default decoders for common image formats.
+// Outputs: (*SpriteLoader) - The newly created loader.
 func NewSpriteLoader() *SpriteLoader {
 	return &SpriteLoader{
 		decoders: map[string]IImageDecoder{
@@ -57,11 +70,15 @@ func NewSpriteLoader() *SpriteLoader {
 	}
 }
 
-// RegisterDecoder allows adding custom decoders for new formats.
+// Purpose: Registers a custom image decoder for a specific file extension.
+// Inputs: ext (string) - The file extension (e.g. ".webp"), decoder (IImageDecoder) - The decoder strategy.
 func (l *SpriteLoader) RegisterDecoder(ext string, decoder IImageDecoder) {
 	l.decoders[ext] = decoder
 }
 
+// Purpose: Internal helper to read and decode an image from a given file path.
+// Inputs: path (string) - The path to the image file.
+// Outputs: (image.Image) - The decoded image, (error) - Error if file reading or decoding fails.
 func (l *SpriteLoader) decodeImage(path string) (image.Image, error) {
 	file, err := ReadFileFn(path)
 	if err != nil {
@@ -82,7 +99,9 @@ func (l *SpriteLoader) decodeImage(path string) (image.Image, error) {
 	return img, nil
 }
 
-// LoadSingle loads a single image file into a SpriteLW.
+// Purpose: Loads a single image file and returns it as a Sprite.
+// Inputs: path (string) - The path to the image file.
+// Outputs: (ISpriteLW) - The loaded sprite, (error) - Error if loading fails.
 func (l *SpriteLoader) LoadSingle(path string) (ISpriteLW, error) {
 	img, err := l.decodeImage(path)
 	if err != nil {
@@ -98,7 +117,9 @@ func (l *SpriteLoader) LoadSingle(path string) (ISpriteLW, error) {
 	return sprite, nil
 }
 
-// LoadSheet loads a spritesheet and cuts it into frames.
+// Purpose: Loads a spritesheet image and slices it into individual frames.
+// Inputs: path (string) - The image path, frameW (int) - Frame width, frameH (int) - Frame height, cols (int) - Number of columns, rows (int) - Number of rows, gapX (int) - Horizontal gap between frames, gapY (int) - Vertical gap.
+// Outputs: (ISpriteLW) - The loaded sprite containing all frames, (error) - Error if loading fails.
 func (l *SpriteLoader) LoadSheet(path string, frameW, frameH, cols, rows, gapX, gapY int) (ISpriteLW, error) {
 	img, err := l.decodeImage(path)
 	if err != nil {

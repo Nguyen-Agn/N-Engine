@@ -6,8 +6,8 @@ import (
 )
 
 // ─── Domain Interface Aliases ─────────────────────────────────────────────────
-// Type alias tập trung: các module khác chỉ cần import "core" thay vì "domain" trực tiếp.
-// Điều này giúp cô lập dependency vào domain và dễ thay thế nếu cần.
+// Type alias center: to keep 'import' at other files shorter
+// Help centrelize on dependency at domain -> usable & change 1 for all
 
 // Manager interfaces
 type ISceneManager = domain.ISceneManager
@@ -25,6 +25,7 @@ type IAlarmSystem = domain.IUpdateSystem
 type ITweenSystem = domain.IUpdateSystem
 type IVelocitySystem = domain.IUpdateSystem
 
+// Scene support
 type IMap = domain.IMap
 type ICamera = domain.ICamera
 
@@ -32,7 +33,7 @@ type ICamera = domain.ICamera
 type IObject = domain.IObject
 
 // ─── Domain Data Struct Aliases ───────────────────────────────────────────────
-// Alias cho các Component Data struct dùng trong ECS.
+// Alias for Component Data structs in ECS.
 
 type PositionData = domain.PositionData
 type SpriteData = domain.SpriteData
@@ -61,8 +62,8 @@ const (
 )
 
 // ─── ECS Component Type Variables ────────────────────────────────────────────
-// Trỏ thẳng đến biến static trong enginetype để đảm bảo an toàn thứ tự khởi tạo.
-// Không tạo ComponentType mới ở đây — chỉ re-export từ enginetype.
+// Pointer directly -> static vars in enginetype to ensure start' order.
+// No new ComponentType — just re-export from enginetype.
 
 var (
 	Position   = enginetype.Position

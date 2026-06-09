@@ -9,27 +9,29 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-// â”€â”€â”€ Core Concrete Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Re-export cÃ¡c struct cá»¥ thá»ƒ tá»« core â€” dÃ¹ng trá»±c tiáº¿p trong game code.
-
-// Engine lÃ  *core.Engine â€” struct trung tÃ¢m chá»©a Scene, Store, AudioCtx.
 type Engine = core.Engine
 
-// GameConfig lÃ  cáº¥u hÃ¬nh khá»Ÿi Ä‘á»™ng: Title, Width, Height, SampleRate.
 type GameConfig = core.GameConfig
 
-// sceneType lÃ  *core.sceneType â€” má»™t mÃ n chÆ¡i Ä‘á»™c láº­p vá»›i world donburi riÃªng.
 type sceneType = core.Scene
 
-// NewGame khá»Ÿi táº¡o Engine tá»« GameConfig. ThÆ°á»ng Ä‘Æ°á»£c gá»i giÃ¡n tiáº¿p qua napi.Init().
+// NewGame creates a new core.Engine instance based on the provided configuration.
+//
+// Purpose: Used indirectly via napi.Game.Init() to instantiate the game engine.
+//
+// Inputs:
+// - cfg (GameConfig): Configuration parameters for the game engine.
+//
+// Outputs:
+// - *Engine: The newly created core engine instance.
 func NewGame(cfg GameConfig) *Engine {
 	return core.NewGame(cfg)
 }
 
-// â”€â”€â”€ Domain Interface Aliases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Re-export cÃ¡c interface tá»« domain â€” game code khÃ´ng cáº§n import domain trá»±c tiáº¿p.
+// ————————————————————————————————————————————————————————————————————————————————
+// Re-export cÃ¡c interface tá»« domain — game code khÃ´ng cáº§n import domain trá»±c tiáº¿p.
 
-type IEngine = domain.IEngine
+type IEngine = domain.Engine
 type IScene = domain.IScene
 type IMap = domain.IMap
 type ICamera = domain.ICamera
@@ -75,11 +77,6 @@ var (
 	tween      = enginetype.Tween
 )
 
-// â”€â”€â”€ Component Mixin Aliases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Re-export cÃ¡c Component Mixin struct tá»« modules/components.
-// NhÃºng (embed) cÃ¡c struct nÃ y vÃ o Custom Object Ä‘á»ƒ nháº­n Ä‘áº§y Ä‘á»§ getter/setter.
-// VÃ­ dá»¥: type Player struct { napi.IObject; napi.IPosition; napi.ISprite }
-
 type pos = components.PositionComponent
 type box = components.BoxComponent
 type aud = components.AudioComponent
@@ -99,6 +96,15 @@ type deb = components.DebugComponent
 
 type GenericComponent[T any] = components.GenericComponent[T]
 
+// NewGenericComponent creates a strongly typed wrapper around a Donburi component.
+//
+// Purpose: Allows component data to be retrieved or modified with type safety during gameplay.
+//
+// Inputs:
+// - comp (*donburi.ComponentType[T]): The ECS component type.
+//
+// Outputs:
+// - components.GenericComponent[T]: A strongly typed generic component struct.
 func NewGenericComponent[T any](comp *donburi.ComponentType[T]) components.GenericComponent[T] {
 	return components.NewGenericComponent(comp)
 }

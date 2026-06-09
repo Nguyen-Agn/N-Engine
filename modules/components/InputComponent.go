@@ -46,22 +46,23 @@ type InputComponent struct {
 	data *InputData
 }
 
+// BindComponent binds the base object and its corresponding ECS data to the component.
+// Purpose: Automatically invoked by the engine to fetch the input data pointer.
+// Inputs:
+//   - base: The IObject representing the base entity to bind.
+// Outputs: None.
 func (c *InputComponent) BindComponent(base IObject) {
 	c.IObject = base
 	c.data = enginetype.GetComponent(base, enginetype.Input)
 }
 
-// ListenOn đăng ký một handler được gọi khi phím (hoặc nhóm phím) kích hoạt theo loại sự kiện.
-//
-// Tham số:
-//   - key: tên phím hoặc nhóm phím, hỗ trợ nhận nhiều phím cách nhau bằng dấu cách (VD: "w a s d alpha")
-//     "alpha" — bất kỳ phím chữ nào (a-z)
-//     "number" — bất kỳ phím số nào (0-9)
-//     "arrows" — bất kỳ phím mũi tên nào
-//     "wasd" — W/A/S/D
-//     "all" — bất kỳ phím nào
-//   - eventType: loại sự kiện ("pressed", "just_pressed", "just_released")
-//   - handler: hàm nhận tên phím đã trigger (ví dụ: "w", "space", "a"...)
+// ListenOn registers a handler to be called when a specific key or key group triggers an event.
+// Purpose: Subscribes to keyboard input events.
+// Inputs:
+//   - key: The string name of the key or group (e.g., "w a s d alpha", "all").
+//   - eventType: The type of event ("pressed", "just_pressed", "just_released").
+//   - handler: The function to execute when the event occurs. It receives the triggered key name.
+// Outputs: None.
 func (c *InputComponent) ListenOn(key string, eventType string, handler func(key string)) {
 	if c.data == nil {
 		return

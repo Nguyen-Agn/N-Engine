@@ -13,17 +13,28 @@ type mockObject struct {
 	entry *donburi.Entry
 }
 
+// OnCreate is a mock implementation.
 func (m *mockObject) OnCreate() {}
+// OnStep is a mock implementation.
 func (m *mockObject) OnStep() {}
+// OnDestroy is a mock implementation.
 func (m *mockObject) OnDestroy() {}
+// OnSave is a mock implementation.
 func (m *mockObject) OnSave(data map[string]any) {}
+// OnLoad is a mock implementation.
 func (m *mockObject) OnLoad(data map[string]any) {}
+// GetPool is a mock implementation.
 func (m *mockObject) GetPool() domain.IPool { return nil }
+// SetPool is a mock implementation.
 func (m *mockObject) SetPool(pool domain.IPool) {}
+// SetTokens is a mock implementation.
 func (m *mockObject) SetTokens(tokenClasses string) {}
+// Remove is a mock implementation.
 func (m *mockObject) Remove() {}
+// Entry is a mock implementation.
 func (m *mockObject) Entry() *donburi.Entry { return m.entry }
 
+// TestPositionComponent verifies the creation and modification of PositionComponent.
 func TestPositionComponent(t *testing.T) {
 	world := donburi.NewWorld()
 	
@@ -60,6 +71,7 @@ func TestPositionComponent(t *testing.T) {
 	}
 }
 
+// TestBoxComponent verifies the creation and modification of BoxComponent.
 func TestBoxComponent(t *testing.T) {
 	world := donburi.NewWorld()
 	entity := world.Create(enginetype.Box)
@@ -82,6 +94,7 @@ func TestBoxComponent(t *testing.T) {
 	}
 }
 
+// TestCollisionComponent verifies the creation and modification of CollisionComponent.
 func TestCollisionComponent(t *testing.T) {
 	world := donburi.NewWorld()
 	entity := world.Create(enginetype.Collision)
@@ -101,6 +114,7 @@ func TestCollisionComponent(t *testing.T) {
 	// Just ensuring no panic
 }
 
+// TestVelocityComponent verifies the creation and modification of VelocityComponent.
 func TestVelocityComponent(t *testing.T) {
 	world := donburi.NewWorld()
 	entity := world.Create(enginetype.Velocity)

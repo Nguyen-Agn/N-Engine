@@ -16,7 +16,9 @@ type saveManager struct {
 	autoSaveVars bool
 }
 
-// NewSaveManager creates a new instance of ISaveManager
+// NewSaveManager creates and returns a new instance of ISaveManager.
+// Inputs: sceneManager - the system controlling scenes, store - global variable registry, saveDir - folder path, autoSaveVars - boolean flag to include variables.
+// Outputs: configured domain.ISaveManager implementation.
 func NewSaveManager(sceneManager domain.ISceneManager, store domain.IGlobal, saveDir string, autoSaveVars bool) domain.ISaveManager {
 	return &saveManager{
 		file:         newJsonFileAdapter(saveDir),
@@ -27,6 +29,9 @@ func NewSaveManager(sceneManager domain.ISceneManager, store domain.IGlobal, sav
 	}
 }
 
+// SaveGame aggregates data from the current scene and global variables, storing them to the specified path.
+// Inputs: path - exact file path or save name. Uses "default" if empty.
+// Outputs: an error if the save process fails.
 func (s *saveManager) SaveGame(path string) error {
 	if path == "" {
 		path = "default"
@@ -62,6 +67,9 @@ func (s *saveManager) SaveGame(path string) error {
 	return s.file.Write(path, snap)
 }
 
+// LoadGame reads a save from disk and injects its data back into the variables and the current scene objects.
+// Inputs: path - exact file path or save name.
+// Outputs: an error if loading, parsing, or applying fails.
 func (s *saveManager) LoadGame(path string) error {
 	if path == "" {
 		path = "default"
@@ -96,6 +104,9 @@ func (s *saveManager) LoadGame(path string) error {
 	return nil
 }
 
+// HasSave verifies whether a specific save file slot exists.
+// Inputs: path - name or path of the save.
+// Outputs: boolean indicating presence.
 func (s *saveManager) HasSave(path string) bool {
 	if path == "" {
 		path = "default"
@@ -103,6 +114,9 @@ func (s *saveManager) HasSave(path string) bool {
 	return s.file.Exists(path)
 }
 
+// DeleteSave removes a specific save file slot permanently.
+// Inputs: path - name or path of the save.
+// Outputs: error if file deletion encounters an issue.
 func (s *saveManager) DeleteSave(path string) error {
 	if path == "" {
 		path = "default"
@@ -110,10 +124,15 @@ func (s *saveManager) DeleteSave(path string) error {
 	return s.file.Delete(path)
 }
 
+// ListSlots enumerates all readable save slots discovered in the designated save directory.
+// Outputs: array of save slot name strings.
 func (s *saveManager) ListSlots() []string {
 	return s.file.ListAll()
 }
 
+// ReadSnapshot retrieves the snapshot structure strictly as data without applying it to the game.
+// Inputs: path - name or path of the save.
+// Outputs: the snapshot structure domain.SaveSnapshot, and any error that arose.
 func (s *saveManager) ReadSnapshot(path string) (domain.SaveSnapshot, error) {
 	if path == "" {
 		path = "default"

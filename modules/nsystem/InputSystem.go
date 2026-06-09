@@ -6,27 +6,31 @@ import (
 	"autoworld/modules/enginetype"
 )
 
-// InputSystem duyệt tất cả Object có InputData và kích hoạt Handler
-// tương ứng mỗi frame theo loại sự kiện (Pressed, JustPressed, JustReleased).
+// InputSystem iterates through all Objects with InputData and triggers
+// their corresponding Handlers every frame based on EventType (Pressed, JustPressed, JustReleased).
 //
-// OR logic cho nhóm phím: nếu bất kỳ phím nào trong KeyBinding.Keys khớp,
-// Handler sẽ được gọi đúng một lần với tên phím đã trigger.
+// OR logic for key groups: if any key in KeyBinding.Keys matches,
+// the Handler is called exactly once with the triggered key's name.
 //
-// Mouse bindings: InputSystem gọi UpdateMouseBindings() trên mọi object
-// có MouseComponent được nhúng (phát hiện qua interface IMouse).
+// Mouse bindings: InputSystem calls UpdateMouseBindings() on every object
+// that embeds MouseComponent (detected via IMouse interface).
 //
-// InputSystem nhận domain.IInputManager qua interface để tránh
-// phụ thuộc trực tiếp vào module core (nguyên tắc Dependency Inversion).
+// InputSystem receives domain.IInputManager via interface to avoid
+// direct dependency on the core module (Dependency Inversion Principle).
 type InputSystem struct {
 	input domain.IInputManager
 }
 
-// NewInputSystem tạo InputSystem với IInputManager từ Engine.
+// NewInputSystem creates an InputSystem using the provided IInputManager from the Engine.
+// Inputs: input (domain.IInputManager) - The input manager instance.
+// Outputs: Returns a pointer to a newly initialized InputSystem.
 func NewInputSystem(input domain.IInputManager) *InputSystem {
 	return &InputSystem{input: input}
 }
 
-// Update duyệt objectList, xử lý keyboard bindings (theo EventType) và mouse bindings.
+// Update iterates through the objectList and processes both keyboard and mouse bindings.
+// Inputs: objectList ([]IObject) - The list of objects to be updated.
+// Purpose: It checks keyboard events (Pressed, JustPressed, JustReleased) based on bindings defined in each object's InputData, triggering handlers if conditions are met. It also processes mouse events for objects implementing the internal mouse updater interface.
 func (s *InputSystem) Update(objectList []IObject) {
 	for _, obj := range objectList {
 		// ── Keyboard ──────────────────────────────────────────────────────────
@@ -36,7 +40,7 @@ func (s *InputSystem) Update(objectList []IObject) {
 				for _, key := range binding.Keys {
 					if s.checkKey(key, binding.EventType) {
 						keyName := domain.KeyReverseMap[key]
-						binding.Handler(keyName) // OR logic: gọi 1 lần với phím đầu tiên khớp
+						binding.Handler(keyName) // OR logic: calls once with the first matching key
 						break
 					}
 				}
@@ -44,15 +48,19 @@ func (s *InputSystem) Update(objectList []IObject) {
 		}
 
 		// ── Mouse ─────────────────────────────────────────────────────────────
-		// Bất kỳ object nào nhúng MouseComponent đều implement IMouseUpdater,
-		// InputSystem gọi UpdateMouseBindings() để xử lý bindings đã đăng ký.
+		// Any object embedding MouseComponent implements iMouseUpdater.
+		// InputSystem calls UpdateMouseBindings() to process registered bindings.
 		if mu, ok := obj.(iMouseUpdater); ok {
 			mu.UpdateMouseBindings()
 		}
 	}
 }
 
-// checkKey kiểm tra trạng thái phím theo EventType.
+// checkKey evaluates the key state based on the provided EventType.
+// Inputs: 
+//   key (domain.Key) - The key to check.
+//   evt (domain.EventType) - The type of event (Pressed, JustPressed, JustReleased).
+// Outputs: Returns true if the key state matches the event type, false otherwise.
 func (s *InputSystem) checkKey(key domain.Key, evt domain.EventType) bool {
 	switch evt {
 	case domain.EventPressed:
@@ -65,11 +73,11 @@ func (s *InputSystem) checkKey(key domain.Key, evt domain.EventType) bool {
 	return false
 }
 
-// iMouseUpdater là interface nội bộ để InputSystem phát hiện object có MouseComponent.
-// Không export ra ngoài để tránh lộ chi tiết triển khai.
+// iMouseUpdater is an internal interface for InputSystem to detect objects with MouseComponent.
+// It is not exported to avoid exposing implementation details.
 type iMouseUpdater interface {
 	UpdateMouseBindings()
 }
 
-// Đảm bảo MouseComponent implement iMouseUpdater tại compile time.
+// Ensure MouseComponent implements iMouseUpdater at compile time.
 var _ iMouseUpdater = (*components.MouseComponent)(nil)

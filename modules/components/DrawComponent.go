@@ -42,7 +42,10 @@ type DrawComponent struct {
 var packageDefaultFont font.Face = basicfont.Face7x13
 
 // SetPackageDefaultFont replaces the engine-wide default font.
-// Intended to be called only by napi.SetDefaultFont().
+// Purpose: Sets the global font. Intended to be called only by napi.SetDefaultFont().
+// Inputs:
+//   - f: The font.Face to set as default.
+// Outputs: None.
 func SetPackageDefaultFont(f font.Face) {
 	packageDefaultFont = f
 }
@@ -57,18 +60,30 @@ func init() {
 }
 
 // BindComponent is called by the engine reflection binder to wire this mixin to its ECS entry.
+// Purpose: Binds the component to the ECS entry.
+// Inputs:
+//   - base: The IObject representing the base entity.
+// Outputs: None.
 func (d *DrawComponent) BindComponent(base IObject) {
 	d.IObject = base
 	d.data = enginetype.GetComponent(base, Draw)
 }
 
 // SetFont overrides the default font for this DrawComponent instance only.
+// Purpose: Sets a specific font for this component instance.
+// Inputs:
+//   - f: The font.Face to use for this component.
+// Outputs: None.
 func (d *DrawComponent) SetFont(f font.Face) {
 	d.defaultFont = f
 }
 
 // --- internal helpers ---
 
+// screen retrieves the target screen image for drawing.
+// Purpose: Gets the underlying ebiten.Image screen.
+// Inputs: None.
+// Outputs: Pointer to the ebiten.Image screen, or nil if data is unset.
 func (d *DrawComponent) screen() *ebiten.Image {
 	if d.data == nil {
 		return nil
@@ -77,6 +92,11 @@ func (d *DrawComponent) screen() *ebiten.Image {
 }
 
 // toScreen converts map-space (x, y) to screen-space by subtracting camera offset.
+// Purpose: Translates game world coordinates into screen coordinates.
+// Inputs:
+//   - x: Map-space X coordinate.
+//   - y: Map-space Y coordinate.
+// Outputs: A tuple (float32, float32) representing screen-space X and Y coordinates.
 func (d *DrawComponent) toScreen(x, y float32) (float32, float32) {
 	if d.data == nil {
 		return x, y
@@ -84,6 +104,10 @@ func (d *DrawComponent) toScreen(x, y float32) (float32, float32) {
 	return x - d.data.CamX, y - d.data.CamY
 }
 
+// activeFont retrieves the current active font for text rendering.
+// Purpose: Returns the component-specific font or falls back to the package default.
+// Inputs: None.
+// Outputs: The font.Face to use.
 func (d *DrawComponent) activeFont() font.Face {
 	if d.defaultFont != nil {
 		return d.defaultFont
@@ -96,7 +120,10 @@ func (d *DrawComponent) activeFont() font.Face {
 // =============================================================================
 
 // ScreenX converts a map-space X coordinate to screen-space X.
-// Useful when building a custom vector.Path before passing it to PathFill/PathStroke.
+// Purpose: Useful when building a custom vector.Path before passing it to PathFill/PathStroke.
+// Inputs:
+//   - mapX: Map-space X coordinate.
+// Outputs: Screen-space X coordinate.
 func (d *DrawComponent) ScreenX(mapX float32) float32 {
 	if d.data == nil {
 		return mapX
@@ -105,7 +132,10 @@ func (d *DrawComponent) ScreenX(mapX float32) float32 {
 }
 
 // ScreenY converts a map-space Y coordinate to screen-space Y.
-// Useful when building a custom vector.Path before passing it to PathFill/PathStroke.
+// Purpose: Useful when building a custom vector.Path before passing it to PathFill/PathStroke.
+// Inputs:
+//   - mapY: Map-space Y coordinate.
+// Outputs: Screen-space Y coordinate.
 func (d *DrawComponent) ScreenY(mapY float32) float32 {
 	if d.data == nil {
 		return mapY
@@ -118,6 +148,12 @@ func (d *DrawComponent) ScreenY(mapY float32) float32 {
 // =============================================================================
 
 // Rect draws a filled rectangle at map-space (x, y) with size (w, h).
+// Purpose: Draws a solid rectangle.
+// Inputs:
+//   - x, y: Map-space coordinates for the top-left corner.
+//   - w, h: Width and height of the rectangle.
+//   - c: The fill color.
+// Outputs: None.
 func (d *DrawComponent) Rect(x, y, w, h float32, c color.RGBA) {
 	s := d.screen()
 	if s == nil {
@@ -128,6 +164,12 @@ func (d *DrawComponent) Rect(x, y, w, h float32, c color.RGBA) {
 }
 
 // Circle draws a filled circle centered at map-space (x, y) with radius r.
+// Purpose: Draws a solid circle.
+// Inputs:
+//   - x, y: Map-space coordinates for the center.
+//   - r: Radius of the circle.
+//   - c: The fill color.
+// Outputs: None.
 func (d *DrawComponent) Circle(x, y, r float32, c color.RGBA) {
 	s := d.screen()
 	if s == nil {
@@ -142,7 +184,13 @@ func (d *DrawComponent) Circle(x, y, r float32, c color.RGBA) {
 // =============================================================================
 
 // RectStroke draws a rectangle outline at map-space (x, y) with size (w, h).
-// strokeWidth controls the border thickness in pixels.
+// Purpose: Draws a rectangle outline.
+// Inputs:
+//   - x, y: Map-space coordinates for the top-left corner.
+//   - w, h: Width and height of the rectangle.
+//   - c: The outline color.
+//   - strokeWidth: Thickness of the border in pixels.
+// Outputs: None.
 func (d *DrawComponent) RectStroke(x, y, w, h float32, c color.RGBA, strokeWidth float32) {
 	s := d.screen()
 	if s == nil {
@@ -153,7 +201,13 @@ func (d *DrawComponent) RectStroke(x, y, w, h float32, c color.RGBA, strokeWidth
 }
 
 // CircleStroke draws a circle outline centered at map-space (x, y) with radius r.
-// strokeWidth controls the border thickness in pixels.
+// Purpose: Draws a circle outline.
+// Inputs:
+//   - x, y: Map-space coordinates for the center.
+//   - r: Radius of the circle.
+//   - c: The outline color.
+//   - strokeWidth: Thickness of the border in pixels.
+// Outputs: None.
 func (d *DrawComponent) CircleStroke(x, y, r float32, c color.RGBA, strokeWidth float32) {
 	s := d.screen()
 	if s == nil {
@@ -164,7 +218,13 @@ func (d *DrawComponent) CircleStroke(x, y, r float32, c color.RGBA, strokeWidth 
 }
 
 // Line draws a straight line from map-space (x0, y0) to (x1, y1).
-// strokeWidth controls the line thickness in pixels.
+// Purpose: Draws a line segment.
+// Inputs:
+//   - x0, y0: Map-space coordinates for the start point.
+//   - x1, y1: Map-space coordinates for the end point.
+//   - c: The line color.
+//   - strokeWidth: Thickness of the line in pixels.
+// Outputs: None.
 func (d *DrawComponent) Line(x0, y0, x1, y1 float32, c color.RGBA, strokeWidth float32) {
 	s := d.screen()
 	if s == nil {
@@ -180,15 +240,12 @@ func (d *DrawComponent) Line(x0, y0, x1, y1 float32, c color.RGBA, strokeWidth f
 // =============================================================================
 
 // PathFill fills an arbitrary vector.Path with a color.
-// Build the path using screen-space coordinates via ScreenX() / ScreenY().
-//
-// Example:
-//
-//	var p vector.Path
-//	p.MoveTo(o.ScreenX(100), o.ScreenY(50))
-//	p.LineTo(o.ScreenX(150), o.ScreenY(100))
-//	p.Close()
-//	o.PathFill(&p, color.RGBA{255, 0, 0, 255}, true)
+// Purpose: Fills a custom shape path.
+// Inputs:
+//   - p: Pointer to the vector.Path built in screen-space coordinates.
+//   - c: The fill color.
+//   - antialias: Whether to enable antialiasing.
+// Outputs: None.
 func (d *DrawComponent) PathFill(p *vector.Path, c color.RGBA, antialias bool) {
 	s := d.screen()
 	if s == nil || p == nil {
@@ -200,7 +257,13 @@ func (d *DrawComponent) PathFill(p *vector.Path, c color.RGBA, antialias bool) {
 }
 
 // PathStroke strokes an arbitrary vector.Path with a color.
-// Build the path using screen-space coordinates via ScreenX() / ScreenY().
+// Purpose: Draws the outline of a custom shape path.
+// Inputs:
+//   - p: Pointer to the vector.Path built in screen-space coordinates.
+//   - c: The stroke color.
+//   - strokeWidth: Thickness of the stroke.
+//   - antialias: Whether to enable antialiasing.
+// Outputs: None.
 func (d *DrawComponent) PathStroke(p *vector.Path, c color.RGBA, strokeWidth float32, antialias bool) {
 	s := d.screen()
 	if s == nil || p == nil {
@@ -217,6 +280,10 @@ func (d *DrawComponent) PathStroke(p *vector.Path, c color.RGBA, strokeWidth flo
 // =============================================================================
 
 // parseAlign converts a string token to textv2.Align
+// Purpose: Parses a string alignment token into an ebiten text alignment enum.
+// Inputs:
+//   - token: The string token (e.g., "center", "left").
+// Outputs: A tuple containing the textv2.Align and a boolean indicating if it is justified.
 func parseAlign(token string) (textv2.Align, bool) {
 	switch token {
 	case "start", "left", "top", "l", "t":
@@ -232,13 +299,24 @@ func parseAlign(token string) (textv2.Align, bool) {
 	}
 }
 
-// SetTextAlign thiết lập căn lề cho các lệnh vẽ chữ tiếp theo.
+// SetTextAlign sets the text alignment for subsequent text drawing commands.
+// Purpose: Configures text alignment.
+// Inputs:
+//   - hAlign: Horizontal alignment string token.
+//   - vAlign: Vertical alignment string token.
+// Outputs: None.
 func (d *DrawComponent) SetTextAlign(hAlign, vAlign string) {
 	d.hAlign, d.isJustify = parseAlign(hAlign)
 	d.vAlign, _ = parseAlign(vAlign)
 }
 
-// SetTextOverflow thiết lập giới hạn khung chữ và cách xử lý tràn.
+// SetTextOverflow sets the bounding box for text and the overflow handling mode.
+// Purpose: Configures text overflow behavior.
+// Inputs:
+//   - maxWidth: Maximum width of the text box.
+//   - maxHeight: Maximum height of the text box.
+//   - mode: The overflow mode ("visible", "hidden", "scale").
+// Outputs: None.
 func (d *DrawComponent) SetTextOverflow(maxWidth, maxHeight float32, mode string) {
 	d.maxWidth = maxWidth
 	d.maxHeight = maxHeight
@@ -254,17 +332,36 @@ func (d *DrawComponent) SetTextOverflow(maxWidth, maxHeight float32, mode string
 }
 
 // Text draws a string at map-space (x, y) using the active default font.
-// Color c is applied to the rendered glyphs.
+// Purpose: Renders text to the screen.
+// Inputs:
+//   - text: The string to draw.
+//   - x, y: Map-space coordinates for the text.
+//   - c: The color of the text.
+// Outputs: None.
 func (d *DrawComponent) Text(text string, x, y float32, c color.RGBA) {
 	d.drawTextInternal(text, x, y, c, 1.0)
 }
 
 // TextEx draws a string at map-space (x, y) with a uniform scale applied to the font.
-// scale 1.0 = default size, 2.0 = double size. Uses the same font as Text().
+// Purpose: Renders scaled text to the screen.
+// Inputs:
+//   - text: The string to draw.
+//   - x, y: Map-space coordinates for the text.
+//   - c: The color of the text.
+//   - scale: The scaling factor (1.0 is default size).
+// Outputs: None.
 func (d *DrawComponent) TextEx(text string, x, y float32, c color.RGBA, scale float64) {
 	d.drawTextInternal(text, x, y, c, scale)
 }
 
+// drawTextInternal handles the actual text rendering logic including alignment, scaling, and clipping.
+// Purpose: Internal text drawing implementation.
+// Inputs:
+//   - textContent: The string to draw.
+//   - x, y: Map-space coordinates.
+//   - c: The text color.
+//   - scale: The scaling factor.
+// Outputs: None.
 func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c color.RGBA, scale float64) {
 	s := d.screen()
 	if s == nil || textContent == "" {
@@ -375,7 +472,12 @@ func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c col
 // =============================================================================
 
 // Image draws frame idx of the given ISpriteLW at map-space (x, y).
-// Allows manual sprite rendering independent of SpriteComponent.
+// Purpose: Allows manual sprite rendering independent of SpriteComponent.
+// Inputs:
+//   - sprite: The ISpriteLW instance to draw.
+//   - idx: The frame index of the sprite to draw.
+//   - x, y: Map-space coordinates.
+// Outputs: None.
 func (d *DrawComponent) Image(sprite ISpriteLW, idx int, x, y float32) {
 	s := d.screen()
 	if s == nil || sprite == nil {

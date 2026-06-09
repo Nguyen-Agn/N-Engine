@@ -36,13 +36,15 @@ type fmtChunk struct {
 // chuyển thẳng mà không thay đổi.
 type WAVAdapter struct{}
 
-// NewWAVAdapter tạo một WAVAdapter mới.
+// Purpose: Creates a new WAVAdapter.
+// Outputs: (*WAVAdapter) - A pointer to the new adapter.
 func NewWAVAdapter() *WAVAdapter {
 	return &WAVAdapter{}
 }
 
-// Adapt nhận dữ liệu WAV thô từ r, kiểm tra bit depth và convert nếu cần.
-// Trả về io.ReadSeeker chứa WAV hợp lệ (8 hoặc 16-bit) sẵn sàng cho Ebitengine.
+// Purpose: Receives raw WAV data, checks bit depth, and converts it if necessary (e.g. 24-bit to 16-bit).
+// Inputs: r (io.ReadSeeker) - The raw WAV data stream.
+// Outputs: (io.ReadSeeker) - A valid WAV stream (8 or 16-bit) ready for Ebitengine, (error) - Error on failure.
 func (a *WAVAdapter) Adapt(r io.ReadSeeker) (io.ReadSeeker, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
@@ -71,7 +73,9 @@ func (a *WAVAdapter) Adapt(r io.ReadSeeker) (io.ReadSeeker, error) {
 	return nil, fmt.Errorf("wav adapter: bit depth %d không được hỗ trợ (chỉ hỗ trợ 8, 16, 24)", bits)
 }
 
-// readBitsPerSample parse header WAV và đọc giá trị BitsPerSample.
+// Purpose: Parses the WAV header and reads the BitsPerSample value.
+// Inputs: data ([]byte) - The raw WAV bytes.
+// Outputs: (uint16) - The bit depth (e.g. 8, 16, 24), (error) - Error on parse failure.
 func (a *WAVAdapter) readBitsPerSample(data []byte) (uint16, error) {
 	r := bytes.NewReader(data)
 
@@ -115,9 +119,9 @@ func (a *WAVAdapter) readBitsPerSample(data []byte) (uint16, error) {
 	}
 }
 
-// convert24to16 chuyển đổi toàn bộ WAV 24-bit PCM sang 16-bit PCM.
-// Cách làm: lấy 2 byte cao của mỗi sample 3-byte (bỏ byte thấp nhất).
-// Rebuild file WAV hoàn chỉnh với header cập nhật.
+// Purpose: Converts a complete 24-bit PCM WAV file into 16-bit PCM. It does this by taking the top 2 bytes of each 3-byte sample and discarding the lowest byte.
+// Inputs: data ([]byte) - The raw 24-bit WAV bytes.
+// Outputs: ([]byte) - The converted 16-bit WAV bytes, (error) - Error on failure.
 func (a *WAVAdapter) convert24to16(data []byte) ([]byte, error) {
 	r := bytes.NewReader(data)
 

@@ -1,4 +1,4 @@
-﻿package napi
+package napi
 
 import (
 	"autoworld/modules/components"
@@ -11,12 +11,15 @@ import (
 // LoadFont loads a TrueType/OpenType font from a file path and returns a font.Face
 // at the given size (in pixels). Use the returned face with TextWithFont().
 //
-// Example:
+// Purpose: Loads external font files so they can be rendered by the draw system.
 //
-//	face, err := napi.LoadFont("assets/fonts/myfont.ttf", 16)
-//	if err != nil { log.Fatal(err) }
-//	// inside Draw():
-//	o.TextWithFont("Hello!", x, y, color.White, face)
+// Inputs:
+// - path (string): The file system path to the font file (e.g., "assets/fonts/myfont.ttf").
+// - size (float64): The desired size of the font in pixels.
+//
+// Outputs:
+// - font.Face: The parsed font face ready for rendering.
+// - error: An error if the file cannot be read or parsed.
 func LoadFont(path string, size float64) (font.Face, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -37,8 +40,14 @@ func LoadFont(path string, size float64) (font.Face, error) {
 }
 
 // SetDefaultFont sets the engine-wide default font used by DrawComponent.Text().
-// If not called, the engine defaults to basicfont.Face7x13 (a small bitmap font).
-// Call this once during initialisation, before the game loop starts.
+//
+// Purpose: Establishes a fallback font for text rendering across the engine. If not set, the engine defaults to basicfont.Face7x13.
+//
+// Inputs:
+// - face (font.Face): The new default font face to use.
+//
+// Special Requirements:
+// - Should be called once during initialization before the game loop starts.
 func SetDefaultFont(face font.Face) {
 	components.SetPackageDefaultFont(face)
 }

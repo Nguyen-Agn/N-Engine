@@ -14,6 +14,8 @@ type CollisionSystem struct {
 	collidables []domain.IObject
 }
 
+// NewCollisionSystem creates and returns a new instance of CollisionSystem with a default grid size.
+// Outputs: Returns a pointer to a newly initialized CollisionSystem.
 func NewCollisionSystem() *CollisionSystem {
 	return &CollisionSystem{
 		GridSize:    DefaultCollisionGridSize,
@@ -27,12 +29,17 @@ type collisionEvent struct {
 	handler func(other domain.IObject)
 }
 
+// AddObject registers an object to the collision system if it contains both Collision and Box components.
+// Inputs: obj (domain.IObject) - The object to be added to the collidables list.
 func (s *CollisionSystem) AddObject(obj domain.IObject) {
 	if enginetype.GetComponent(obj, enginetype.Collision) != nil && enginetype.GetComponent(obj, enginetype.Box) != nil {
 		s.collidables = append(s.collidables, obj)
 	}
 }
 
+// Update performs spatial hashing based collision detection on all registered collidable objects.
+// Inputs: objectList ([]domain.IObject) - The list of all objects (currently unused, it uses internal collidables list).
+// Purpose: It first cleans up dead objects. Then it maps active collidables into a grid based on their bounding boxes. Next, it checks for AABB intersections between objects in the same grid cells. If a collision is detected and a handler exists for the target's tag, it queues and later executes the handler.
 func (s *CollisionSystem) Update(objectList []domain.IObject) {
 
 	alive := s.collidables[:0]

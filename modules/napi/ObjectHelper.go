@@ -24,16 +24,31 @@ var Obj = &objGroup{}
 // 	OnCreate()
 // }
 
-// â”€â”€â”€ Object ID Counter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——————————————————————————————————————————————————————————————————————————————
+// Object ID Counter
+// ——————————————————————————————————————————————————————————————————————————————
 
-// objectIDCounter lÃ  bá»™ Ä‘áº¿m ID tá»± tÄƒng thread-safe cho má» i Object Ä‘Æ°á»£c táº¡o.
+// objectIDCounter is a thread-safe auto-incrementing ID counter for every created Object.
 var objectIDCounter int64 = 0
 
-// getNextObjectID tráº£ vá» ID tiáº¿p theo (báº¯t Ä‘áº§u tá»« 1), thread-safe dÃ¹ng atomic.
+// getNextObjectID safely increments and returns the next available unique object ID.
+//
+// Purpose: Provides a thread-safe auto-incrementing ID for every newly instantiated game object.
+//
+// Outputs:
+// - int: The next unique integer ID.
 func getNextObjectID() int {
 	return int(atomic.AddInt64(&objectIDCounter, 1))
 }
 
+// NewObject creates a new game object, binds its components, and registers it to a scene.
+//
+// Purpose: Parses a string of component tokens to dynamically construct an ECS entity, initializes its default data, and binds it to the provided custom object struct.
+//
+// Inputs:
+// - target (Object): The custom object struct pointer to bind to.
+// - name (string): The human-readable name of the object.
+// - componentCode (string): Space-separated tokens (e.g., "pos spr") indicating which components to attach.
 func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 	tokens := strings.Fields(componentCode)
 	tokenSet, sceneName, hasSceneToken := filter(tokens)
@@ -43,7 +58,7 @@ func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 
 	targetMap := targetScene.GetMap()
 
-	// XÃ¢y danh sÃ¡ch component types tá»« token
+	// Xây danh sách component types từ token
 	componentsList := []donburi.IComponentType{}
 	for token := range tokenSet {
 		comp := getComponentType(token)
@@ -52,15 +67,15 @@ func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 		}
 	}
 
-	// Táº¡o ECS entry trong world cá»§a map
+	// Tạo ECS entry trong world của map
 	entry := targetMap.World().Entry(targetMap.World().Create(componentsList...))
 
-	// Khá»Ÿi táº¡o data máº·c Ä‘á»‹nh tá»« registry cho tá»«ng component
+	// Khởi tạo data mặc định từ registry cho từng component
 	for token := range tokenSet {
 		enginetype.InitializeComponent(token, entry)
 	}
 
-	// LuÃ´n ghi InforData (báº¯t buá»™c): ID tá»± tÄƒng + name
+	// Luôn ghi InforData (bắt buộc): ID tự tăng + name
 	nextID := getNextObjectID()
 	donburi.SetValue(entry, enginetype.Infor, components.InforData{
 		Id:   nextID,
@@ -71,19 +86,32 @@ func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 	bind(target, obj)
 	specilalCase(obj, tokenSet)
 
-	// LÆ°u vÃ o global store náº¿u cÃ³ tÃªn (Ä‘á»ƒ tra cá»©u sau báº±ng napi.GetObject)
+	// Lưu vào global store nếu có tên (để tra cứu sau bằng napi.GetObject)
 	if target != nil && hasSceneToken {
 		o.RegisterIn(target, targetScene)
 	}
 }
 
+// specilalCase handles any special initialization logic for specific tokens.
+//
+// Purpose: A hook for custom post-creation logic based on the attached component tokens.
+//
+// Inputs:
+// - target (Object): The newly created object.
+// - tokenSet (map[string]bool): The set of component tokens attached to the object.
 func specilalCase(target Object, tokenSet map[string]bool) {}
 
-// â”€â”€â”€ Register Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——————————————————————————————————————————————————————————————————————————————
+// Register Helpers
+// ——————————————————————————————————————————————————————————————————————————————
 
-// Register Ä‘Äƒng kÃ½ má»™t IObject vÃ o scene's update loop.
+// Register adds an object to a scene's update loop by name.
 //
-// scene: name of scene, if nil -> global var
+// Purpose: Injects an initialized object into a scene so its lifecycle methods (like Update) are called.
+//
+// Inputs:
+// - obj (IObject): The object to register.
+// - scene (string): The identifier of the target scene. If "glo", registers to the global scene. If empty, registers to the current scene.
 func (o *objGroup) Register(obj IObject, scene string) {
 	var _scene interface{ AddObject(IObject) }
 	_scene = getScene(scene)
@@ -93,16 +121,25 @@ func (o *objGroup) Register(obj IObject, scene string) {
 	}
 }
 
-// RegisterIn Ä‘Äƒng kÃ½ má»™t IObject vÃ o scene cá»¥ thá»ƒ do caller chá»‰ Ä‘á»‹nh.
+// RegisterIn adds an object directly to a specific scene instance.
+//
+// Purpose: Bypasses string lookup to insert an object directly into a given scene.
+//
+// Inputs:
+// - obj (IObject): The object to register.
+// - scene (IScene): The target scene instance.
 func (o *objGroup) RegisterIn(obj IObject, scene IScene) {
 	if scene != nil {
 		scene.AddObject(obj)
 	}
 }
 
-// Remove xóa IObject khỏi scene hiện tại theo cơ chế deferred (cuối frame).
-// MarkDead() được gọi ngay; OnDestroy() sẽ được gọi ở frame tiếp theo.
-// Nếu object đã bị remove trước đó, hàm không làm gì thêm.
+// Remove schedules an object for deletion at the end of the current frame.
+//
+// Purpose: Safely removes an object from the active scene's map. Immediately marks the object as dead so it is skipped during the rest of the frame's processing.
+//
+// Inputs:
+// - obj (IObject): The object to remove.
 func (o *objGroup) Remove(obj IObject) {
 	currentScene := Scene.GetCurrentScene()
 	if currentScene == nil {
@@ -115,9 +152,19 @@ func (o *objGroup) Remove(obj IObject) {
 	m.RemoveObject(obj)
 }
 
-// â”€â”€â”€ Internal Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ——————————————————————————————————————————————————————————————————————————————
+// Internal Helpers
+// ——————————————————————————————————————————————————————————————————————————————
 
-// getScene tráº£ vá»  scene phÃ¹ há»£p: Global Scene náº¿u global=true, Current Scene náº¿u false.
+// getScene resolves a scene string identifier to an actual scene instance.
+//
+// Purpose: Translates "glo", "cur", empty strings, or specific IDs into their respective IScene instances.
+//
+// Inputs:
+// - name (string): The identifier string.
+//
+// Outputs:
+// - IScene: The resolved scene.
 func getScene(name string) IScene {
 	switch name {
 	case "glo":
@@ -129,8 +176,17 @@ func getScene(name string) IScene {
 	}
 }
 
-// filter phÃ¢n tÃ­ch danh sÃ¡ch token, tÃ¡ch modifier "sce-*" (hoáº·c "glo").
-// Tráº£ vá» : set token duy nháº¥t vÃ  tÃªn scene Ä‘á»ƒ auto-register.
+// filter extracts component tokens and any scene modifier from a raw list of tokens.
+//
+// Purpose: Parses the component code string, identifying "sce-*" modifiers to determine the target scene and ensuring required components like "info" are implicitly added.
+//
+// Inputs:
+// - tokens ([]string): The raw list of tokens.
+//
+// Outputs:
+// - map[string]bool: The final set of unique component tokens.
+// - string: The extracted scene name, if any.
+// - bool: True if a scene modifier was found.
 func filter(tokens []string) (map[string]bool, string, bool) {
 	tokenSet := make(map[string]bool, len(tokens))
 	var sceneName string = ""
@@ -144,22 +200,25 @@ func filter(tokens []string) (map[string]bool, string, bool) {
 		tokenSet[t] = true
 	}
 
-	// Infor lÃ  component báº¯t buá»™c Ä‘á»‘i vá»›i má» i Object
+	// Infor là component bắt buộc đối với mọi Object
 	tokenSet["info"] = true
 	return constraint(tokenSet), sceneName, hasSceneToken
 }
 
-// bind inject IObject vÃ o target struct vÃ  táº¥t cáº£ Component Mixin nhÃºng trong nÃ³.
-// DÃ¹ng reflection Ä‘á»ƒ tá»± Ä‘á»™ng gÃ¡n â€” game dev khÃ´ng cáº§n khá»Ÿi táº¡o thá»§ cÃ´ng tá»«ng mixin.
+// bind automatically links the base object and its mixins into the target struct using reflection.
 //
-// Quy táº¯c inject:
-//  1. Field tÃªn "IObject" â†’ gÃ¡n trá»±c tiáº¿p IObject base.
-//  2. Field lÃ  struct cÃ³ sub-field "IObject" â†’ gÃ¡n vÃ o sub-field Ä‘Ã³.
-//  3. Field implement interface BindComponent(IObject) â†’ gá»i BindComponent.
+// Purpose: Iterates through the target struct's fields to auto-populate the embedded IObject base and trigger BindComponent for any mixins that implement it.
+//
+// Inputs:
+// - target (any): A pointer to the custom struct.
+// - base (IObject): The base object to inject.
+//
+// Special Requirements:
+// - Panics if the target is not a pointer to a struct.
 func bind(target any, base IObject) {
 	v := reflect.ValueOf(target)
 	if v.Kind() != reflect.Pointer || v.Elem().Kind() != reflect.Struct {
-		panic("[napi.Bind] target pháº£i lÃ  con trá» tá»›i struct (vÃ­ dá»¥: *Player)")
+		panic("[napi.Bind] target phải là con trỏ tới struct (ví dụ: *Player)")
 	}
 	v = v.Elem()
 	t := v.Type()
@@ -194,6 +253,15 @@ func bind(target any, base IObject) {
 	}
 }
 
+// constraint applies implicit dependencies between component tokens.
+//
+// Purpose: Ensures that if an object requires certain components (like collision needing a box, or drawing needing position), the dependencies are automatically fulfilled.
+//
+// Inputs:
+// - tokenSet (map[string]bool): The initial set of tokens.
+//
+// Outputs:
+// - map[string]bool: The modified set including any implicitly required tokens.
 func constraint(tokenSet map[string]bool) map[string]bool {
 	if tokenSet["col"] {
 		tokenSet["box"] = true

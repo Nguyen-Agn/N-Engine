@@ -4,14 +4,19 @@ import (
 	"autoworld/modules/enginetype"
 )
 
-// TweenSystem tính toán lerp (nội suy) cho các giá trị như vị trí, scale, màu sắc.
+// TweenSystem calculates linear interpolation (lerp) for values such as position, scale, and color/alpha.
 type TweenSystem struct {
 }
 
+// NewTweenSystem creates and returns a new instance of TweenSystem.
+// Outputs: Returns a pointer to a newly initialized TweenSystem.
 func NewTweenSystem() *TweenSystem {
 	return &TweenSystem{}
 }
 
+// Update processes all active tweens on entities with a Tween component.
+// Inputs: objectList ([]IObject) - The list of active objects in the scene.
+// Purpose: It iterates through tweens. If a tween is newly started, it records the initial component values. It then advances the elapsed time, calculates progress, and interpolates target properties (move, scale, alpha). Deactivates tweens upon completion.
 func (s *TweenSystem) Update(objectList []IObject) {
 	for _, obj := range objectList {
 		tweenData := enginetype.GetComponent(obj, enginetype.Tween)
@@ -25,7 +30,7 @@ func (s *TweenSystem) Update(objectList []IObject) {
 				continue
 			}
 
-			// Khởi tạo StartValue lần đầu tiên (nếu Elapsed == 0)
+			// Initialize StartValue for the first time (if Elapsed == 0)
 			if tw.Elapsed == 0 {
 				switch tw.TargetType {
 				case "move":
@@ -48,16 +53,16 @@ func (s *TweenSystem) Update(objectList []IObject) {
 				}
 			}
 
-			// Tăng thời gian
+			// Increment elapsed time
 			tw.Elapsed++
 			if tw.Elapsed > tw.Duration {
 				tw.Elapsed = tw.Duration
 			}
 
-			// Tính % hoàn thành (progress)
+			// Calculate completion percentage (progress)
 			progress := float32(tw.Elapsed) / float32(tw.Duration)
 
-			// Cập nhật giá trị mục tiêu
+			// Update target values
 			switch tw.TargetType {
 			case "move":
 				posData := enginetype.GetComponent(obj, enginetype.Position)
@@ -78,7 +83,7 @@ func (s *TweenSystem) Update(objectList []IObject) {
 				}
 			}
 
-			// Kết thúc
+			// Complete tween
 			if tw.Elapsed == tw.Duration {
 				tw.IsActive = false
 			}
@@ -86,7 +91,12 @@ func (s *TweenSystem) Update(objectList []IObject) {
 	}
 }
 
-// lerp nội suy tuyến tính giữa a và b với tỷ lệ t (0.0 - 1.0)
+// lerp performs linear interpolation between a and b using ratio t (0.0 - 1.0).
+// Inputs: 
+//   a (float32) - Start value.
+//   b (float32) - End value.
+//   t (float32) - Progress ratio from 0.0 to 1.0.
+// Outputs: Returns the interpolated float32 value.
 func lerp(a, b, t float32) float32 {
 	return a + (b-a)*t
 }

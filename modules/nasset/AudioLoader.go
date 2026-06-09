@@ -19,7 +19,9 @@ import (
 // Mỗi decoder nhận một io.ReadSeeker và trả về một io.ReadSeeker đã được decode
 // sẵn sàng để Ebitengine đọc dữ liệu PCM.
 type IStreamDecoder interface {
-	// Decode nhận dữ liệu thô và trả về stream PCM cùng số lượng kênh (channel) và sample rate.
+	// Purpose: Decodes raw audio data into a PCM stream.
+	// Inputs: r - io.ReadSeeker containing the raw audio data.
+	// Outputs: stream - io.ReadSeeker containing the decoded PCM data, err - error if decoding fails.
 	Decode(r io.ReadSeeker) (stream io.ReadSeeker, err error)
 }
 
@@ -28,6 +30,9 @@ type IStreamDecoder interface {
 // OGGDecoder giải mã file .ogg (Vorbis)
 type OGGDecoder struct{ SampleRate int }
 
+// Purpose: Decodes OGG format audio data.
+// Inputs: r (io.ReadSeeker) - The raw audio data stream.
+// Outputs: (io.ReadSeeker) - The decoded PCM audio stream, (error) - Error if decoding fails.
 func (d *OGGDecoder) Decode(r io.ReadSeeker) (io.ReadSeeker, error) {
 	s, err := vorbis.DecodeWithSampleRate(d.SampleRate, r)
 	if err != nil {
@@ -42,6 +47,9 @@ type WAVDecoder struct {
 	adapter    *WAVAdapter
 }
 
+// Purpose: Initializes a WAVDecoder with the given sample rate and a new WAVAdapter.
+// Inputs: sampleRate (int) - The sample rate to use for decoding.
+// Outputs: (*WAVDecoder) - A pointer to the newly created WAVDecoder.
 func NewWAVDecoder(sampleRate int) *WAVDecoder {
 	return &WAVDecoder{
 		SampleRate: sampleRate,
@@ -49,6 +57,9 @@ func NewWAVDecoder(sampleRate int) *WAVDecoder {
 	}
 }
 
+// Purpose: Adapts the WAV file (e.g., converting 24-bit to 16-bit) and decodes it.
+// Inputs: r (io.ReadSeeker) - The raw audio data stream.
+// Outputs: (io.ReadSeeker) - The decoded PCM audio stream, (error) - Error if decoding or adapting fails.
 func (d *WAVDecoder) Decode(r io.ReadSeeker) (io.ReadSeeker, error) {
 	// Chạy qua adapter trước: nếu là 24-bit sẽ được convert sang 16-bit
 	adapted, err := d.adapter.Adapt(r)
@@ -65,6 +76,9 @@ func (d *WAVDecoder) Decode(r io.ReadSeeker) (io.ReadSeeker, error) {
 // MP3Decoder giải mã file .mp3
 type MP3Decoder struct{ SampleRate int }
 
+// Purpose: Decodes MP3 format audio data.
+// Inputs: r (io.ReadSeeker) - The raw audio data stream.
+// Outputs: (io.ReadSeeker) - The decoded PCM audio stream, (error) - Error if decoding fails.
 func (d *MP3Decoder) Decode(r io.ReadSeeker) (io.ReadSeeker, error) {
 	s, err := mp3.DecodeWithSampleRate(d.SampleRate, r)
 	if err != nil {
@@ -83,9 +97,9 @@ type AudioLoader struct {
 	decoders map[string]IStreamDecoder
 }
 
-// NewAudioLoader tạo một AudioLoader mới với các decoder mặc định (ogg, wav, mp3).
-// ctx là Ebitengine audio.Context đã được khởi tạo sẵn (thường lấy từ AudioSystem).
-// sampleRate: sample rate chung của game (ví dụ: 44100).
+// Purpose: Initializes an AudioLoader with default decoders (OGG, WAV, MP3).
+// Inputs: ctx (*ebitenAudio.Context) - The Ebitengine audio context, sampleRate (int) - The default sample rate for the game.
+// Outputs: (*AudioLoader) - A pointer to the newly created AudioLoader.
 func NewAudioLoader(ctx *ebitenAudio.Context, sampleRate int) *AudioLoader {
 	return &AudioLoader{
 		ctx: ctx,
@@ -97,13 +111,15 @@ func NewAudioLoader(ctx *ebitenAudio.Context, sampleRate int) *AudioLoader {
 	}
 }
 
-// RegisterDecoder cho phép đăng ký thêm decoder tùy chỉnh cho định dạng mới.
+// Purpose: Allows extending the supported audio formats by adding custom decoders.
+// Inputs: ext (string) - The file extension (e.g., ".flac"), decoder (IStreamDecoder) - The decoder strategy for the format.
 func (l *AudioLoader) RegisterDecoder(ext string, decoder IStreamDecoder) {
 	l.decoders[ext] = decoder
 }
 
-// Load triển khai domain.IAudioLoader.
-// Đọc file tại path, giải mã thành PCM bytes và tạo naudio.AudioLW sẵn sàng phát.
+// Purpose: Reads an audio file, decodes it using the registered decoder for its extension, and creates an IAudioLW object.
+// Inputs: path (string) - The file path to the audio file.
+// Outputs: (domain.IAudioLW) - The loaded audio object ready for playback, (error) - Error if the format is unsupported, file cannot be read, or decoding fails.
 func (l *AudioLoader) Load(path string) (domain.IAudioLW, error) {
 	ext := filepath.Ext(path)
 	decoder, ok := l.decoders[ext]

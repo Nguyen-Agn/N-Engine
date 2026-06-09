@@ -7,8 +7,8 @@
 
 ## 1. Giải thích / Explanation
 
-Background object là một thực thể nhúng mixin `napi.Back` (`BackgroundComponent`) để hiển thị màu sắc hoặc sprite làm hình nền phía dưới tất cả các Object khác.
-Background object embeds `napi.Back` to display a color or sprite background.
+Background object là một thực thể nhúng mixin `ncom.Back` (`BackgroundComponent`) để hiển thị màu sắc hoặc sprite làm hình nền phía dưới tất cả các Object khác.
+Background object embeds `ncom.Back` to display a color or sprite background.
 
 **Tính năng / Features:**
 - Màu nền đơn sắc / Solid color background
@@ -27,19 +27,20 @@ import (
 	"image/color"
 
 	"autoworld/modules/napi"
+	"autoworld/modules/napi/ncom"
 )
 
 // Background - hình nền game / game background
 type Background struct {
-	napi.IObject // Lifecycle
-	napi.Back    // Background component (Back)
+	ncom.Object // Lifecycle
+	ncom.Back    // Background component (Back)
 }
 
 // NewBackground - tạo background / create background
 func NewBackground() *Background {
 	bg := &Background{}
 	
-	// "bg" là token tương ứng của napi.Back
+	// "bg" là token tương ứng của ncom.Back
 	// "sce-main" để tự động thêm vào scene main
 	napi.Obj.NewObject(bg, "MainBackground", "bg sce-main")
 	return bg

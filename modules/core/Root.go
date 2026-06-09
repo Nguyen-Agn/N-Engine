@@ -12,8 +12,9 @@ import (
 	ebitenAudio "github.com/hajimehoshi/ebiten/v2/audio"
 )
 
-// Engine là struct trung tâm (Root) của toàn bộ hệ thống game.
-// Chứa tất cả manager và resource cần thiết để vận hành game.
+// Engine is center struct (Root) of entire game system.
+//
+// Contain all manager to run system
 type Engine struct {
 	Scene    ISceneManager
 	Config   IGlobalConfig
@@ -23,25 +24,32 @@ type Engine struct {
 	Save     ISaveManager         // Save manager system
 }
 
-// GameConfig chứa các tham số cấu hình ban đầu khi khởi động game.
+// GameConfig contain all game' status to begin Game
 type GameConfig struct {
-	// Tiêu đề cửa sổ game
+	// title
 	Title string
-	// Chiều rộng cửa sổ (pixel)
+	// width of scene|windows (pixel)
 	Width int
-	// Chiều cao cửa sổ (pixel)
+	// height of scene|windows (pixel)
 	Height int
-	// Sample rate cho âm thanh (thường là 44100)
+	// Sample rate for audio (default 44100)
 	SampleRate int
-	// SaveDir là thư mục lưu trữ file save (mặc định "./saves")
+	// SaveDir is default path for file save (mặc định "./saves")
 	SaveDir string
-	// AutoSaveVars cho biết có tự động lưu toàn bộ biến từ nsys/Global không
+	// AutoSaveVars : is? auto-save all values from nsys/Global?
 	AutoSaveVars bool
 }
 
-// NewGame khởi tạo Engine với GameConfig cho sẵn.
-// Tự động setup: SceneManager, GlobalConfig, InputManager, AudioContext, GlobalStore.
-// Gọi engine.Start() sau khi đã thêm scene để chạy game.
+// NewGame initializes the Engine using the provided GameConfig.
+//
+// Purpose: Automates the setup of core engine components including the SceneManager, GlobalConfig, InputManager, AudioContext, and GlobalStore.
+// After initialization, you must call Start() to open the window and begin the main loop.
+//
+// Inputs:
+// - cfg (GameConfig): A struct containing the initial settings for the game (e.g., window size, title, sample rate).
+//
+// Outputs:
+// - *Engine: A pointer to the newly created Engine instance.
 func NewGame(cfg GameConfig) *Engine {
 	sampleRate := cfg.SampleRate
 	if sampleRate == 0 {
@@ -71,15 +79,23 @@ func NewGame(cfg GameConfig) *Engine {
 	}
 }
 
-// Start cấu hình cửa sổ và chạy vòng lặp Ebitengine.
-// Đây là lời gọi cuối cùng trong hàm main — hàm này sẽ block cho đến khi game đóng.
+// Start opens the game window and begins the main game loop.
+//
+// Purpose: Sets window properties based on the global configuration and hands control over to Ebitengine's RunGame.
+//
+// Special Requirements:
+// - This must be the final function called in your main routine, as it blocks execution until the game is closed.
 func (e *Engine) Start() {
 	config := e.Config
 
+	// set windows
 	ebiten.SetWindowSize(config.GetValue("game-width").(int), config.GetValue("game-height").(int))
 	ebiten.SetWindowTitle(config.GetValue("game-title").(string))
+
+	// open
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
+	// main loop
 	if err := ebiten.RunGame(NewEbitenGame(e)); err != nil {
 		log.Fatal(err)
 	}

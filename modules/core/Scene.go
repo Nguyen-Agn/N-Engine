@@ -6,28 +6,40 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-// Scene quáº£n lÃ½ má»™t mÃ n chÆ¡i Ä‘á»™c láº­p trong Engine.
-// Má»—i Scene chá»©a:
-//   - Physical Map: ECS World + Logic/Audio/Input system + objectList (tá» a Ä‘á»™ map space)
-//   - GUI Map: screen-space overlay cho HUD (optional, tá»± táº¡o khi cáº§n)
+// Scene is the space for object active in Engine.
+// Per-Scene contains:
+//   - Physical Map: ECS World + Logic/Audio/Input system + objectList
+//   - GUI Map: screen-space overlay cho HUD (optional)
 //   - Camera: viewport, follow-target, DrawSystem
 type Scene struct {
-	map_   *Map // physical game world
-	guiMap *Map // screen-space GUI/HUD (optional, nil náº¿u khÃ´ng dÃ¹ng)
+	map_   *Map // physical game world (not nil)
+	guiMap *Map // screen-space GUI/HUD (optional)
 	camera *Camera
-	input  domain.IInputManager // lÆ°u Ä‘á»ƒ táº¡o guiMap lazy
-	id     string               // ID of the scene
+	input  domain.IInputManager
+	id     string // ID of the scene
 }
 
-// NewScene khá»Ÿi táº¡o Scene má»›i vá»›i Physical Map vÃ  Camera.
-// mapW, mapH lÃ  kÃ­ch thÆ°á»›c báº£n Ä‘á»“ (pixel). Truyá» n 0, 0 náº¿u khÃ´ng giá»›i háº¡n.
-// viewW, viewH lÃ  kÃ­ch thÆ°á»›c viewport cá»§a Camera (thÆ°á» ng báº±ng screen size).
+// NewScene creates a new Scene instance.
+//
+// Purpose: Initializes a complete scene environment, including a physical map and a camera.
+// It also auto-registers the map with the camera's draw system.
+//
+// Inputs:
+// - input (domain.IInputManager): The global input manager to be used by the physical map.
+// - mapW (int): The width of the physical map in pixels (0 for unbounded).
+// - mapH (int): The height of the physical map in pixels (0 for unbounded).
+// - viewW (int): The width of the camera viewport in pixels.
+// - viewH (int): The height of the camera viewport in pixels.
+//
+// Outputs:
+// - *Scene: A newly created Scene.
 func NewScene(input domain.IInputManager, mapW, mapH, viewW, viewH int) *Scene {
 	scene := &Scene{
 		map_:   NewMap(input, mapW, mapH),
 		camera: NewCamera(viewW, viewH),
 		input:  input,
 	}
+
 	// Inject DrawSystem into Map so IDraw objects are auto-registered on AddObject
 	if dr := scene.camera.GetDrawSystem(); dr != nil {
 		scene.map_.SetDrawRegistry(dr)
@@ -35,10 +47,12 @@ func NewScene(input domain.IInputManager, mapW, mapH, viewW, viewH int) *Scene {
 	return scene
 }
 
-// â”€â”€â”€ IScene interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-// Update cáº­p nháº­t toÃ n bá»™ Scene má»—i frame.
-// Thá»© tá»±: Physical Map â†’ GUI Map (náº¿u cÃ³) â†’ Camera follow.
+// Update processes logic for the scene and its maps.
+//
+// Purpose: Called once per frame to update the physical map, the GUI map (if it exists), and the camera's position.
+//
+// Outputs:
+// - error: Returns an error if map updates fail, nil otherwise.
 func (s *Scene) Update() error {
 	if err := s.map_.Update(); err != nil {
 		return err
@@ -52,8 +66,9 @@ func (s *Scene) Update() error {
 	return nil
 }
 
-// Draw render Scene lÃªn mÃ n hÃ¬nh qua Camera.
-// Camera váº½ Physical Map (cÃ³ camera offset) rá»“i GUI Map (khÃ´ng offset, Ä‘Ã¨ lÃªn trÃªn).
+// Draw renders the scene to the screen.
+//
+// Purpose: Instructs the camera to draw the physical map's ECS world, and optionally the GUI map's world.
 func (s *Scene) Draw() {
 	if s.guiMap != nil {
 		s.camera.Draw(s.map_.World(), s.guiMap.World())
@@ -62,16 +77,27 @@ func (s *Scene) Draw() {
 	}
 }
 
-// Destroy Ä‘Æ°á»£c gá»i khi Scene bá»‹ xÃ³a khá»i SceneManager.
+// Destroy cleans up the scene resources.
+//
+// Purpose: Acts as a hook for destruction logic when the SceneManager removes the scene.
 func (s *Scene) Destroy() {}
 
-// AddObject Ä‘Äƒng kÃ½ IObject vÃ o Physical Map.
+// AddObject inserts a new game object into the physical map.
+//
+// Purpose: Simplifies the process of registering entities in the active game world.
+//
+// Inputs:
+// - obj (IObject): The object to add.
 func (s *Scene) AddObject(obj IObject) {
 	s.map_.AddObject(obj)
 }
 
-// AddGUIObject Ä‘Äƒng kÃ½ IObject vÃ o GUI Map (screen-space, khÃ´ng camera offset).
-// GUI Map Ä‘Æ°á»£c táº¡o tá»± Ä‘á»™ng náº¿u chÆ°a tá»“n táº¡i.
+// AddGUIObject inserts a new object into the GUI map.
+//
+// Purpose: Registers a UI entity. If the GUI map does not exist, it is created automatically with dimensions matching the camera's viewport.
+//
+// Inputs:
+// - obj (IObject): The GUI object to add.
 func (s *Scene) AddGUIObject(obj IObject) {
 	if s.guiMap == nil {
 		s.guiMap = NewGUIMap(s.input, s.camera.Width(), s.camera.Height())
@@ -79,17 +105,26 @@ func (s *Scene) AddGUIObject(obj IObject) {
 	s.guiMap.AddObject(obj)
 }
 
-// World tráº£ vá» donburi.World cá»§a Physical Map. TÆ°Æ¡ng Ä‘Æ°Æ¡ng GetMap().World().
+// World returns the ECS world belonging to the physical map.
+//
+// Purpose: Exposes the primary ECS instance for querying game entities.
+//
+// Outputs:
+// - donburi.World: The physical map's world.
 func (s *Scene) World() donburi.World {
 	return s.map_.World()
 }
 
-// â”€â”€â”€ Getters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-// GetMap tráº£ vá» Physical Map cá»§a Scene.
+// GetMap retrieves the physical map instance.
+//
+// Outputs:
+// - IMap: The interface to the physical map.
 func (s *Scene) GetMap() IMap { return s.map_ }
 
-// GetGUIMap tráº£ vá» GUI Map cá»§a Scene. Tráº£ vá» nil náº¿u chÆ°a khá»Ÿi táº¡o.
+// GetGUIMap retrieves the GUI map instance, if it exists.
+//
+// Outputs:
+// - IMap: The interface to the GUI map, or nil if uninitialized.
 func (s *Scene) GetGUIMap() IMap {
 	if s.guiMap == nil {
 		return nil
@@ -97,23 +132,38 @@ func (s *Scene) GetGUIMap() IMap {
 	return s.guiMap
 }
 
-// GetCamera tráº£ vá» Camera cá»§a Scene.
+// GetCamera retrieves the scene's camera.
+//
+// Outputs:
+// - ICamera: The camera assigned to this scene.
 func (s *Scene) GetCamera() ICamera { return s.camera }
 
-// â”€â”€â”€ Setters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-// SetGuiMap
+// SetGUIMap manually initializes a new GUI map with specified dimensions.
+//
+// Purpose: Allows explicit configuration of a GUI map rather than letting AddGUIObject auto-create it with camera bounds.
+//
+// Inputs:
+// - input (domain.IInputManager): The input manager to pass to the GUI map.
+// - mapW (int): The width of the GUI map in pixels.
+// - mapH (int): The height of the GUI map in pixels.
 func (s *Scene) SetGUIMap(input domain.IInputManager, mapW, mapH int) {
 	s.guiMap = NewMap(input, mapW, mapH)
 }
 
-// setID sets the scene's ID internally
+// setID assigns a unique identifier to the scene.
+//
+// Purpose: Internally stores the ID used by the SceneManager to track this scene in the waitlist.
+//
+// Inputs:
+// - id (string): The identifier string.
 func (s *Scene) setID(id string) {
 	s.id = id
 }
 
-// GetID returns the ID of the scene
+// GetID retrieves the scene's identifier.
+//
+// Outputs:
+// - string: The ID assigned to this scene.
 func (s *Scene) GetID() string {
 	return s.id
 }
-

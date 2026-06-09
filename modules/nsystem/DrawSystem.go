@@ -39,6 +39,7 @@ type DrawSystem struct {
 }
 
 // NewDrawSystem initialises DrawSystem with all required component filters.
+// Outputs: Returns a pointer to a newly initialized DrawSystem.
 func NewDrawSystem() *DrawSystem {
 	return &DrawSystem{
 		query:         donburi.NewQuery(filter.Contains(Sprite, Position)),
@@ -51,19 +52,22 @@ func NewDrawSystem() *DrawSystem {
 }
 
 // SetScreen sets the render target for the current frame.
-// Must be called before Draw() every frame (done by Camera).
+// Inputs: screen (*ebiten.Image) - The Ebitengine image to draw to.
+// Purpose: Must be called before Draw() every frame (usually done by the Camera) to supply the target rendering surface.
 func (ds *DrawSystem) SetScreen(screen *ebiten.Image) {
 	ds.screen = screen
 }
 
 // AddDrawObject registers an object whose Draw() method will be called each frame.
-// Called automatically by Map.AddObject when it detects an IDraw implementation.
+// Inputs: obj (domain.IObject) - The object implementing IDraw to be registered.
+// Purpose: Called automatically by Map.AddObject when it detects an IDraw implementation to ensure it gets rendered.
 func (ds *DrawSystem) AddDrawObject(obj domain.IObject) {
 	ds.drawObjects = append(ds.drawObjects, obj)
 }
 
 // RemoveDrawObject unregisters an object from the draw loop.
-// Safe to call even if the object was never registered.
+// Inputs: obj (domain.IObject) - The object to be removed from the draw list.
+// Purpose: Safely removes the object even if it was never registered, preventing it from being drawn anymore.
 func (ds *DrawSystem) RemoveDrawObject(obj domain.IObject) {
 	list := ds.drawObjects[:0]
 	for _, o := range ds.drawObjects {
@@ -75,8 +79,10 @@ func (ds *DrawSystem) RemoveDrawObject(obj domain.IObject) {
 }
 
 // Draw renders all entities in order: Background → Tilemap → Sprite → IDraw.
-// camX, camY are camera coordinates in map space used as screen offset.
-// Pass 0, 0 for GUI layers that have no camera offset.
+// Inputs: 
+//   w (donburi.World) - The ECS world containing entities to draw.
+//   camX, camY (float32) - Camera coordinates in map space used as screen offset. Pass 0, 0 for GUI layers.
+// Purpose: Manages the complete rendering pipeline. Performs viewport culling and properly handles z-ordering. Also handles debug rendering if the debug component is present.
 func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 	if ds.screen == nil {
 		return

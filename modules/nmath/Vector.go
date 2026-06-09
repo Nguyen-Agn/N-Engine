@@ -20,12 +20,10 @@ const (
 
 // --- Các phép toán nội bộ của Vec2 -------------------------------------------
 
-// Mul nhân hai Vec2 như số phức: tương đương xoay + scale.
-// Nếu b là unit vector thì kết quả là xoay thuần túy.
-//
-//	(a.X + a.Y·i) × (b.X + b.Y·i) = (a.X·b.X − a.Y·b.Y) + (a.X·b.Y + a.Y·b.X)·i
-//
-// Chi phí: 4 phép nhân + 2 phép cộng. Không dùng sin/cos.
+// Purpose: Multiplies two Vec2 instances treating them as complex numbers, equivalent to rotation and scaling.
+// Inputs: b (Vec2) - The vector to multiply with.
+// Outputs: (Vec2) - The result of the multiplication.
+// If b is a unit vector, this results in pure rotation.
 func (a Vec2) Mul(b Vec2) Vec2 {
 	return Vec2{
 		X: a.X*b.X - a.Y*b.Y,
@@ -33,35 +31,46 @@ func (a Vec2) Mul(b Vec2) Vec2 {
 	}
 }
 
-// Conj trả về conjugate (đảo chiều phần ảo) của Vec2.
-// Dùng để tính góc tương đối: conj(a).Mul(b) cho góc từ a đến b.
+// Purpose: Returns the complex conjugate (negating the imaginary part) of the Vec2.
+// Outputs: (Vec2) - The conjugated vector.
 func (a Vec2) Conj() Vec2 { return Vec2{a.X, -a.Y} }
 
-// Norm chuẩn hóa Vec2 thành unit vector (độ dài = 1).
-// Tránh gọi khi |v| ≈ 0.
+// Purpose: Normalizes the Vec2 to a unit vector (length 1).
+// Outputs: (Vec2) - The normalized unit vector.
 func (a Vec2) Norm() Vec2 {
 	l := float32(math.Sqrt(float64(a.X*a.X + a.Y*a.Y)))
 	return Vec2{a.X / l, a.Y / l}
 }
 
-// LenSq trả về bình phương độ dài. Dùng để so sánh khoảng cách mà không cần Sqrt.
+// Purpose: Calculates the squared length of the vector.
+// Outputs: (float32) - The squared length. Useful for fast distance comparisons without Sqrt.
 func (a Vec2) LenSq() float32 { return a.X*a.X + a.Y*a.Y }
 
-// Len trả về độ dài thực của Vec2.
+// Purpose: Calculates the actual length of the Vec2.
+// Outputs: (float32) - The length.
 func (a Vec2) Len() float32 { return float32(math.Sqrt(float64(a.X*a.X + a.Y*a.Y))) }
 
-// Scale nhân Vec2 với một scalar.
+// Purpose: Multiplies the vector by a scalar value.
+// Inputs: s (float32) - The scalar to multiply by.
+// Outputs: (Vec2) - The scaled vector.
 func (a Vec2) Scale(s float32) Vec2 { return Vec2{a.X * s, a.Y * s} }
 
-// Add cộng hai Vec2.
+// Purpose: Adds another Vec2 to this one.
+// Inputs: b (Vec2) - The vector to add.
+// Outputs: (Vec2) - The sum vector.
 func (a Vec2) Add(b Vec2) Vec2 { return Vec2{a.X + b.X, a.Y + b.Y} }
 
-// Sub trừ hai Vec2.
+// Purpose: Subtracts another Vec2 from this one.
+// Inputs: b (Vec2) - The vector to subtract.
+// Outputs: (Vec2) - The difference vector.
 func (a Vec2) Sub(b Vec2) Vec2 { return Vec2{a.X - b.X, a.Y - b.Y} }
 
-// Dot trả về tích vô hướng. cos(θ) = Dot(a.Norm(), b.Norm()).
+// Purpose: Calculates the dot product of this vector and another.
+// Inputs: b (Vec2) - The other vector.
+// Outputs: (float32) - The dot product value.
 func (a Vec2) Dot(b Vec2) float32 { return a.X*b.X + a.Y*b.Y }
 
-// Cross trả về tích có hướng (scalar 2D). sin(θ) = Cross(a.Norm(), b.Norm()).
-// Dương = b ở phía trái a; âm = b ở phía phải a.
+// Purpose: Calculates the 2D cross product (scalar) of this vector and another.
+// Inputs: b (Vec2) - The other vector.
+// Outputs: (float32) - The cross product value. Positive if b is left of a, negative if right.
 func (a Vec2) Cross(b Vec2) float32 { return a.X*b.Y - a.Y*b.X }

@@ -11,7 +11,7 @@ Mỗi object trong N-Engine là một **Go struct** nhúng các component token 
 Each object in N-Engine is a **Go struct** embedding component tokens (Mixins).
 
 Các bước tạo object / Steps to create an object:
-1. Định nghĩa struct nhúng `napi.IObject` và các Mixins (như `napi.Pos`, `napi.Spr`).
+1. Định nghĩa struct nhúng `ncom.Object` và các Mixins (như `ncom.Pos`, `ncom.Spr`).
 2. Viết constructor dùng `napi.Obj.NewObject` với chuỗi component.
 3. Cấu hình Object.
 4. Tùy chọn đăng ký vào scene (nếu không dùng modifier auto-register).
@@ -25,19 +25,19 @@ Khi tạo struct, bạn nhúng Mixin tương ứng. Khi gọi `NewObject`, bạn
 
 | Token | Component Mixin | Chức năng / Purpose |
 |---|---|---|
-| (auto) | `napi.IObject` | Lifecycle cơ bản (Create, StepUpdate, Destroy) / Base lifecycle |
-| (auto) | `napi.Info` | Thông tin định danh / Info (ID, Name) |
-| `pos` | `napi.Pos` | Vị trí X, Y / Position X, Y |
-| `spr` | `napi.Spr` | Sprite/hình ảnh / Sprite/image |
-| `inp` | `napi.Inp` | Lắng nghe input / Input listener |
-| `vel` | `napi.Velo` | Vận tốc / Velocity |
-| `box` | `napi.Box` | Hitbox va chạm / Collision hitbox |
-| `alr` | `napi.Alrm` | Bộ đếm giờ / Alarm timer |
-| `twn` | `napi.Twn` | Tween animation |
-| `aud` | `napi.Aud` | Âm thanh / Audio |
-| `bg`  | `napi.Back`| Hình nền / Background |
-| `til` | `napi.Tile`| Tilemap |
-| `dir` | `napi.Dir` | Góc quay di chuyển / Direction |
+| (auto) | `ncom.Object` | Lifecycle cơ bản (Create, StepUpdate, Destroy) / Base lifecycle |
+| (auto) | `ncom.Info` | Thông tin định danh / Info (ID, Name) |
+| `pos` | `ncom.Pos` | Vị trí X, Y / Position X, Y |
+| `spr` | `ncom.Spr` | Sprite/hình ảnh / Sprite/image |
+| `inp` | `ncom.Inp` | Lắng nghe input / Input listener |
+| `vel` | `ncom.Velo` | Vận tốc / Velocity |
+| `box` | `ncom.Box` | Hitbox va chạm / Collision hitbox |
+| `alr` | `ncom.Alrm` | Bộ đếm giờ / Alarm timer |
+| `twn` | `ncom.Twn` | Tween animation |
+| `aud` | `ncom.Aud` | Âm thanh / Audio |
+| `bg`  | `ncom.Back`| Hình nền / Background |
+| `til` | `ncom.Tile`| Tilemap |
+| `dir` | `ncom.Dir` | Góc quay di chuyển / Direction |
 
 ---
 
@@ -48,15 +48,16 @@ package objects
 
 import (
 	"autoworld/modules/napi"
+	"autoworld/modules/napi/ncom"
 )
 
 // Player - nhân vật người chơi / player character
 type Player struct {
-	napi.IObject // Bắt buộc / Required
-	napi.Pos     // Lấy getter/setter cho Tọa độ (SetX, SetY...)
-	napi.Spr     // Lấy getter/setter cho Ảnh (SetSprite...)
-	napi.Velo    // Lấy getter/setter cho Vận tốc (SetVelocity...)
-	napi.Inp     // Lấy khả năng lắng nghe Input (ListenOn)
+	ncom.Object // Bắt buộc / Required
+	ncom.Pos     // Lấy getter/setter cho Tọa độ (SetX, SetY...)
+	ncom.Spr     // Lấy getter/setter cho Ảnh (SetSprite...)
+	ncom.Velo    // Lấy getter/setter cho Vận tốc (SetVelocity...)
+	ncom.Inp     // Lấy khả năng lắng nghe Input (ListenOn)
 
 	speed float32
 	hp    int

@@ -6,37 +6,39 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-// SetComponent gán giá trị cho một custom component trên object.
-// comp phải là *donburi.ComponentType[T] đã được tạo bằng napi.NewComponentType[T]().
+// setComponent assigns a value to a custom component on an object.
 //
-// Ví dụ:
+// Purpose: Attaches or updates a specific custom data component for an entity using the donburi ECS.
 //
-//	var StatsComp = napi.NewComponentType[StatsData]("sta")
-//	napi.SetComponent(player, StatsComp, StatsData{Health: 100, Mana: 50})
+// Inputs:
+// - obj (IObject): The game object to modify.
+// - comp (*donburi.ComponentType[T]): The component type previously created.
+// - value (T): The data to assign to the component.
 func setComponent[T any](obj IObject, comp *donburi.ComponentType[T], value T) {
 	enginetype.SetComponent(obj, comp, value)
 }
 
-// GetComponent lấy con trỏ đến data của một custom component trên object.
-// Trả về nil nếu object không có component này.
+// getComponent retrieves a pointer to the data of a custom component on an object.
 //
-// Ví dụ:
+// Purpose: Allows reading and modifying a custom component's data directly.
 //
-//	stats := napi.GetComponent(player, StatsComp)
-//	if stats != nil {
-//	    stats.Health -= 10
-//	}
+// Inputs:
+// - obj (IObject): The game object to query.
+// - comp (*donburi.ComponentType[T]): The custom component type to look for.
+//
+// Outputs:
+// - *T: A pointer to the component data, or nil if the object does not possess this component.
 func getComponent[T any](obj IObject, comp *donburi.ComponentType[T]) *T {
 	return enginetype.GetComponent(obj, comp)
 }
 
-// AddComponentType thêm component type vào ECS entry của object.
-// Dùng khi muốn thêm custom component sau khi object đã được tạo.
+// addComponentType appends a component type to an object's ECS entry.
 //
-// Ví dụ:
+// Purpose: Dynamically adds a new custom component type to an already instantiated object, enabling runtime capability expansion.
 //
-//	napi.AddComponentType(player, StatsComp)
-//	napi.SetComponent(player, StatsComp, StatsData{Health: 100})
+// Inputs:
+// - obj (IObject): The game object to enhance.
+// - comp (*donburi.ComponentType[T]): The component type to add.
 func addComponentType[T any](obj IObject, comp *donburi.ComponentType[T]) {
 	enginetype.AddComponentType(obj, comp)
 }

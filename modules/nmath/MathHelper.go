@@ -3,6 +3,7 @@ package nmath
 import (
 	"math"
 	"math/rand/v2"
+	"sync"
 )
 
 // MathHelper là struct rỗng dùng để gom nhóm các hàm toán học hỗ trợ Game 2D.
@@ -23,7 +24,22 @@ type MathHelper struct {
 	rng *rand.Rand
 }
 
-// Hàm khống chế giá trị
+var (
+	instance MathHelper
+	Once     sync.Once
+)
+
+// Purpose: Returns a singleton instance of MathHelper.
+func GetInstance() MathHelper {
+	Once.Do(func() {
+		instance = NewMathHelper()
+	})
+	return instance
+}
+
+// Purpose: Clamps a value between a minimum and maximum.
+// Inputs: val (float32) - Value to clamp, min (float32) - Minimum value, max (float32) - Maximum value.
+// Outputs: (float32) - Clamped value.
 func (m MathHelper) Clamp(val, min, max float32) float32 {
 	if val < min {
 		return min
@@ -34,10 +50,16 @@ func (m MathHelper) Clamp(val, min, max float32) float32 {
 	return val
 }
 
+// Purpose: Performs linear interpolation between two values.
+// Inputs: a (float32) - Start value, b (float32) - End value, t (float32) - Interpolation factor [0-1].
+// Outputs: (float32) - Interpolated value.
 func (m MathHelper) Lerp(a, b, t float32) float32 {
 	return a + (b-a)*t
 }
 
+// Purpose: Approaches a target value by a given amount.
+// Inputs: current (float32) - Current value, target (float32) - Target value, amount (float32) - Maximum change step.
+// Outputs: (float32) - The new value closer to the target.
 func (m MathHelper) Approach(current, target, amount float32) float32 {
 	diff := target - current
 	if diff > amount {
@@ -49,6 +71,9 @@ func (m MathHelper) Approach(current, target, amount float32) float32 {
 	return target
 }
 
+// Purpose: Wraps a value within a specified range [min, max).
+// Inputs: val (float32) - Value to wrap, min (float32) - Minimum bound, max (float32) - Maximum bound.
+// Outputs: (float32) - Wrapped value.
 func (m MathHelper) Wrap(val, min, max float32) float32 {
 	span := max - min
 	if span == 0 {
@@ -62,7 +87,8 @@ func (m MathHelper) Wrap(val, min, max float32) float32 {
 	return val + min
 }
 
-// Trả về 1.0 hoặc -1.0, bỏ qua zero — dùng cho normalize hướng nhanh
+// Purpose: Returns the sign of a value.
+// Outputs: (int) - 1 if positive, -1 if negative, 0 if zero.
 func (m MathHelper) Sign(val float64) int {
 	if float32(val) < 0 {
 		return -1
@@ -73,22 +99,26 @@ func (m MathHelper) Sign(val float64) int {
 	return 0
 }
 
-// Hàm lưới tọa độ
+// Purpose: Snaps a value to the nearest grid step.
+// Inputs: val (float32) - Value to snap, step (float32) - Grid step size.
+// Outputs: (float32) - Snapped value.
 func (m MathHelper) Snap(val, step float32) float32 {
 	return float32(int32(val/step+0.5)) * step
 }
 
 // --- Helper convert ----------------------------------------------------------
 
-// DirFromDeg tạo unit vector từ góc degree.
-// Chỉ gọi một lần khi cần tạo hướng từ số degree thô.
-// Sau đó dùng Vec2.Mul để xoay — không cần gọi lại sin/cos.
+// Purpose: Creates a unit vector from an angle in degrees.
+// Inputs: deg (float32) - Angle in degrees.
+// Outputs: (Vec2) - The resulting unit direction vector.
 func (m MathHelper) DirFromDeg(deg float32) Vec2 {
 	r := float64(deg) * deg2rad
 	return Vec2{float32(math.Cos(r)), float32(math.Sin(r))}
 }
 
-// ToDeg chuyển unit vector thành góc degree [-180, 180].
+// Purpose: Converts a unit vector to an angle in degrees [-180, 180].
+// Inputs: v (Vec2) - The direction vector.
+// Outputs: (float32) - The angle in degrees.
 func (m MathHelper) ToDeg(v Vec2) float32 {
 	return float32(math.Atan2(float64(v.Y), float64(v.X))) * rad2deg
 }
@@ -97,26 +127,23 @@ func (m MathHelper) ToDeg(v Vec2) float32 {
 // LengthDir — tính toạ độ từ độ dài và hướng
 // =============================================================================
 
-// LengthDirX trả về thành phần X khi đi theo hướng direction (degree) một đoạn length.
-// Tương đương: length × cos(direction).
+// Purpose: Returns the X component of a vector given length and direction in degrees.
+// Inputs: length (float32) - The length, direction (float32) - The angle in degrees.
+// Outputs: (float32) - The X component.
 func (m MathHelper) LengthDirX(length, direction float32) float32 {
 	return length * float32(math.Cos(float64(direction)*deg2rad))
 }
 
-// LengthDirY trả về thành phần Y khi đi theo hướng direction (degree) một đoạn length.
-// Tương đương: length × sin(direction).
-// Ghi chú: trục Y hướng xuống trong game 2D thông thường — điều chỉnh dấu nếu cần.
+// Purpose: Returns the Y component of a vector given length and direction in degrees.
+// Inputs: length (float32) - The length, direction (float32) - The angle in degrees.
+// Outputs: (float32) - The Y component. Note: Y axis points downwards in 2D.
 func (m MathHelper) LengthDirY(length, direction float32) float32 {
 	return length * float32(math.Sin(float64(direction)*deg2rad))
 }
 
-// LengthDirV trả về Vec2 từ độ dài và unit vector hướng.
-// Không cần sin/cos — chỉ scale trực tiếp.
-//
-// Ví dụ dùng:
-//
-//	dir := nmath.DirFromDeg(45)               // tạo một lần
-//	vel := m.LengthDirV(speed, dir)           // dùng mỗi frame, không sin/cos
+// Purpose: Returns a scaled Vec2 from length and a unit direction vector.
+// Inputs: length (float32) - The magnitude, dir (Vec2) - The unit direction vector.
+// Outputs: (Vec2) - The resulting vector.
 func (m MathHelper) LengthDirV(length float32, dir Vec2) Vec2 {
 	return Vec2{dir.X * length, dir.Y * length}
 }
@@ -125,29 +152,26 @@ func (m MathHelper) LengthDirV(length float32, dir Vec2) Vec2 {
 // Distance — khoảng cách giữa hai điểm
 // =============================================================================
 
-// Distance trả về khoảng cách Euclidean giữa hai điểm.
-// Dùng cho giá trị thực sự cần khoảng cách (UI, audio falloff...).
-// Nếu chỉ cần so sánh "ai gần hơn" → dùng DistanceSq, tránh Sqrt.
+// Purpose: Calculates the Euclidean distance between two points.
+// Inputs: x1, y1 (float32) - First point, x2, y2 (float32) - Second point.
+// Outputs: (float32) - The distance.
 func (m MathHelper) Distance(x1, y1, x2, y2 float32) float32 {
 	dx := x2 - x1
 	dy := y2 - y1
 	return float32(math.Sqrt(float64(dx*dx + dy*dy)))
 }
 
-// DistanceSq trả về bình phương khoảng cách — không dùng Sqrt.
-// Nhanh hơn Distance ~3× trong vòng lặp so sánh.
-//
-// Ví dụ dùng:
-//
-//	if m.DistanceSq(px, py, ex, ey) < radius*radius {
-//	    // trong vùng aggro
-//	}
+// Purpose: Calculates the squared Euclidean distance between two points (faster than Distance as it skips Sqrt).
+// Inputs: x1, y1 (float32) - First point, x2, y2 (float32) - Second point.
+// Outputs: (float32) - The squared distance.
 func (m MathHelper) DistanceSq(x1, y1, x2, y2 float32) float32 {
 	dx := x2 - x1
 	dy := y2 - y1
 	return dx*dx + dy*dy
 }
 
+// Purpose: Compares the squared distance between (x1, y1) -> (x2, y2) and (x3, y3) -> (x4, y4).
+// Outputs: (int) - Returns 1 if first distance is greater, -1 if smaller, 0 if equal.
 func (m MathHelper) CompareDistance(x1, y1, x2, y2, x3, y3, x4, y4 float32) int {
 	dx1, dy1 := x2-x1, y2-y1
 	dx2, dy2 := x4-x3, y4-y3
@@ -158,14 +182,16 @@ func (m MathHelper) CompareDistance(x1, y1, x2, y2, x3, y3, x4, y4 float32) int 
 // Angle — góc hướng giữa hai điểm
 // =============================================================================
 
-// Angle trả về góc degree từ điểm (x1,y1) đến điểm (x2,y2).
-// Kết quả trong [-180, 180]. Dùng atan2 — xử lý đúng mọi góc phần tư.
+// Purpose: Calculates the angle in degrees from point 1 to point 2.
+// Inputs: x1, y1 (float32) - Start point, x2, y2 (float32) - End point.
+// Outputs: (float32) - Angle in degrees [-180, 180].
 func (m MathHelper) Angle(x1, y1, x2, y2 float32) float32 {
 	return float32(math.Atan2(float64(y2-y1), float64(x2-x1))) * rad2deg
 }
 
-// AngleV trả về unit vector hướng từ điểm 1 đến điểm 2.
-// Dùng kết quả này trực tiếp với LengthDirV / RotateV để tránh convert qua lại.
+// Purpose: Calculates the unit direction vector from point 1 to point 2.
+// Inputs: x1, y1 (float32) - Start point, x2, y2 (float32) - End point.
+// Outputs: (Vec2) - Unit direction vector.
 func (m MathHelper) AngleV(x1, y1, x2, y2 float32) Vec2 {
 	return Vec2{x2 - x1, y2 - y1}.Norm()
 }
@@ -174,13 +200,9 @@ func (m MathHelper) AngleV(x1, y1, x2, y2 float32) Vec2 {
 // AngleDif — khoảng cách ngắn nhất giữa hai góc
 // =============================================================================
 
-// AngleDif trả về khoảng cách góc ngắn nhất từ angle1 đến angle2, đơn vị degree.
-// Kết quả trong [-180, 180]:
-//   - Dương: angle2 ở phía ngược chiều kim đồng hồ so với angle1
-//   - Âm: angle2 ở phía cùng chiều kim đồng hồ so với angle1
-//
-// Dùng số phức thay vì (angle2 - angle1 + 360) % 360:
-// tránh cần Wrap thêm, không bao giờ sai góc phần tư.
+// Purpose: Calculates the shortest angular difference between two angles in degrees.
+// Inputs: angle1, angle2 (float32) - Angles in degrees.
+// Outputs: (float32) - The shortest difference in degrees [-180, 180].
 func (m MathHelper) AngleDif(angle1, angle2 float32) float32 {
 	v1 := m.DirFromDeg(angle1)
 	v2 := m.DirFromDeg(angle2)
@@ -190,14 +212,9 @@ func (m MathHelper) AngleDif(angle1, angle2 float32) float32 {
 	return float32(math.Atan2(float64(rel.Y), float64(rel.X))) * rad2deg
 }
 
-// AngleDifV tính khoảng cách góc giữa hai unit vector.
-// Không tạo Vec2 trung gian từ degree — dùng cho hot path.
-//
-// Ví dụ dùng:
-//
-//	forward := nmath.DirFromDeg(enemyAngle)
-//	toPlayer := m.AngleV(ex, ey, px, py)
-//	dif := m.AngleDifV(forward, toPlayer)  // enemy cần xoay bao nhiêu độ
+// Purpose: Calculates the angular difference between two unit vectors.
+// Inputs: v1, v2 (Vec2) - The unit vectors.
+// Outputs: (float32) - The shortest angular difference in degrees.
 func (m MathHelper) AngleDifV(v1, v2 Vec2) float32 {
 	rel := v1.Norm().Conj().Mul(v2.Norm())
 	return float32(math.Atan2(float64(rel.Y), float64(rel.X))) * rad2deg
@@ -207,8 +224,9 @@ func (m MathHelper) AngleDifV(v1, v2 Vec2) float32 {
 // AngleAdd — cộng góc và tự wrap
 // =============================================================================
 
-// AngleAdd cộng amount (degree) vào angle và giữ kết quả trong [0, 360).
-// Dùng số phức nội bộ — không cần gọi math.Mod thủ công.
+// Purpose: Adds an amount in degrees to an angle, handling wrapping automatically.
+// Inputs: angle (float32) - Base angle, amount (float32) - Amount to add in degrees.
+// Outputs: (float32) - The resulting wrapped angle.
 func (m MathHelper) AngleAdd(angle, amount float32) float32 {
 	dir := m.DirFromDeg(angle)
 	rot := m.DirFromDeg(amount)
@@ -217,12 +235,9 @@ func (m MathHelper) AngleAdd(angle, amount float32) float32 {
 	// if result < 0 { result += 360 }
 }
 
-// AngleAddV cộng góc degree vào unit vector hướng.
-// Kết quả là unit vector mới — không cần Normalize lại.
-//
-// Ví dụ dùng:
-//
-//	bullet.Dir = m.AngleAddV(bullet.Dir, 5) // lệch 5 độ mỗi frame
+// Purpose: Adds an angle in degrees to a direction vector.
+// Inputs: dir (Vec2) - The initial direction vector, amountDeg (float32) - Angle to add in degrees.
+// Outputs: (Vec2) - The rotated unit vector.
 func (m MathHelper) AngleAddV(dir Vec2, amountDeg float32) Vec2 {
 	rot := m.DirFromDeg(amountDeg)
 	return dir.Mul(rot)
@@ -232,13 +247,9 @@ func (m MathHelper) AngleAddV(dir Vec2, amountDeg float32) Vec2 {
 // RotateV — xoay vector quanh gốc toạ độ
 // =============================================================================
 
-// RotateV xoay vec theo hướng dir (unit vector).
-// Không cần sin/cos — chỉ nhân số phức.
-//
-// Ví dụ dùng:
-//
-//	forward  := nmath.DirFromDeg(90)          // hướng nhìn
-//	rightward := m.RotateV(forward, nmath.DirFromDeg(-90)) // vector vuông phải
+// Purpose: Rotates a vector by a given direction vector (complex multiplication).
+// Inputs: vec (Vec2) - The vector to rotate, dir (Vec2) - The rotation direction vector.
+// Outputs: (Vec2) - The rotated vector.
 func (m MathHelper) RotateV(vec, dir Vec2) Vec2 {
 	return vec.Mul(dir)
 }
@@ -247,15 +258,9 @@ func (m MathHelper) RotateV(vec, dir Vec2) Vec2 {
 // SlerpDir — nội suy hướng mượt trên vòng tròn đơn vị
 // =============================================================================
 
-// SlerpDir nội suy hướng từ from đến to theo tham số t ∈ [0, 1].
-// Kết quả luôn là unit vector — không cần Normalize lại.
-// Mượt hơn Lerp vì đi theo cung tròn, không đi thẳng (không bị scale ngắn lại ở giữa).
-//
-// Dùng cho: enemy xoay về phía player, turret tracking, camera smoothing.
-//
-// Ví dụ dùng:
-//
-//	enemy.Dir = m.SlerpDir(enemy.Dir, toPlayer, 0.05) // xoay 5% mỗi frame
+// Purpose: Spherical linear interpolation between two direction vectors.
+// Inputs: from, to (Vec2) - The unit vectors, t (float32) - Interpolation factor [0-1].
+// Outputs: (Vec2) - The interpolated unit vector.
 func (m MathHelper) SlerpDir(from, to Vec2, t float32) Vec2 {
 	fn := from.Norm()
 	tn := to.Norm()
@@ -269,11 +274,9 @@ func (m MathHelper) SlerpDir(from, to Vec2, t float32) Vec2 {
 	return fn.Mul(rot)
 }
 
-// SlerpDirDeg nội suy hướng dạng degree — wrapper tiện lợi cho SlerpDir.
-//
-// Ví dụ dùng:
-//
-//	enemy.Angle = m.SlerpDirDeg(enemy.Angle, targetAngle, 0.05)
+// Purpose: Wrapper around SlerpDir that operates with degree angles.
+// Inputs: fromDeg, toDeg (float32) - Angles in degrees, t (float32) - Factor [0-1].
+// Outputs: (float32) - The interpolated angle in degrees.
 func (m MathHelper) SlerpDirDeg(fromDeg, toDeg, t float32) float32 {
 	from := m.DirFromDeg(fromDeg)
 	to := m.DirFromDeg(toDeg)
@@ -284,18 +287,9 @@ func (m MathHelper) SlerpDirDeg(fromDeg, toDeg, t float32) float32 {
 // IsInFOV — kiểm tra điểm có trong vùng tầm nhìn không
 // =============================================================================
 
-// IsInFOV kiểm tra liệu điểm target có nằm trong góc nhìn (FOV) của observer không.
-//   - forward: hướng nhìn (unit vector)
-//   - halfFOVDeg: nửa góc tầm nhìn, ví dụ 45 = FOV 90°
-//
-// Dùng Dot thay vì tính góc thực sự — không cần atan2.
-//
-// Ví dụ dùng:
-//
-//	forward := nmath.DirFromDeg(enemy.Angle)
-//	if m.IsInFOV(ex, ey, forward, px, py, 45) {
-//	    // player trong tầm nhìn
-//	}
+// Purpose: Checks if a target point is within the field of view of an observer.
+// Inputs: ox, oy (float32) - Observer coordinates, forward (Vec2) - Observer's forward direction vector, tx, ty (float32) - Target coordinates, halfFOVDeg (float32) - Half the FOV angle in degrees.
+// Outputs: (bool) - True if the target is within the FOV.
 func (m MathHelper) IsInFOV(ox, oy float32, forward Vec2, tx, ty, halfFOVDeg float32) bool {
 	toTarget := Vec2{tx - ox, ty - oy}.Norm()
 	cosHalf := float32(math.Cos(float64(halfFOVDeg) * deg2rad))
@@ -307,14 +301,9 @@ func (m MathHelper) IsInFOV(ox, oy float32, forward Vec2, tx, ty, halfFOVDeg flo
 // Reflect — phản xạ vector qua pháp tuyến
 // =============================================================================
 
-// Reflect tính vector phản xạ của v qua normal n (unit vector).
-// Dùng cho: bounce projectile, phản xạ ánh sáng, wall bouncing.
-//
-// Công thức: v - 2(v·n)n
-//
-// Ví dụ dùng:
-//
-//	bullet.Dir = m.Reflect(bullet.Dir, wallNormal)
+// Purpose: Reflects a vector across a surface normal.
+// Inputs: v (Vec2) - The incoming vector, normal (Vec2) - The surface normal unit vector.
+// Outputs: (Vec2) - The reflected vector.
 func (m MathHelper) Reflect(v, normal Vec2) Vec2 {
 	d := v.Dot(normal)
 	return Vec2{

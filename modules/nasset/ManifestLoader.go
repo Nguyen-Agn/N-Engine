@@ -57,9 +57,9 @@ type ManifestLoader struct {
 	audioLoader domain.IAudioLoader
 }
 
-// NewManifestLoader tạo mới một ManifestLoader.
-// spriteLoader: dùng để load sprites (bắt buộc).
-// audioLoader : dùng để load audios; nếu nil thì bỏ qua phần audio trong manifest.
+// Purpose: Creates a new ManifestLoader.
+// Inputs: spriteLoader (domain.ISpriteLoader) - Loader for sprites, audioLoader (domain.IAudioLoader) - Loader for audios (can be nil).
+// Outputs: (*ManifestLoader) - A pointer to the new ManifestLoader.
 func NewManifestLoader(spriteLoader domain.ISpriteLoader, audioLoader domain.IAudioLoader) *ManifestLoader {
 	return &ManifestLoader{
 		spriteLoader: spriteLoader,
@@ -67,9 +67,9 @@ func NewManifestLoader(spriteLoader domain.ISpriteLoader, audioLoader domain.IAu
 	}
 }
 
-// LoadFromFile triển khai domain.IManifestLoader.
-// Đọc file TOML tại filePath, parse và nạp tất cả tài nguyên vào store.
-// Lỗi audio được thu thập và trả về sau khi đã load xong sprite/vars/constants.
+// Purpose: Reads a TOML manifest file, parses it, and loads all resources into the global store.
+// Inputs: filePath (string) - The path to the TOML manifest file, store (domain.IGlobal) - The global store to hold the assets.
+// Outputs: (error) - Error if reading or parsing fails, or if a critical asset fails to load.
 func (m *ManifestLoader) LoadFromFile(filePath string, store domain.IGlobal) error {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -97,7 +97,9 @@ func (m *ManifestLoader) LoadFromFile(filePath string, store domain.IGlobal) err
 	return audioErr
 }
 
-// loadSprites duyệt qua danh sách sprite entries và load vào store.
+// Purpose: Iterates through sprite entries from the manifest and loads them into the store.
+// Inputs: entries ([]spriteEntry) - List of sprite specifications, store (domain.IGlobal) - Global store.
+// Outputs: (error) - Error if any sprite fails to load.
 func (m *ManifestLoader) loadSprites(entries []spriteEntry, store domain.IGlobal) error {
 	if m.spriteLoader == nil {
 		return nil
@@ -124,7 +126,9 @@ func (m *ManifestLoader) loadSprites(entries []spriteEntry, store domain.IGlobal
 	return nil
 }
 
-// loadAudios duyệt qua danh sách audio entries và load vào store.
+// Purpose: Iterates through audio entries from the manifest and loads them into the store.
+// Inputs: entries ([]audioEntry) - List of audio specifications, store (domain.IGlobal) - Global store.
+// Outputs: (error) - Error if any audio fails to load.
 func (m *ManifestLoader) loadAudios(entries []audioEntry, store domain.IGlobal) error {
 	if m.audioLoader == nil {
 		// audioLoader chưa được cung cấp — bỏ qua âm thanh, không lỗi.
@@ -142,14 +146,16 @@ func (m *ManifestLoader) loadAudios(entries []audioEntry, store domain.IGlobal) 
 	return nil
 }
 
-// loadVars đọc danh sách vars và lưu vào store dưới dạng variable.
+// Purpose: Loads global variables into the global store.
+// Inputs: entries ([]varEntry) - List of variable specifications, store (domain.IGlobal) - Global store.
 func (m *ManifestLoader) loadVars(entries []varEntry, store domain.IGlobal) {
 	for _, e := range entries {
 		store.SetValue(e.Key, e.Value)
 	}
 }
 
-// loadConstants đọc danh sách constants và lưu vào store dưới dạng constant.
+// Purpose: Loads constants into the global store.
+// Inputs: entries ([]varEntry) - List of constant specifications, store (domain.IGlobal) - Global store.
 func (m *ManifestLoader) loadConstants(entries []varEntry, store domain.IGlobal) {
 	for _, e := range entries {
 		store.NewConst(e.Key, e.Value)

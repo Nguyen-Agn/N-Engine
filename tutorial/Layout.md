@@ -42,6 +42,7 @@ package main
 
 import (
 	"autoworld/modules/napi"
+	"autoworld/modules/napi/ncom"
 	layout "autoworld/modules/nlayout"
 )
 
@@ -73,9 +74,9 @@ func createUIMenu() {
 
 // Khai báo một Custom Object Button
 type MyCustomButton struct {
-	napi.IObject
-	napi.Pos
-	napi.Spr
+	ncom.Object
+	ncom.Pos
+	ncom.Spr
 }
 
 func NewMyCustomButton(name string, x, y, w, h int) *MyCustomButton {

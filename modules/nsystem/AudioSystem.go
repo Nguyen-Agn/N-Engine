@@ -5,78 +5,80 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-// AudioSystem chịu trách nhiệm duy nhất là điều phối việc phát âm thanh.
-// Nó đọc cờ (flag) từ AudioData và thực hiện lệnh phát/dừng âm thanh.
-// Điều này giúp tách biệt hoàn toàn logic game khỏi việc gọi thư viện audio.
+// AudioSystem is solely responsible for coordinating audio playback.
+// It reads flags from AudioData and executes play/stop commands.
+// This completely separates game logic from audio library calls.
 type AudioSystem struct {
-	// query là bộ truy vấn được tạo một lần và tái sử dụng, rất hiệu năng.
+	// query is created once and reused for high performance.
 	query *donburi.Query
 }
 
-// NewAudioSystem khởi tạo AudioSystem với bộ lọc chỉ lấy thực thể có AudioData.
+// NewAudioSystem initializes an AudioSystem with a filter to query only entities containing AudioData.
+// Outputs: Returns a pointer to a newly initialized AudioSystem.
 func NewAudioSystem() *AudioSystem {
 	return &AudioSystem{
 		query: donburi.NewQuery(filter.Contains(Audio)),
 	}
 }
 
-// Update duyệt qua tất cả thực thể có AudioData và xử lý các cờ phát/dừng.
-// Chỉ những thực thể có Component Audio mới được xử lý (nhờ Query).
+// Update iterates through all entities with AudioData and processes their play/stop flags.
+// Inputs: w (donburi.World) - The ECS world containing the entities.
+// Purpose: Only entities with the Audio Component are processed (thanks to the Query). It manages playing, pausing, resuming, stopping, and looping audio based on flags in AudioData.
 func (this *AudioSystem) Update(w donburi.World) {
 	this.query.Each(w, func(entry *donburi.Entry) {
 		data := donburi.Get[AudioData](entry, Audio)
 
-		// Bỏ qua nếu chưa có âm thanh nào được đặt tên
+		// Skip if no audio name is set
 		if data.AudioName == "" {
 			return
 		}
 
-		// Lấy IAudioLW từ map theo tên hiện tại
+		// Retrieve IAudioLW from the map by current name
 		audioLW, ok := data.Audio[data.AudioName]
 		if !ok || audioLW == nil {
 			return
 		}
 
-		// Cập nhật trạng thái lặp lại cho IAudioLW
+		// Update looping state for IAudioLW
 		audioLW.SetLooping(data.IsLooping)
 
-		// Cập nhật volume liên tục nếu đang phát (để hỗ trợ fade/tăng giảm volume real-time)
+		// Continuously update volume if playing (to support real-time volume changes/fading)
 		if audioLW.IsPlaying() {
 			audioLW.SetVolume(data.Volume)
 		}
 
-		// Xử lý lệnh DỪNG trước (ưu tiên cao nhất)
+		// Process STOP command first (highest priority)
 		if data.ShouldStop {
 			audioLW.Stop()
-			data.ShouldStop = false // Reset cờ sau khi xử lý
+			data.ShouldStop = false // Reset flag after processing
 			return
 		}
 
-		// Xử lý lệnh TẠM DỪNG
+		// Process PAUSE command
 		if data.ShouldPause {
 			audioLW.Pause()
 			data.ShouldPause = false
 			return
 		}
 
-		// Xử lý lệnh TIẾP TỤC
+		// Process RESUME command
 		if data.ShouldResume {
 			audioLW.Resume()
 			data.ShouldResume = false
 			return
 		}
 
-		// Xử lý lệnh PHÁT MỚI
+		// Process NEW PLAY command
 		if data.ShouldPlay {
-			// Chỉ phát nếu chưa đang phát (tránh phát đè)
+			// Only play if not already playing (prevent overlapping)
 			if !audioLW.IsPlaying() {
 				audioLW.Play(data.AudioName, data.Volume, data.Pitch)
 			}
-			data.ShouldPlay = false // Reset cờ sau khi xử lý
+			data.ShouldPlay = false // Reset flag after processing
 		} else {
-			// Xử lý tự động lặp lại (Loop)
+			// Process automatic looping
 			if data.IsLooping {
-				// Nếu đang không phát, không bị pause, và KHÔNG bị dừng cưỡng bức
+				// If not playing, not paused, and NOT forcibly stopped
 				if !audioLW.IsPlaying() && !audioLW.IsPaused() && !audioLW.IsStopped() {
 					audioLW.Play(data.AudioName, data.Volume, data.Pitch)
 				}

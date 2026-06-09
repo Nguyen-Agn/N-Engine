@@ -6,61 +6,76 @@ import (
 
 // ─── SceneManager ────────────────────────────────────────────────────────────
 
-// sceneEntry là record nội bộ lưu một IScene kèm trạng thái pause trong danh sách chờ.
+// sceneEntry là internal record to save IScene and pause-state.
 type sceneEntry struct {
 	scene    IScene
-	isPaused bool // true = đang bị pause, không Update/Draw
+	isPaused bool // true = no Update/Draw
 }
 
-// SceneManager quản lý toàn bộ vòng đời của các Scene.
+// SceneManager manger all Scene's lifecycle.
 type SceneManager struct {
-	// currentScene là Scene đang hoạt động
 	currentScene IScene
 
-	// sceneList là kho lưu các Scene theo ID để tái sử dụng
+	// sceneList is list of scene is being not using
 	sceneList map[string]*sceneEntry
 
-	// globalScene là màn hình ẩn, luôn chạy Update mọi frame bất kể Scene nào đang active.
-	// Dùng để chứa các Object tồn tại xuyên suốt (không bị xóa khi đổi Scene).
-	// Không được Draw.
+	// globalScene is hidden scene, always run Update, but no Draw
+	// Should save consitency object (not killed by changing Scene).
 	globalScene *Scene
 
-	// screenW, screenH là kích thước màn hình logic
 	screenW, screenH int
 
-	// input được truyền vào mỗi Scene mới để InputSystem có thể hoạt động
 	input IInputManager
 }
 
-// NewSceneManager khởi tạo SceneManager với kích thước màn hình và IInputManager.
+// NewSceneManager creates a new SceneManager instance.
+//
+// Purpose: Initializes the manager responsible for tracking active and paused scenes, as well as maintaining the global background scene.
+//
+// Inputs:
+// - screenW (int): The width of the game screen in pixels.
+// - screenH (int): The height of the game screen in pixels.
+// - input (IInputManager): The global input manager to distribute to scenes.
+//
+// Outputs:
+// - *SceneManager: The configured manager.
 func NewSceneManager(screenW, screenH int, input IInputManager) *SceneManager {
 	return &SceneManager{
-		sceneList:   make(map[string]*sceneEntry),
-		screenW:     screenW,
-		screenH:     screenH,
-		input:       input,
-		// Global Scene: kích thước map không giới hạn (0,0), viewport = screen
+		sceneList: make(map[string]*sceneEntry),
+		screenW:   screenW,
+		screenH:   screenH,
+		input:     input,
+		// Global Scene: unlimit size (0,0), viewport = screen
 		globalScene: NewScene(input, 0, 0, screenW, screenH),
 	}
 }
 
 // ─── ISceneManager interface — Lifecycle ─────────────────────────────────────
 
-// Update được Ebitengine gọi mỗi frame để xử lý logic.
-// Luôn cập nhật globalScene trước, sau đó mới đến currentScene.
+// Update advances the logic of all active scenes for one frame.
+//
+// Purpose: Updates the global scene first, followed by the active current scene.
+//
+// Outputs:
+// - error: An error if any scene fails to update, otherwise nil.
 func (r *SceneManager) Update() error {
-	// Global scene luôn chạy bất kể scene nào đang active
+	// Global scene allways run
 	if err := r.globalScene.Update(); err != nil {
 		return err
 	}
 	if r.currentScene == nil {
 		return nil
 	}
+
 	return r.currentScene.Update()
 }
 
-// Draw được Ebitengine gọi mỗi frame để vẽ.
-// Chỉ vẽ currentScene. Trả về error để phù hợp với IRootManager.
+// Draw renders the active current scene.
+//
+// Purpose: Called by Ebitengine's render loop. Only the currently active scene is drawn.
+//
+// Outputs:
+// - error: Always returns nil.
 func (r *SceneManager) Draw() error {
 	if r.currentScene == nil {
 		return nil
@@ -69,15 +84,26 @@ func (r *SceneManager) Draw() error {
 	return nil
 }
 
-// Layout trả về kích thước màn hình logic cho Ebitengine.
+// Layout dictates the logical screen dimensions for Ebitengine.
+//
+// Outputs:
+// - (int, int): The logical width and height defined at creation.
 func (r *SceneManager) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return r.screenW, r.screenH
 }
 
 // ─── ISceneManager interface — Scene Management ─────────────────────────────
 
-// AddScene thêm một Scene vào danh sách chờ (chưa kích hoạt).
-// Trả về error nếu ID đã tồn tại.
+// AddScene registers a new scene into the waiting list without activating it.
+//
+// Purpose: Stores a scene for later use, pausing it initially.
+//
+// Inputs:
+// - id (string): The unique identifier for the scene.
+// - scene (IScene): The scene instance to add.
+//
+// Outputs:
+// - error: Returns an error if the ID already exists in the list.
 func (r *SceneManager) AddScene(id string, scene IScene) error {
 	if _, exists := r.sceneList[id]; exists {
 		return fmt.Errorf("scene '%s' already exists in list", id)
@@ -92,17 +118,22 @@ func (r *SceneManager) AddScene(id string, scene IScene) error {
 	return nil
 }
 
-// ChangeSceneFromList chuyển sang Scene đã có trong danh sách theo ID.
-// Scene hiện tại sẽ bị đánh dấu pause và ẩn (không Destroy).
-// Điều này cho phép tái sử dụng Scene (ví dụ: quay lại màn hình trước).
-// Trả về error nếu ID không tồn tại.
+// ChangeSceneFromList switches the active scene to one stored in the waitlist.
+//
+// Purpose: Pauses the current scene (without destroying it) and resumes the requested scene. Allows for reusable scenes.
+//
+// Inputs:
+// - id (string): The ID of the scene to activate.
+//
+// Outputs:
+// - error: Returns an error if the ID does not exist in the list.
 func (r *SceneManager) ChangeSceneFromList(id string) error {
 	entry, exists := r.sceneList[id]
 	if !exists {
 		return fmt.Errorf("scene '%s' not found in list", id)
 	}
 
-	// Pause Scene hiện tại (không xóa)
+	// Pause current Scene  (not delete)
 	if r.currentScene != nil {
 		// Tìm và đánh dấu pause Scene hiện tại trong list
 		for _, e := range r.sceneList {
@@ -113,15 +144,21 @@ func (r *SceneManager) ChangeSceneFromList(id string) error {
 		}
 	}
 
-	// Kích hoạt Scene mới từ list
+	// active new scene
 	entry.isPaused = false
 	r.currentScene = entry.scene
 	return nil
 }
 
-// ChangeSceneForce ép xóa Scene hiện tại (gọi Destroy) và thay bằng Scene mới.
-// Scene mới KHÔNG được thêm vào list — đây là chế độ "dùng rồi xóa".
-// Dùng khi bạn chắc chắn không cần quay lại Scene cũ.
+// ChangeSceneForce forcefully switches to a new scene, permanently destroying the current one.
+//
+// Purpose: Transitions to a fresh scene instance and cleans up the active scene.
+//
+// Inputs:
+// - next (IScene): The new scene instance to activate.
+//
+// Outputs:
+// - error: Returns an error if the provided scene is nil.
 func (r *SceneManager) ChangeSceneForce(next IScene) error {
 	if next == nil {
 		return fmt.Errorf("cannot force change to nil scene")
@@ -143,9 +180,15 @@ func (r *SceneManager) ChangeSceneForce(next IScene) error {
 	return nil
 }
 
-// RemoveScene xóa một Scene khỏi danh sách theo ID và gọi Destroy.
-// Không làm gì nếu Scene đang là currentScene (cần ChangeSceneForce trước).
-// Trả về error nếu ID không tồn tại.
+// RemoveScene permanently removes and destroys a paused scene from the waitlist.
+//
+// Purpose: Frees resources associated with a scene that is no longer needed.
+//
+// Inputs:
+// - id (string): The ID of the scene to remove.
+//
+// Outputs:
+// - error: Returns an error if the scene is not found or is currently active.
 func (r *SceneManager) RemoveScene(id string) error {
 	entry, exists := r.sceneList[id]
 	if !exists {
@@ -162,7 +205,12 @@ func (r *SceneManager) RemoveScene(id string) error {
 	return nil
 }
 
-// RemoveAllScene xóa toàn bộ danh sách Scene (gọi Destroy từng cái) và đặt currentScene = nil.
+// RemoveAllScene destroys every scene in the waitlist and clears the current scene.
+//
+// Purpose: Performs a complete cleanup of all managed scenes, usually during a hard reset or exit.
+//
+// Outputs:
+// - error: Always returns nil.
 func (r *SceneManager) RemoveAllScene() error {
 	for id, entry := range r.sceneList {
 		entry.scene.Destroy()
@@ -172,13 +220,21 @@ func (r *SceneManager) RemoveAllScene() error {
 	return nil
 }
 
-// GetCurrentScene trả về Scene đang hoạt động.
+// GetCurrentScene retrieves the currently running active scene.
+//
+// Outputs:
+// - IScene: The active scene interface.
 func (r *SceneManager) GetCurrentScene() IScene {
 	return r.currentScene
 }
 
-// GetSceneFromList trả về IScene theo id từ danh sách.
-// Trả về nil nếu không tìm thấy.
+// GetSceneFromList retrieves a scene from the waitlist without activating it.
+//
+// Inputs:
+// - id (string): The scene's identifier.
+//
+// Outputs:
+// - IScene: The found scene, or nil if it doesn't exist.
 func (r *SceneManager) GetSceneFromList(id string) IScene {
 	entry, exists := r.sceneList[id]
 	if !exists {
@@ -187,8 +243,12 @@ func (r *SceneManager) GetSceneFromList(id string) IScene {
 	return entry.scene
 }
 
-// GetGlobalScene trả về Global Hidden Scene — scene ẩn luôn chạy Update mọi frame.
-// Dùng để đặt các Object tồn tại xuyên suốt game (không bị xóa khi đổi Scene).
+// GetGlobalScene retrieves the hidden background scene.
+//
+// Purpose: Used to add persistent objects that should not be destroyed across regular scene transitions.
+//
+// Outputs:
+// - IScene: The global scene interface.
 func (r *SceneManager) GetGlobalScene() IScene {
 	return r.globalScene
 }

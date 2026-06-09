@@ -8,32 +8,44 @@ import (
 
 // ─── ECS Entry Helper ─────────────────────────────────────────────────────────
 
-// NewEntry tạo một ECS entity (donburi.Entry) trong World của scene với các component types cho sẵn.
-// Dùng khi cần tạo entity thủ công thay vì qua NewObject.
+// newEntry creates a raw ECS entity (donburi.Entry) within the scene's World using the provided component types.
 //
-// Ví dụ:
+// Purpose: Enables manual entity creation bypassing the standard NewObject pipeline, useful for highly customized ECS integration.
 //
-//	entry := napi.NewEntry(scene, napi.Position, napi.Sprite)
+// Inputs:
+// - scene (IScene): The active scene providing the ECS World.
+// - components (...donburi.IComponentType): A variadic list of component types to instantiate the entity with.
+//
+// Outputs:
+// - *donburi.Entry: The raw ECS entry reference.
 func newEntry(scene IScene, components ...donburi.IComponentType) *donburi.Entry {
 	return scene.World().Entry(scene.World().Create(components...))
 }
 
 // ─── Custom Component Type ────────────────────────────────────────────────────
 
-// NewComponentType tạo một donburi component type mới cho game dev tùy biến.
-// Nếu token != "", component sẽ được đăng ký vào registry và có thể dùng
-// trong componentCode của NewObject (ví dụ: "pos spr sta").
+// newComponentType creates and registers a new Donburi component type for custom game data.
 //
-// Ví dụ:
+// Purpose: Allows developers to define new component types. If a non-empty token is provided, it registers the component in the global registry, permitting its use via shorthand strings in NewObject.
 //
-//	var StatsComp = napi.NewComponentType[StatsData]("sta")
-//	napi.NewObject(hero, "hero", "pos spr sta")
+// Inputs:
+// - token (string): A short string identifier (e.g., "sta") used to refer to this component during object creation.
+//
+// Outputs:
+// - *donburi.ComponentType[T]: The initialized generic component type.
 func newComponentType[T any](token string) *donburi.ComponentType[T] {
 	return enginetype.NewComponentType[T](token)
 }
 
-// GetComponentType tra cứu component type đã đăng ký theo token.
-// Trả về nil nếu token chưa được đăng ký.
+// getComponentType looks up a registered component type using its string token.
+//
+// Purpose: Retrieves the underlying ECS component type definition required for dynamic entity construction.
+//
+// Inputs:
+// - token (string): The string identifier for the component.
+//
+// Outputs:
+// - donburi.IComponentType: The corresponding component type, or nil if the token is unregistered.
 func getComponentType(token string) donburi.IComponentType {
 	return enginetype.GetComponentType(token)
 }

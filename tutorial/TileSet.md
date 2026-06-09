@@ -7,8 +7,8 @@
 
 ## 1. Giải thích / Explanation
 
-Tilemap object nhúng mixin `napi.Tile` (`TilemapComponent`) để hiển thị bản đồ dạng lưới ô. Việc vẽ hàng nghìn ô gạch được Engine culling (lọc) và tối ưu hóa tự động bằng `DrawSystem`.
-Tilemap object embeds `napi.Tile` to display a grid-based map.
+Tilemap object nhúng mixin `ncom.Tile` (`TilemapComponent`) để hiển thị bản đồ dạng lưới ô. Việc vẽ hàng nghìn ô gạch được Engine culling (lọc) và tối ưu hóa tự động bằng `DrawSystem`.
+Tilemap object embeds `ncom.Tile` to display a grid-based map.
 
 **Cách hoạt động / How it works:**
 1. Khai báo sprite sheet chứa các tile / Declare a sprite sheet with tiles. (Cắt lưới tự động bằng Manifest `cols`, `rows`)
@@ -30,13 +30,14 @@ package objects
 
 import (
 	"autoworld/modules/napi"
+	"autoworld/modules/napi/ncom"
 )
 
 // TilemapObject - bản đồ ô gạch / tile map object
 type TilemapObject struct {
-	napi.IObject // Lifecycle
-	napi.Pos     // Vị trí bản đồ / Map position
-	napi.Tile    // Tilemap component
+	ncom.Object // Lifecycle
+	ncom.Pos     // Vị trí bản đồ / Map position
+	ncom.Tile    // Tilemap component
 }
 
 // NewTilemapObject - tạo tilemap / create tilemap
@@ -71,4 +72,4 @@ func (t *TilemapObject) Create() {
 }
 ```
 
-> **Lưu ý:** Việc va chạm (Collision) không gắn liền với Tilemap mặc định. Nếu bạn muốn nhân vật va chạm với tường, bạn nên tạo riêng các tảng "WallObject" nhúng `napi.Box` đặt chồng lên tại các tọa độ tương ứng của Tilemap.
+> **Lưu ý:** Việc va chạm (Collision) không gắn liền với Tilemap mặc định. Nếu bạn muốn nhân vật va chạm với tường, bạn nên tạo riêng các tảng "WallObject" nhúng `ncom.Box` đặt chồng lên tại các tọa độ tương ứng của Tilemap.

@@ -23,7 +23,15 @@ type ObjectPool[T domain.IObject] struct {
 	mu     sync.Mutex
 }
 
-// NewObjectPool tạo một kho chứa Object mới.
+// NewObjectPool creates a new object storage pool.
+//
+// Purpose: Initializes an object pool based on the provided configuration, allowing objects to be reused to minimize garbage collection.
+//
+// Inputs:
+// - config (PoolConfig[T]): The configuration object detailing how to instantiate and reset objects.
+//
+// Outputs:
+// - *ObjectPool[T]: The newly created object pool.
 func NewObjectPool[T domain.IObject](config PoolConfig[T]) *ObjectPool[T] {
 	if config.New == nil {
 		panic("[ObjectPool] PoolConfig.New cannot be nil")
@@ -37,8 +45,15 @@ func NewObjectPool[T domain.IObject](config PoolConfig[T]) *ObjectPool[T] {
 	}
 }
 
-// Get rút một Object từ kho (hoặc tạo mới nếu kho rỗng), reset trạng thái,
-// và đăng ký lại vào Vòng lặp cập nhật của Scene.
+// Get retrieves an object from the pool, creates a new one if empty, resets its state, and registers it to the scene.
+//
+// Purpose: Provides an active object instance ready for use in the game.
+//
+// Inputs:
+// - sceneName (string): The scene to register the retrieved object to.
+//
+// Outputs:
+// - T: The active game object.
 func (p *ObjectPool[T]) Get(sceneName string) T {
 	p.mu.Lock()
 	var obj T
@@ -77,9 +92,15 @@ func (p *ObjectPool[T]) Get(sceneName string) T {
 	return obj
 }
 
-// Put cất Object vào kho. Hàm này trả về true nếu cất thành công.
-// Trả về false nếu kho đã đầy, ra hiệu cho Engine xóa tận gốc (Tránh Memory Leak).
-// Dev KHÔNG CẦN GỌI HÀM NÀY. Engine tự động gọi ngầm trong Map.go khi Dev gọi napi.Obj.Remove.
+// Put stores an object back into the pool for future reuse.
+//
+// Purpose: Recycles an object. Returns true if stored successfully, or false if the pool has reached MaxSize (indicating the engine should permanently delete it). Note: Game developers usually do not need to call this manually; Engine handles it on object removal.
+//
+// Inputs:
+// - obj (domain.IObject): The object to store.
+//
+// Outputs:
+// - bool: True if pooled, false if the pool was full.
 func (p *ObjectPool[T]) Put(obj domain.IObject) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -92,8 +113,12 @@ func (p *ObjectPool[T]) Put(obj domain.IObject) bool {
 	return true
 }
 
-// Release là hàm thay thế cho napi.Obj.Remove(obj) (hoạt động giống y hệt).
-// Dev có thể gọi pool.Release(obj) hoặc napi.Obj.Remove(obj) đều có kết quả Auto-Routing như nhau.
+// Release safely removes the object from the active scene and schedules it for return to the pool.
+//
+// Purpose: A convenience method functionally identical to napi.Obj.Remove(obj). Marks the object for deferred routing back to this pool at the end of the frame.
+//
+// Inputs:
+// - obj (T): The object to release.
 func (p *ObjectPool[T]) Release(obj T) {
 	Obj.Remove(obj)
 }

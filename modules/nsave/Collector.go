@@ -7,6 +7,9 @@ import (
 
 type collector struct{}
 
+// collectObjects collects save data from all eligible objects in a scene and groups them by their unique tags.
+// Inputs: scene - the active game scene holding the maps.
+// Outputs: nested map linking unique tags to their respective save state maps.
 func (c *collector) collectObjects(scene domain.IScene) map[string]map[string]any {
 	result := make(map[string]map[string]any)
 	if scene == nil {
@@ -27,6 +30,8 @@ func (c *collector) collectObjects(scene domain.IScene) map[string]map[string]an
 	return result
 }
 
+// collectFromObjectList extracts data from a specific slice of objects, handling dead elements and adding prefixes.
+// Inputs: objects - array of objects to inspect, result - map accumulating all states, prefix - tag prefix.
 func (c *collector) collectFromObjectList(objects []domain.IObject, result map[string]map[string]any, prefix string) {
 	for _, obj := range objects {
 		// Skip objects that have been marked for removal
@@ -58,6 +63,9 @@ func (c *collector) collectFromObjectList(objects []domain.IObject, result map[s
 	}
 }
 
+// collectVariables extracts primitive variables from the global store for saving.
+// Inputs: store - the global variable registry.
+// Outputs: map containing primitive global variables.
 func (c *collector) collectVariables(store domain.IGlobal) map[string]any {
 	if store == nil {
 		return nil

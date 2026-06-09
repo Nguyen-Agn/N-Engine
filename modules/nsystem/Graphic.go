@@ -8,26 +8,30 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// DrawOptions là kết quả đã được tính toán sẵn, sẵn sàng để vẽ.
-// Graphic.go chịu trách nhiệm tạo ra struct này từ SpriteData + PositionData.
+// DrawOptions is the pre-calculated result, ready for rendering.
+// Graphic.go is responsible for creating this struct from SpriteData + PositionData.
 type DrawOptions struct {
-	// Image là frame ảnh cụ thể sẽ được vẽ
+	// Image is the specific frame image to be drawn.
 	Image *ebiten.Image
-	// Opts là tất cả các thông số biến đổi hình học và màu sắc
+	// Opts contains all the geometric transformation and color parameters.
 	Opts *ebiten.DrawImageOptions
 }
 
-// BuildDrawOptions chuyển đổi SpriteData và PositionData thành mảng DrawOptions sẵn sàng vẽ.
-// camX, camY là toạ độ camera trong map space — được trừ khỏi vị trí entity để chuyển sang screen space.
-// Trả về nil nếu không có sprite hợp lệ để vẽ.
+// BuildDrawOptions converts SpriteData and PositionData into an array of DrawOptions ready for drawing.
+// Inputs: 
+//   pos (PositionData) - The position component of the entity.
+//   spr (SpriteData) - The sprite component of the entity.
+//   camX, camY (float32) - Camera coordinates in map space.
+// Outputs: Returns an array of DrawOptions. Returns nil if there is no valid sprite to draw.
+// Purpose: Calculates final screen position, handles rotation, scaling, NineSlice (if enabled), and color scaling.
 func BuildDrawOptions(pos PositionData, spr SpriteData, camX, camY float32) []*DrawOptions {
-	// Lấy sprite đang được chọn
+	// Retrieve the currently selected sprite
 	spriteLW, ok := spr.Sprite[spr.CurrentSprite]
 	if !ok || spriteLW == nil {
 		return nil
 	}
 
-	// Lấy frame ảnh hiện tại theo chỉ số
+	// Retrieve the current image frame by index
 	img := spriteLW.Image(spr.SpriteIdx)
 	if img == nil {
 		return nil
@@ -39,23 +43,23 @@ func BuildDrawOptions(pos PositionData, spr SpriteData, camX, camY float32) []*D
 
 	opts := &ebiten.DrawImageOptions{}
 
-	// 1. Dịch về gốc tọa độ (0,0) để phép xoay và scale hoạt động đúng
+	// 1. Translate to origin (0,0) so rotation and scaling work correctly around the center
 	w := float64(spriteLW.Width())
 	h := float64(spriteLW.Height())
 	opts.GeoM.Translate(-w/2, -h/2)
 
-	// 2. Áp dụng Scale (ScaleX âm = lật ngang, ScaleY âm = lật dọc)
+	// 2. Apply Scale (Negative ScaleX = flip horizontally, Negative ScaleY = flip vertically)
 	opts.GeoM.Scale(float64(spr.ScaleX), float64(spr.ScaleY))
 
-	// 3. Áp dụng Rotation (chuyển từ độ sang radian)
+	// 3. Apply Rotation (convert degrees to radians)
 	opts.GeoM.Rotate(float64(spr.Rotation) * math.Pi / 180)
 
-	// 4. Dịch về vị trí cuối cùng = (map pos + offset) - camera offset = screen pos
+	// 4. Translate to final position = (map pos + offset) - camera offset = screen pos
 	finalX := float64(pos.X) + float64(spr.OffsetX) - float64(camX)
 	finalY := float64(pos.Y) + float64(spr.OffsetY) - float64(camY)
 	opts.GeoM.Translate(finalX, finalY)
 
-	// 5. Áp dụng màu sắc (Color Scale)
+	// 5. Apply Color Scale
 	opts.ColorScale.ScaleWithColor(toFloat32Color(spr.ImageColor))
 
 	return []*DrawOptions{
@@ -66,6 +70,14 @@ func BuildDrawOptions(pos PositionData, spr SpriteData, camX, camY float32) []*D
 	}
 }
 
+// buildNineSliceDrawOptions creates drawing options for a 9-slice scaled sprite.
+// Inputs: 
+//   img (*ebiten.Image) - The source image to slice.
+//   pos (PositionData) - Entity's position.
+//   spr (SpriteData) - Entity's sprite data containing nine-slice configuration.
+//   camX, camY (float32) - Camera coordinates in map space.
+// Outputs: Returns a slice of DrawOptions for each visible patch of the 9-slice.
+// Purpose: Divides the image into 9 patches based on NineSlice margins, scales the middle patches appropriately to reach the target scaled size without distorting corners, and applies rotation/positioning to the entire assembled shape.
 func buildNineSliceDrawOptions(img *ebiten.Image, pos PositionData, spr SpriteData, camX, camY float32) []*DrawOptions {
 	var result []*DrawOptions
 
@@ -77,7 +89,7 @@ func buildNineSliceDrawOptions(img *ebiten.Image, pos PositionData, spr SpriteDa
 	left := spr.NineSlice.Left
 	right := spr.NineSlice.Right
 
-	// Kiểm tra an toàn cho các slice
+	// Safety checks for slices
 	if left+right > srcW {
 		left = srcW / 2
 		right = srcW - left
@@ -134,19 +146,19 @@ func buildNineSliceDrawOptions(img *ebiten.Image, pos PositionData, spr SpriteDa
 			scaleY := dh / float64(sh)
 			opts.GeoM.Scale(scaleX, scaleY)
 
-			// Dịch patch về đúng tọa độ trong khung (0, 0)
+			// Translate patch to correct coordinate within the local frame (0, 0)
 			opts.GeoM.Translate(dstX[col], dstY[row])
 
-			// Dịch tâm để có thể xoay quanh giữa khung
+			// Translate center so it can be rotated around the middle of the frame
 			opts.GeoM.Translate(-targetW/2, -targetH/2)
 
-			// Xoay toàn khối
+			// Rotate the entire block
 			opts.GeoM.Rotate(float64(spr.Rotation) * math.Pi / 180)
 
-			// Dịch đến vị trí cuối
+			// Translate to final position
 			opts.GeoM.Translate(finalX, finalY)
 
-			// Áp dụng màu sắc
+			// Apply Color Scale
 			opts.ColorScale.ScaleWithColor(toFloat32Color(spr.ImageColor))
 
 			result = append(result, &DrawOptions{
@@ -159,7 +171,9 @@ func buildNineSliceDrawOptions(img *ebiten.Image, pos PositionData, spr SpriteDa
 	return result
 }
 
-// toFloat32Color chuyển color.RGBA (0-255) sang ebiten.ColorScale (0.0-1.0)
+// toFloat32Color passes through the color.RGBA, as ebiten supports it directly.
+// Inputs: c (color.RGBA) - The color to be used.
+// Outputs: Returns the exact same color.RGBA object.
 func toFloat32Color(c color.RGBA) color.RGBA {
-	return c // ebiten.ColorScale.ScaleWithColor nhận color.RGBA trực tiếp
+	return c // ebiten.ColorScale.ScaleWithColor accepts color.RGBA directly
 }

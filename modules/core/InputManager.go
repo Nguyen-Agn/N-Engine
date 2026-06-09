@@ -8,9 +8,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-// ─── Key Mapping Table ────────────────────────────────────────────────────────
-// Ánh xạ domain.Key (độc lập thư viện) sang ebiten.Key (ebiten-specific).
-// Bảng này là cầu nối duy nhất giữa định nghĩa phím trừu tượng và thư viện ebiten.
+// ─── Key Mapping Table ───
+//
+// domain.Key --> ebiten.Key
 var ebitenKeyMap = map[domain.Key]ebiten.Key{
 	domain.KeyA:            ebiten.KeyA,
 	domain.KeyB:            ebiten.KeyB,
@@ -117,36 +117,50 @@ var ebitenKeyMap = map[domain.Key]ebiten.Key{
 	domain.KeyUp:           ebiten.KeyUp,
 }
 
-// ebitenMouseMap ánh xạ domain.MouseButton sang ebiten.MouseButton.
+// ─── Mouse Mapping Table ───
+//
+// domain.Mouse --> ebiten.Mouse
 var ebitenMouseMap = map[domain.MouseButton]ebiten.MouseButton{
 	domain.MouseButtonLeft:   ebiten.MouseButtonLeft,
 	domain.MouseButtonRight:  ebiten.MouseButtonRight,
 	domain.MouseButtonMiddle: ebiten.MouseButtonMiddle,
 }
 
-// ─── InputManager ─────────────────────────────────────────────────────────────
-
-// InputManager triển khai domain.IInputManager bằng thư viện Ebitengine.
-// Là bridge duy nhất giữa hệ thống input trừu tượng (domain) và ebiten input API.
+// ─── InputManager ───
+//
+// InputManager: "string" -> key code
 type InputManager struct {
-	// actions lưu ánh xạ tên action → danh sách Key (Virtual Action Mapping).
 	actions map[string][]domain.Key
 }
 
-// NewInputManager khởi tạo InputManager mới với bảng action rỗng.
+// NewInputManager creates a new InputManager instance.
+//
+// Purpose: Initializes an InputManager that handles physical key/mouse tracking and virtual action mapping.
+//
+// Outputs:
+// - *InputManager: A newly initialized InputManager.
 func NewInputManager() *InputManager {
 	return &InputManager{
 		actions: make(map[string][]domain.Key),
 	}
 }
 
-// ─── Keyboard ─────────────────────────────────────────────────────────────────
-
-// Update được gọi mỗi frame. Ebiten tự cập nhật trạng thái input nội bộ,
-// nên method này hiện tại không cần làm gì thêm.
+// ─── Keyboard ───
+//
+// Update is called once per frame.
+//
+// Purpose: Provided to satisfy interface requirements. Ebiten processes inputs automatically behind the scenes, so no internal logic is needed here.
 func (im *InputManager) Update() {}
 
-// IsKeyPressed trả về true nếu phím đang được giữ trong frame hiện tại.
+// IsKeyPressed checks if a specific key is currently being held down.
+//
+// Purpose: Determines continuous key press states.
+//
+// Inputs:
+// - key (domain.Key): The physical key to check.
+//
+// Outputs:
+// - bool: True if the key is currently pressed, false otherwise.
 func (im *InputManager) IsKeyPressed(key domain.Key) bool {
 	if eKey, ok := ebitenKeyMap[key]; ok {
 		return ebiten.IsKeyPressed(eKey)
@@ -154,7 +168,15 @@ func (im *InputManager) IsKeyPressed(key domain.Key) bool {
 	return false
 }
 
-// IsKeyJustPressed trả về true nếu phím vừa được nhấn xuống tại frame này (edge trigger).
+// IsKeyJustPressed checks if a specific key was pressed in the current frame.
+//
+// Purpose: Detects the initial press event (edge-trigger) of a key.
+//
+// Inputs:
+// - key (domain.Key): The physical key to check.
+//
+// Outputs:
+// - bool: True if the key transitioned from unpressed to pressed this frame.
 func (im *InputManager) IsKeyJustPressed(key domain.Key) bool {
 	if eKey, ok := ebitenKeyMap[key]; ok {
 		return inpututil.IsKeyJustPressed(eKey)
@@ -162,7 +184,15 @@ func (im *InputManager) IsKeyJustPressed(key domain.Key) bool {
 	return false
 }
 
-// IsKeyJustReleased trả về true nếu phím vừa được thả ra tại frame này (edge trigger).
+// IsKeyJustReleased checks if a specific key was released in the current frame.
+//
+// Purpose: Detects the release event (edge-trigger) of a key.
+//
+// Inputs:
+// - key (domain.Key): The physical key to check.
+//
+// Outputs:
+// - bool: True if the key transitioned from pressed to unpressed this frame.
 func (im *InputManager) IsKeyJustReleased(key domain.Key) bool {
 	if eKey, ok := ebitenKeyMap[key]; ok {
 		return inpututil.IsKeyJustReleased(eKey)
@@ -172,12 +202,25 @@ func (im *InputManager) IsKeyJustReleased(key domain.Key) bool {
 
 // ─── Mouse ────────────────────────────────────────────────────────────────────
 
-// CursorPosition trả về tọa độ con trỏ chuột hiện tại (pixel, tính từ góc trên-trái).
+// CursorPosition retrieves the current mouse cursor coordinates.
+//
+// Purpose: Returns the position of the mouse relative to the top-left corner of the window.
+//
+// Outputs:
+// - (int, int): The X and Y pixel coordinates of the cursor.
 func (im *InputManager) CursorPosition() (int, int) {
 	return ebiten.CursorPosition()
 }
 
-// IsMouseButtonPressed trả về true nếu nút chuột đang được giữ.
+// IsMouseButtonPressed checks if a specific mouse button is currently being held down.
+//
+// Purpose: Determines continuous mouse button press states.
+//
+// Inputs:
+// - button (domain.MouseButton): The mouse button to check.
+//
+// Outputs:
+// - bool: True if the button is currently pressed, false otherwise.
 func (im *InputManager) IsMouseButtonPressed(button domain.MouseButton) bool {
 	if eBtn, ok := ebitenMouseMap[button]; ok {
 		return ebiten.IsMouseButtonPressed(eBtn)
@@ -185,7 +228,15 @@ func (im *InputManager) IsMouseButtonPressed(button domain.MouseButton) bool {
 	return false
 }
 
-// IsMouseButtonJustPressed trả về true nếu nút chuột vừa được nhấn tại frame này.
+// IsMouseButtonJustPressed checks if a specific mouse button was pressed in the current frame.
+//
+// Purpose: Detects the initial press event (edge-trigger) of a mouse button.
+//
+// Inputs:
+// - button (domain.MouseButton): The mouse button to check.
+//
+// Outputs:
+// - bool: True if the button transitioned from unpressed to pressed this frame.
 func (im *InputManager) IsMouseButtonJustPressed(button domain.MouseButton) bool {
 	if eBtn, ok := ebitenMouseMap[button]; ok {
 		return inpututil.IsMouseButtonJustPressed(eBtn)
@@ -193,7 +244,15 @@ func (im *InputManager) IsMouseButtonJustPressed(button domain.MouseButton) bool
 	return false
 }
 
-// IsMouseButtonJustReleased trả về true nếu nút chuột vừa được thả tại frame này.
+// IsMouseButtonJustReleased checks if a specific mouse button was released in the current frame.
+//
+// Purpose: Detects the release event (edge-trigger) of a mouse button.
+//
+// Inputs:
+// - button (domain.MouseButton): The mouse button to check.
+//
+// Outputs:
+// - bool: True if the button transitioned from pressed to unpressed this frame.
 func (im *InputManager) IsMouseButtonJustReleased(button domain.MouseButton) bool {
 	if eBtn, ok := ebitenMouseMap[button]; ok {
 		return inpututil.IsMouseButtonJustReleased(eBtn)
@@ -201,21 +260,38 @@ func (im *InputManager) IsMouseButtonJustReleased(button domain.MouseButton) boo
 	return false
 }
 
-// WheelOffset trả về độ cuộn bánh xe chuột theo trục X và Y trong frame hiện tại.
+// WheelOffset retrieves the scroll offsets for the mouse wheel or touchpad.
+//
+// Purpose: Gets the X and Y movement of the scrolling device. A wrapper for ebiten.Wheel.
+//
+// Outputs:
+// - (float64, float64): The X and Y scroll offsets. Returns (0, 0) if no scrolling occurred.
 func (im *InputManager) WheelOffset() (float64, float64) {
 	return ebiten.Wheel()
 }
 
 // ─── Virtual Action Mapping ───────────────────────────────────────────────────
 
-// BindAction gán một tên action logic với một hoặc nhiều Key vật lý.
-// Sau khi bind, dùng IsActionPressed/JustPressed/JustReleased thay vì kiểm tra từng phím.
-// Ví dụ: BindAction("jump", domain.KeySpace, domain.KeyW)
+// BindAction assigns one or more physical keys to a virtual action string.
+//
+// Purpose: Maps an action name to hardware keys so that game logic can check for the action rather than specific keys.
+//
+// Inputs:
+// - action (string): The name of the virtual action (e.g., "jump").
+// - keys (...domain.Key): A variadic list of physical keys that trigger this action.
 func (im *InputManager) BindAction(action string, keys ...domain.Key) {
 	im.actions[action] = keys
 }
 
-// IsActionPressed trả về true nếu bất kỳ phím nào trong action đang được giữ (OR logic).
+// IsActionPressed checks if any key bound to the specified action is currently being held down.
+//
+// Purpose: Evaluates continuous state for a virtual action.
+//
+// Inputs:
+// - action (string): The name of the virtual action to check.
+//
+// Outputs:
+// - bool: True if any associated key is pressed.
 func (im *InputManager) IsActionPressed(action string) bool {
 	keys, ok := im.actions[action]
 	if !ok {
@@ -224,7 +300,15 @@ func (im *InputManager) IsActionPressed(action string) bool {
 	return slices.ContainsFunc(keys, im.IsKeyPressed)
 }
 
-// IsActionJustPressed trả về true nếu bất kỳ phím nào trong action vừa được nhấn (OR logic).
+// IsActionJustPressed checks if any key bound to the specified action was pressed in the current frame.
+//
+// Purpose: Evaluates the initial press event (edge-trigger) for a virtual action.
+//
+// Inputs:
+// - action (string): The name of the virtual action to check.
+//
+// Outputs:
+// - bool: True if any associated key transitioned from unpressed to pressed this frame.
 func (im *InputManager) IsActionJustPressed(action string) bool {
 	keys, ok := im.actions[action]
 	if !ok {
@@ -233,7 +317,15 @@ func (im *InputManager) IsActionJustPressed(action string) bool {
 	return slices.ContainsFunc(keys, im.IsKeyJustPressed)
 }
 
-// IsActionJustReleased trả về true nếu bất kỳ phím nào trong action vừa được thả (OR logic).
+// IsActionJustReleased checks if any key bound to the specified action was released in the current frame.
+//
+// Purpose: Evaluates the release event (edge-trigger) for a virtual action.
+//
+// Inputs:
+// - action (string): The name of the virtual action to check.
+//
+// Outputs:
+// - bool: True if any associated key transitioned from pressed to unpressed this frame.
 func (im *InputManager) IsActionJustReleased(action string) bool {
 	keys, ok := im.actions[action]
 	if !ok {

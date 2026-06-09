@@ -23,34 +23,54 @@ var Assert = &assertGroup{}
 // 	}
 // }
 
-// GetSprite lấy sprite đã load từ global store bằng key. Trả về nil nếu không tìm thấy.
+// GetSprite retrieves a loaded sprite from the global store by its key.
+//
+// Outputs:
+// - ISpriteLW: The sprite interface, or nil if not found.
 func (s *assertGroup) GetSprite(key string) ISpriteLW {
 	return engine().Store.GetSprite(key)
 }
 
-// GetAudio lấy audio đã load từ global store bằng key. Trả về nil nếu không tìm thấy.
+// GetAudio retrieves loaded audio from the global store by its key.
+//
+// Outputs:
+// - IAudioLW: The audio interface, or nil if not found.
 func (s *assertGroup) GetAudio(key string) IAudioLW {
 	return engine().Store.GetAudio(key)
 }
 
-// GetConst lấy giá trị hằng số từ global store bằng key. Trả về nil nếu không có.
+// GetConst retrieves a constant value from the global store by its key.
+//
+// Outputs:
+// - any: The constant value, or nil if it doesn't exist.
 func (s *assertGroup) GetConst(key string) any {
 	return engine().Store.GetConst(key)
 }
 
-// GetObject lấy IObject đã đặt tên từ global store.
-// Chỉ có object được tạo bằng NewObject(name, ...) mới được lưu tự động.
-// Trả về nil nếu không tìm thấy.
+// GetObject retrieves a named IObject from the global store.
+//
+// Purpose: Allows lookup of objects created via NewObject with a specific name.
+//
+// Outputs:
+// - IObject: The game object, or nil if not found.
 func (s *assertGroup) GetObject(key string) IObject {
 	return engine().Store.GetObject(key)
 }
 
-// Play phát audio từ global store với volume và pitch mặc định (1.0).
+// Play starts playback of an audio asset from the global store at default volume and pitch (1.0).
+//
+// Inputs:
+// - key (string): The identifier of the audio asset.
 func (s *assertGroup) Play(key string) {
 	s.PlayAt(key, 1.0, 1.0)
 }
 
-// PlayAt phát audio với volume và pitch tùy chỉnh.
+// PlayAt starts playback of an audio asset with custom volume and pitch.
+//
+// Inputs:
+// - key (string): The identifier of the audio asset.
+// - volume (float32): The playback volume multiplier.
+// - pitch (float32): The playback pitch multiplier.
 func (s *assertGroup) PlayAt(key string, volume, pitch float32) {
 	audio := engine().Store.GetAudio(key)
 	if audio == nil {
@@ -60,7 +80,10 @@ func (s *assertGroup) PlayAt(key string, volume, pitch float32) {
 	audio.Play(key, volume, pitch)
 }
 
-// Stop dừng audio từ global store.
+// Stop halts playback of an audio asset.
+//
+// Inputs:
+// - key (string): The identifier of the audio asset to stop.
 func (s *assertGroup) Stop(key string) {
 	audio := engine().Store.GetAudio(key)
 	if audio == nil {

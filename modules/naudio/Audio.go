@@ -26,7 +26,9 @@ type AudioLW struct {
 	isStopped bool
 }
 
-// NewAudioLW tạo một thực thể âm thanh mới từ dữ liệu gốc
+// Purpose: Creates a new lightweight audio instance from raw byte data.
+// Inputs: ctx (*audio.Context) - The Ebitengine audio context, data ([]byte) - The decoded audio data.
+// Outputs: (*AudioLW) - The newly created AudioLW object.
 func NewAudioLW(ctx *audio.Context, data []byte) *AudioLW {
 	return &AudioLW{
 		context:   ctx,
@@ -35,6 +37,8 @@ func NewAudioLW(ctx *audio.Context, data []byte) *AudioLW {
 	}
 }
 
+// Purpose: Starts playing the audio if it is not already playing. Creates the player lazily.
+// Inputs: name (string) - Name of the audio (unused here), volume (float32) - Playback volume, pitch (float32) - Playback pitch (not implemented natively here).
 func (this *AudioLW) Play(name string, volume float32, pitch float32) {
 	// Chỉ tạo player một lần, tránh leak memory do tạo mới liên tục
 	if this.player == nil {
@@ -51,6 +55,7 @@ func (this *AudioLW) Play(name string, volume float32, pitch float32) {
 	}
 }
 
+// Purpose: Pauses the currently playing audio.
 func (this *AudioLW) Pause() {
 	if this.player != nil && this.player.IsPlaying() {
 		this.player.Pause()
@@ -58,6 +63,7 @@ func (this *AudioLW) Pause() {
 	}
 }
 
+// Purpose: Resumes playing the audio if it was paused.
 func (this *AudioLW) Resume() {
 	if this.player != nil && !this.player.IsPlaying() && this.isPauseRequested {
 		this.player.Play()
@@ -65,6 +71,7 @@ func (this *AudioLW) Resume() {
 	}
 }
 
+// Purpose: Stops the playback completely and rewinds to the beginning.
 func (this *AudioLW) Stop() {
 	if this.player != nil {
 		this.player.Pause()
@@ -74,26 +81,38 @@ func (this *AudioLW) Stop() {
 	}
 }
 
+// Purpose: Checks if the audio is currently playing.
+// Outputs: (bool) - True if playing, false otherwise.
 func (this *AudioLW) IsPlaying() bool {
 	return this.player != nil && this.player.IsPlaying()
 }
 
+// Purpose: Checks if the audio playback has been paused.
+// Outputs: (bool) - True if a pause was requested, false otherwise.
 func (this *AudioLW) IsPaused() bool {
 	return this.isPauseRequested
 }
 
+// Purpose: Checks if the audio is fully stopped or hasn't started yet.
+// Outputs: (bool) - True if stopped, false otherwise.
 func (this *AudioLW) IsStopped() bool {
 	return this.isStopped || this.player == nil
 }
 
+// Purpose: Sets whether the audio should loop continuously.
+// Inputs: loop (bool) - True to enable looping, false to disable.
 func (this *AudioLW) SetLooping(loop bool) {
 	this.isLooping = loop
 }
 
+// Purpose: Checks if the audio is set to loop continuously.
+// Outputs: (bool) - True if looping is enabled, false otherwise.
 func (this *AudioLW) IsLooping() bool {
 	return this.isLooping
 }
 
+// Purpose: Adjusts the playback volume of the audio.
+// Inputs: volume (float32) - The new volume level.
 func (this *AudioLW) SetVolume(volume float32) {
 	if this.player != nil {
 		this.player.SetVolume(float64(volume))

@@ -4,14 +4,19 @@ import (
 	"autoworld/modules/enginetype"
 )
 
-// PhysicsSystem tính toán vật lý cơ bản cho entity: ma sát, giới hạn vận tốc, và cộng vận tốc vào vị trí.
+// PhysicsSystem calculates basic physics for entities: friction, max speed limiting, and applying velocity to position.
 type PhysicsSystem struct {
 }
 
+// NewVelocitySystem creates and returns a new instance of PhysicsSystem.
+// Outputs: Returns a pointer to a newly initialized PhysicsSystem.
 func NewVelocitySystem() *PhysicsSystem {
 	return &PhysicsSystem{}
 }
 
+// Update applies physics logic to all objects with a Velocity component.
+// Inputs: objectList ([]IObject) - The active list of objects in the scene.
+// Purpose: For each object with Velocity, it applies friction to slow down movement, limits velocity components to MaxSpeed, and updates the object's Position based on the final velocity.
 func (s *PhysicsSystem) Update(objectList []IObject) {
 	for _, obj := range objectList {
 		velData := enginetype.GetComponent(obj, enginetype.Velocity)
@@ -21,7 +26,7 @@ func (s *PhysicsSystem) Update(objectList []IObject) {
 
 		// Apply Friction
 		if velData.Friction > 0 {
-			// Giảm tốc độ dựa trên ma sát
+			// Reduce speed based on friction
 			if velData.Vx > 0 {
 				velData.Vx -= velData.Friction
 				if velData.Vx < 0 {
@@ -49,7 +54,7 @@ func (s *PhysicsSystem) Update(objectList []IObject) {
 
 		// Apply MaxSpeed
 		if velData.MaxSpeed > 0 {
-			// Đơn giản hóa: chỉ limit từng trục (có thể dùng vector magnitude nếu cần chính xác)
+			// Simplified: limit each axis independently (could use vector magnitude for accuracy)
 			if velData.Vx > velData.MaxSpeed {
 				velData.Vx = velData.MaxSpeed
 			}

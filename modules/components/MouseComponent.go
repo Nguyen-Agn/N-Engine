@@ -10,8 +10,12 @@ import (
 // Được inject từ core khi engine khởi động qua SetGlobalInputManager.
 var globalInputManager domain.IInputManager
 
-// SetGlobalInputManager inject IInputManager vào package components.
-// Gọi từ core khi khởi tạo engine, trước khi bất kỳ MouseComponent nào được dùng.
+// SetGlobalInputManager injects the global input manager into the components package.
+// Purpose: Initializes the singleton input manager for mouse components.
+// Inputs:
+//   - m: The IInputManager instance to inject.
+// Outputs: None.
+// Special Requirements: Must be called by core during engine initialization before any MouseComponent is used.
 func SetGlobalInputManager(m domain.IInputManager) {
 	globalInputManager = m
 }
@@ -46,11 +50,17 @@ type MouseComponent struct {
 	// MouseComponent tự update bindings mỗi frame (được gọi từ InputSystem hoặc LogicSystem).
 }
 
-// BindComponent được gọi tự động bởi engine khi bind mixin vào object.
-// MouseComponent không cần dữ liệu từ IObject nên chỉ no-op.
+// BindComponent is a no-op for MouseComponent as it stores bindings directly.
+// Purpose: Satisfies the IComponent interface requirement.
+// Inputs:
+//   - _: The IObject representing the base entity (ignored).
+// Outputs: None.
 func (c *MouseComponent) BindComponent(_ IObject) {}
 
-// MouseX trả về tọa độ ngang của con trỏ chuột (pixel, tính từ góc trên-trái màn hình).
+// MouseX retrieves the current horizontal cursor position.
+// Purpose: Gets the X coordinate of the mouse pointer.
+// Inputs: None.
+// Outputs: The X coordinate in pixels from the top-left of the screen (int). Returns 0 if input manager is nil.
 func (c *MouseComponent) MouseX() int {
 	if globalInputManager == nil {
 		return 0
@@ -59,7 +69,10 @@ func (c *MouseComponent) MouseX() int {
 	return x
 }
 
-// MouseY trả về tọa độ dọc của con trỏ chuột (pixel, tính từ góc trên-trái màn hình).
+// MouseY retrieves the current vertical cursor position.
+// Purpose: Gets the Y coordinate of the mouse pointer.
+// Inputs: None.
+// Outputs: The Y coordinate in pixels from the top-left of the screen (int). Returns 0 if input manager is nil.
 func (c *MouseComponent) MouseY() int {
 	if globalInputManager == nil {
 		return 0
@@ -68,8 +81,10 @@ func (c *MouseComponent) MouseY() int {
 	return y
 }
 
-// WheelX trả về độ cuộn bánh xe chuột theo trục X trong frame hiện tại.
-// Dương = cuộn phải, âm = cuộn trái.
+// WheelX retrieves the horizontal mouse wheel scroll offset.
+// Purpose: Gets the amount of horizontal scrolling in the current frame.
+// Inputs: None.
+// Outputs: The horizontal scroll offset (float64). Positive means scrolling right, negative means left.
 func (c *MouseComponent) WheelX() float64 {
 	if globalInputManager == nil {
 		return 0
@@ -78,8 +93,10 @@ func (c *MouseComponent) WheelX() float64 {
 	return wx
 }
 
-// WheelY trả về độ cuộn bánh xe chuột theo trục Y trong frame hiện tại.
-// Dương = cuộn xuống, âm = cuộn lên.
+// WheelY retrieves the vertical mouse wheel scroll offset.
+// Purpose: Gets the amount of vertical scrolling in the current frame.
+// Inputs: None.
+// Outputs: The vertical scroll offset (float64). Positive means scrolling down, negative means up.
 func (c *MouseComponent) WheelY() float64 {
 	if globalInputManager == nil {
 		return 0
@@ -88,12 +105,13 @@ func (c *MouseComponent) WheelY() float64 {
 	return wy
 }
 
-// ListenMouseOn đăng ký một handler được gọi theo loại sự kiện khi nút chuột kích hoạt.
-//
-// Tham số:
-//   - button: tên nút chuột ("left", "right", "middle") hoặc nhiều nút cách nhau bằng dấu cách
-//   - eventType: "pressed" (giữ), "just_pressed" (vừa nhấn), "just_released" (vừa thả)
-//   - handler: hàm nhận tên nút chuột đã trigger (ví dụ: "left")
+// ListenMouseOn registers a handler to be called when a mouse button triggers an event.
+// Purpose: Subscribes to mouse button input events.
+// Inputs:
+//   - button: The string name of the mouse button ("left", "right", "middle") or multiple space-separated buttons.
+//   - eventType: The type of event ("pressed", "just_pressed", "just_released").
+//   - handler: The function to execute when the event occurs. It receives the triggered button name.
+// Outputs: None.
 func (c *MouseComponent) ListenMouseOn(button string, eventType string, handler func(button string)) {
 	evt, ok := domain.EventTypeNameMap[eventType]
 	if !ok {
@@ -114,8 +132,11 @@ func (c *MouseComponent) ListenMouseOn(button string, eventType string, handler 
 	}
 }
 
-// UpdateMouseBindings được gọi mỗi frame bởi InputSystem để xử lý mouse bindings.
-// Không cần gọi trực tiếp từ game code.
+// UpdateMouseBindings processes all registered mouse bindings for the current frame.
+// Purpose: Triggers handlers for mouse events that occurred this frame.
+// Inputs: None.
+// Outputs: None.
+// Special Requirements: Called internally by the engine (InputSystem); should not be called from game code.
 func (c *MouseComponent) UpdateMouseBindings() {
 	if globalInputManager == nil {
 		return
@@ -128,7 +149,13 @@ func (c *MouseComponent) UpdateMouseBindings() {
 	}
 }
 
-// checkMouseButton kiểm tra trạng thái nút chuột theo EventType.
+// checkMouseButton evaluates if a specific mouse button event occurred.
+// Purpose: Checks the state of a mouse button against a desired event type.
+// Inputs:
+//   - m: The IInputManager instance to use for checking.
+//   - btn: The domain.MouseButton to check.
+//   - evt: The domain.EventType to test for.
+// Outputs: True if the specified event occurred for the button, false otherwise.
 func checkMouseButton(m domain.IInputManager, btn domain.MouseButton, evt domain.EventType) bool {
 	switch evt {
 	case domain.EventPressed:

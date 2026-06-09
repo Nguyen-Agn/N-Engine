@@ -7,6 +7,8 @@ import (
 
 type applier struct{}
 
+// applyObjects applies saved object data to the current scene by injecting state into matching objects.
+// Inputs: scene - the active game scene, savedObjects - nested map containing the save payload for objects.
 func (a *applier) applyObjects(scene domain.IScene, savedObjects map[string]map[string]any) {
 	if scene == nil || savedObjects == nil {
 		return
@@ -28,6 +30,8 @@ func (a *applier) applyObjects(scene domain.IScene, savedObjects map[string]map[
 	}
 }
 
+// applyToObjectList iterates through a slice of objects and applies save data if their save tags match.
+// Inputs: objects - a slice of game objects, savedObjects - the remaining save map, prefix - prefix to append to save tags (e.g., "gui:").
 func (a *applier) applyToObjectList(objects []domain.IObject, savedObjects map[string]map[string]any, prefix string) {
 	for _, obj := range objects {
 		// Skip dead objects — they are queued for removal and must not be resurrected
@@ -53,6 +57,8 @@ func (a *applier) applyToObjectList(objects []domain.IObject, savedObjects map[s
 	}
 }
 
+// applyVariables restores global variable state into the main store from the saved data.
+// Inputs: store - the global variable registry, vars - primitive value map containing saved variables.
 func (a *applier) applyVariables(store domain.IGlobal, vars map[string]any) {
 	if store == nil || vars == nil {
 		return

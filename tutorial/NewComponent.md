@@ -13,9 +13,9 @@ Custom component cho phép bạn làm điều đó một cách an toàn kiểu (
 **5 bước / 5 steps:**
 1. Định nghĩa struct dữ liệu / Define data struct
 2. Khai báo Component Type bằng token / Create ComponentType token
-3. Tạo wrapper struct kế thừa `napi.GenericComponent[T]` / Create wrapper
+3. Tạo wrapper struct kế thừa `ncom.Generic[T]` / Create wrapper
 4. Nhúng (embed) vào Object / Embed into Object
-5. Khởi tạo bằng `napi.NewGenericComponent` trước khi gọi `NewObject`.
+5. Khởi tạo bằng `ncom.NewGeneric` trước khi gọi `NewObject`.
 
 ---
 
@@ -40,16 +40,18 @@ Sử dụng hàm từ module `enginetype` hoặc `napi.NewComponentType` (đại
 import "autoworld/modules/napi"
 
 // Token (chuỗi 3 ký tự) dùng cho hàm napi.Obj.NewObject() sau này
-var StatsComp = *napi.NewComponentType[HealthData]("sta")
+var StatsComp = napi.NewComponentType[HealthData]("sta")
 ```
 > *Lưu ý: API nội bộ cho NewComponentType có thể nằm ở `napi.NewComponentType` hoặc `enginetype.NewComponentType`. Dưới góc độ user, ta tham chiếu qua module tương ứng.*
 
 ### Bước 3: Tạo Wrapper Struct / Step 3: Create Wrapper Struct
 Tạo một Mixin bao bọc lấy generic component để viết thêm các methods tùy biến tiện ích.
 ```go
+import "autoworld/modules/napi/ncom"
+
 // StatsComponent - wrapper component với methods tiện ích
 type StatsComponent struct {
-	data napi.GenericComponent[HealthData]
+	ncom.Generic[HealthData]
 }
 
 
@@ -76,9 +78,9 @@ func (s *StatsComponent) IsAlive() bool {
 
 ```go
 type Hero struct {
-	napi.IObject
-	napi.Pos
-	napi.Spr
+	ncom.Object
+	ncom.Pos
+	ncom.Spr
 	StatsComponent // Bước 4: Nhúng mixin
 }
 
@@ -86,7 +88,7 @@ func NewHero() *Hero {
 	h := &Hero{
 		// Bước 5: Phải gán GenericComponent từ StatsComp trước khi gọi NewObject
 		StatsComponent: StatsComponent{
-			GenericComponent: napi.NewGenericComponent(StatsComp),
+			Generic: ncom.NewGeneric(StatsComp),
 		},
 	}
 

@@ -140,24 +140,81 @@ var EventTypeNameMap = map[string]EventType{
 
 // IInputManager quản lý input từ keyboard và mouse, không phụ thuộc thư viện ngoài.
 type IInputManager interface {
+	// Purpose: Polls and updates the input state for the current frame. Must be called once per frame.
+	// Inputs: None.
+	// Outputs: None.
 	Update()
 
 	// Keyboard
+	
+	// Purpose: Checks if a specific key is currently held down.
+	// Inputs: key Key - The key constant to check.
+	// Outputs: bool - True if the key is pressed.
 	IsKeyPressed(key Key) bool
+	
+	// Purpose: Checks if a specific key was pressed exactly on this frame.
+	// Inputs: key Key - The key constant to check.
+	// Outputs: bool - True if the key was just pressed.
 	IsKeyJustPressed(key Key) bool
+	
+	// Purpose: Checks if a specific key was released exactly on this frame.
+	// Inputs: key Key - The key constant to check.
+	// Outputs: bool - True if the key was just released.
 	IsKeyJustReleased(key Key) bool
 
 	// Mouse
+	
+	// Purpose: Retrieves the current (x, y) pixel coordinates of the mouse cursor.
+	// Inputs: None.
+	// Outputs:
+	//   1. int - X coordinate.
+	//   2. int - Y coordinate.
 	CursorPosition() (int, int)
+	
+	// Purpose: Checks if a specific mouse button is currently held down.
+	// Inputs: button MouseButton - The mouse button to check.
+	// Outputs: bool - True if the button is pressed.
 	IsMouseButtonPressed(button MouseButton) bool
+	
+	// Purpose: Checks if a specific mouse button was pressed exactly on this frame.
+	// Inputs: button MouseButton - The mouse button to check.
+	// Outputs: bool - True if the button was just pressed.
 	IsMouseButtonJustPressed(button MouseButton) bool
+	
+	// Purpose: Checks if a specific mouse button was released exactly on this frame.
+	// Inputs: button MouseButton - The mouse button to check.
+	// Outputs: bool - True if the button was just released.
 	IsMouseButtonJustReleased(button MouseButton) bool
+	
+	// Purpose: Retrieves the mouse scroll wheel movement offset for this frame.
+	// Inputs: None.
+	// Outputs:
+	//   1. float64 - X offset (horizontal scroll).
+	//   2. float64 - Y offset (vertical scroll).
 	WheelOffset() (float64, float64)
 
 	// Virtual Actions (Action Mapping)
+	
+	// Purpose: Maps an action string to one or more physical keys.
+	// Inputs:
+	//   - action string: The named action (e.g. "jump").
+	//   - keys ...Key: A variadic list of physical keys bound to this action.
+	// Outputs: None.
 	BindAction(action string, keys ...Key)
+	
+	// Purpose: Checks if any key bound to the specified action is currently held down.
+	// Inputs: action string - The action name.
+	// Outputs: bool - True if the action is active.
 	IsActionPressed(action string) bool
+	
+	// Purpose: Checks if any key bound to the specified action was just pressed.
+	// Inputs: action string - The action name.
+	// Outputs: bool - True if the action just became active.
 	IsActionJustPressed(action string) bool
+	
+	// Purpose: Checks if any key bound to the specified action was just released.
+	// Inputs: action string - The action name.
+	// Outputs: bool - True if the action just became inactive.
 	IsActionJustReleased(action string) bool
 }
 
