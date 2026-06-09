@@ -118,6 +118,8 @@ The object must also implement `domain.IDraw` (i.e., have a `Draw()` method).
 | `CircleStroke(x, y, r float32, c color.RGBA, sw float32)` | Circle outline |
 | `Text(text string, x, y float32, c color.RGBA)` | Text with default font |
 | `TextEx(text string, x, y float32, c color.RGBA, scale float64)` | Text with scale |
+| `SetTextAlign(hAlign, vAlign string)` | Căn lề chữ ("left"/"l", "center"/"c", "right"/"r", "justify"/"j") |
+| `SetTextOverflow(maxWidth, maxHeight float32, mode string)` | Xử lý tràn chữ: mode = "visible"/"v", "hidden"/"h", "scale"/"s" |
 | `Image(sprite ISpriteLW, idx int, x, y float32)` | Manual sprite frame draw |
 | `SetFont(f font.Face)` | Override per-instance font |
 

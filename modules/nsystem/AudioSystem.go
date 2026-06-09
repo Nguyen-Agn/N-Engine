@@ -37,20 +37,50 @@ func (this *AudioSystem) Update(w donburi.World) {
 			return
 		}
 
-		// Xử lý lệnh DỪNG trước (ưu tiên cao hơn)
+		// Cập nhật trạng thái lặp lại cho IAudioLW
+		audioLW.SetLooping(data.IsLooping)
+
+		// Cập nhật volume liên tục nếu đang phát (để hỗ trợ fade/tăng giảm volume real-time)
+		if audioLW.IsPlaying() {
+			audioLW.SetVolume(data.Volume)
+		}
+
+		// Xử lý lệnh DỪNG trước (ưu tiên cao nhất)
 		if data.ShouldStop {
 			audioLW.Stop()
 			data.ShouldStop = false // Reset cờ sau khi xử lý
 			return
 		}
 
-		// Xử lý lệnh PHÁT
+		// Xử lý lệnh TẠM DỪNG
+		if data.ShouldPause {
+			audioLW.Pause()
+			data.ShouldPause = false
+			return
+		}
+
+		// Xử lý lệnh TIẾP TỤC
+		if data.ShouldResume {
+			audioLW.Resume()
+			data.ShouldResume = false
+			return
+		}
+
+		// Xử lý lệnh PHÁT MỚI
 		if data.ShouldPlay {
 			// Chỉ phát nếu chưa đang phát (tránh phát đè)
 			if !audioLW.IsPlaying() {
 				audioLW.Play(data.AudioName, data.Volume, data.Pitch)
 			}
 			data.ShouldPlay = false // Reset cờ sau khi xử lý
+		} else {
+			// Xử lý tự động lặp lại (Loop)
+			if data.IsLooping {
+				// Nếu đang không phát, không bị pause, và KHÔNG bị dừng cưỡng bức
+				if !audioLW.IsPlaying() && !audioLW.IsPaused() && !audioLW.IsStopped() {
+					audioLW.Play(data.AudioName, data.Volume, data.Pitch)
+				}
+			}
 		}
 	})
 }

@@ -217,3 +217,41 @@ napi.AddComponentType(hero, StatsComp)
 2. **Singleton Guard** — Luôn check `engine()` trước mọi thao tác (panic nếu chưa Init).
 3. **Không thêm logic vào Register.go** — Chỉ type alias và re-export.
 4. **NewObject → Register** — Tạo object và đăng ký là 2 bước riêng biệt có chủ đích.
+
+---
+
+## 5. Object Pooling & Quản lý bộ nhớ
+
+N-Engine trang bị sẵn một hệ thống `ObjectPool` **Zero-Allocation** dùng để tái sử dụng object và chống Memory Leak ECS.
+
+### Nguyên lý Xóa Object (`napi.Obj.Remove`)
+Hàm `napi.Obj.Remove(obj)` hoạt động cực kỳ thông minh:
+- **Nếu Object KHÔNG có Pool (Ví dụ: Boss, Player):** Gọi `OnDestroy()` và xóa sổ hoàn toàn Entity khỏi bộ nhớ Donburi (Chống rò rỉ RAM ECS).
+- **Nếu Object CÓ Pool (Ví dụ: Bullet):** Bỏ qua `OnDestroy()`, giữ nguyên Entity, tắt logic và chuyển về cất vào `ObjectPool` cấu hình sẵn.
+
+### Cách sử dụng ObjectPool
+```go
+// 1. Khai báo Pool toàn cục
+var BulletPool *napi.ObjectPool[*Bullet]
+
+func init() {
+    BulletPool = napi.NewObjectPool(napi.PoolConfig[*Bullet]{
+        New: func() *Bullet {
+            b := &Bullet{}
+            napi.Obj.NewObject(b, "bullet", "pos drw inf")
+            return b
+        },
+        Reset: func(b *Bullet) {
+            b.Life = 100 // Phục hồi máu khi rút từ Pool ra
+        },
+        MaxSize: 100, // Cất tối đa 100 viên. Chết viên thứ 101 sẽ bị Engine xóa thẳng tay.
+    })
+}
+
+// 2. Tạo hoặc Lấy đạn từ Pool
+b := BulletPool.Get("tên_scene_nếu_có_hoặc_chuỗi_rỗng")
+b.SetX(10)
+
+// 3. Xóa đạn (Engine tự động Cất vào Pool)
+napi.Obj.Remove(b)
+```

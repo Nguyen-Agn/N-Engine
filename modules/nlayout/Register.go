@@ -3,14 +3,13 @@ package layout
 import (
 	"autoworld/domain"
 	"autoworld/modules/enginetype"
-	"autoworld/modules/napi"
 )
 
 type ILayout = domain.ILayout
 type IObject = domain.IObject
 
-type PositionData = napi.PositionData
-type BoxData = napi.BoxData
+type PositionData = domain.PositionData
+type BoxData = domain.BoxData
 
 var (
 	Position = enginetype.GetComponentType("pos")

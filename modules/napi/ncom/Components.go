@@ -1,6 +1,7 @@
 package ncom
 
 import (
+	"autoworld/domain"
 	"autoworld/modules/components"
 
 	"github.com/yohamta/donburi"
@@ -15,7 +16,7 @@ import (
 // - OnSave(map[string]any): When napi.Game.SaveGame called
 // - OnLoad(map[string]any): When napi.Game.LoadGame called
 // - SetTokens(string): Convient function, set value(s) by 1 string of classes
-type Object = components.IObject
+type Object = domain.IObject
 
 // ─── Position ───────────────────────────────────────────────────────────────
 // Token: "pos"
@@ -60,9 +61,9 @@ type Inp = components.InputComponent
 //   - MouseX() int, MouseY() int         — tọa độ con trỏ chuột (pixel)
 //   - WheelX() float64, WheelY() float64 — tốc độ cuộn trục X/Y
 //   - ListenMouseOn(button, eventType, handler)
-//       button: "left", "right", "middle"
-//       eventType: domain.EventPressed / EventJustPressed / EventJustReleased
-//       handler nhận tên nút chuột đã trigger (e.g. "left")
+//     button: "left", "right", "middle"
+//     eventType: domain.EventPressed / EventJustPressed / EventJustReleased
+//     handler nhận tên nút chuột đã trigger (e.g. "left")
 type Mouse = components.MouseComponent
 
 // ─── Background ─────────────────────────────────────────────────────────────

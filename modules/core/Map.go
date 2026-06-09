@@ -139,10 +139,32 @@ func (m *Map) flushRemove() {
 	removeSet := make(map[IObject]bool, len(m.pendingRemove))
 	for _, obj := range m.pendingRemove {
 		removeSet[obj] = true
-		m.logicSystem.AddObjectDestroy(obj)
-		if m.drawRegistry != nil {
-			if _, ok := obj.(domain.IDraw); ok {
-				m.drawRegistry.RemoveDrawObject(obj)
+
+		pool := obj.GetPool()
+		isPooled := false
+		if pool != nil {
+			isPooled = pool.Put(obj) // Try to pool. Returns false if pool is full.
+		}
+
+		if isPooled {
+			// Auto-Routing: Object is hibernated into Pool
+			// Remove from drawRegistry but skip OnDestroy and DO NOT remove from ECS world.
+			if m.drawRegistry != nil {
+				if _, ok := obj.(domain.IDraw); ok {
+					m.drawRegistry.RemoveDrawObject(obj)
+				}
+			}
+		} else {
+			// True Deletion: No pool, or pool is full
+			m.logicSystem.AddObjectDestroy(obj)
+			if m.drawRegistry != nil {
+				if _, ok := obj.(domain.IDraw); ok {
+					m.drawRegistry.RemoveDrawObject(obj)
+				}
+			}
+			// Clean up Donburi ECS Entity to prevent memory leak
+			if obj.Entry() != nil {
+				m.world.Remove(obj.Entry().Entity())
 			}
 		}
 	}

@@ -159,6 +159,12 @@ type AudioData struct {
 	ShouldPlay bool
 	// ShouldStop signals AudioSystem to stop current audio.
 	ShouldStop bool
+	// ShouldPause signals AudioSystem to pause current audio.
+	ShouldPause bool
+	// ShouldResume signals AudioSystem to resume paused audio.
+	ShouldResume bool
+	// IsLooping signals that the current audio should automatically loop.
+	IsLooping bool
 }
 
 // draw

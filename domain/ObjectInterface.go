@@ -29,6 +29,11 @@ type IObject interface {
 	// OnLoad được gọi khi load game tương ứng cho Object.
 	OnLoad(data map[string]any)
 
+	// GetPool trả về Pool quản lý Object này (nếu có).
+	GetPool() IPool
+	// SetPool liên kết Object này với một Pool.
+	SetPool(pool IPool)
+
 	// Entry trả về ECS entry (donburi) của Object.
 	// Dùng để đọc/ghi dữ liệu Component trong hệ thống ECS.
 	Entry() *donburi.Entry
@@ -42,6 +47,12 @@ type IObject interface {
 
 	// Remove IObject from Game
 	Remove()
+}
+
+// IPool định nghĩa giao diện chuẩn cho mọi hệ thống Object Pool của N-Engine.
+type IPool interface {
+	// Put cất IObject vào pool. Trả về true nếu thành công, false nếu pool đã đầy (để Engine xóa tận gốc).
+	Put(obj IObject) bool
 }
 
 // ─── Component Interfaces ─────────────────────────────────────────────────────
@@ -193,8 +204,16 @@ type IAudio interface {
 	Play(name string, volume float32, pitch float32)
 	// PlayDefault phát kênh âm thanh tên name với volume và pitch mặc định.
 	PlayDefault(name string)
-	// StopAudio dừng âm thanh đang phát.
-	StopAudio()
+	// StopAudio dừng âm thanh đang phát theo tên.
+	StopAudio(name string)
+	// PauseAudio tạm dừng âm thanh đang phát theo tên.
+	PauseAudio(name string)
+	// ResumeAudio tiếp tục phát âm thanh đang tạm dừng theo tên.
+	ResumeAudio(name string)
+	// SetLooping bật/tắt chế độ lặp lại tự động cho âm thanh theo tên.
+	SetLooping(name string, loop bool)
+	// IsLooping kiểm tra xem âm thanh chỉ định có đang ở chế độ lặp lại không.
+	IsLooping(name string) bool
 }
 
 // IInfor cung cấp thông tin định danh cho Object (ánh xạ tới InforData).
@@ -211,6 +230,8 @@ type IInfor interface {
 	HasTagHash(hash uint64) bool
 	// IsDead kiểm tra trạng thái của Object. True = không tham gia logic, chờ dọn dẹp.
 	IsDead() bool
+	// SetIsDead thiết lập trạng thái chết/sống của Object (dùng để hồi sinh từ Pool).
+	SetIsDead(dead bool)
 	// MarkDead đánh dấu Object là đã chết. Deferred destruction.
 	MarkDead()
 	// SaveTag trả về mã tag để phân biệt object khi lưu game.
@@ -351,6 +372,15 @@ type IDrawComponent interface {
 	Line(x0, y0, x1, y1 float32, c color.RGBA, strokeWidth float32)
 
 	// --- Text ---
+
+	// SetTextAlign cấu hình căn lề cho các lệnh vẽ chữ tiếp theo.
+	// Hỗ trợ truyền "left"/"l", "center"/"c", "right"/"r", "justify"/"j".
+	SetTextAlign(hAlign, vAlign string)
+
+	// SetTextOverflow cấu hình giới hạn kích thước khung chữ và cách xử lý tràn.
+	// Truyền 0 cho maxWidth/maxHeight nếu không muốn giới hạn.
+	// mode hỗ trợ "visible"/"v", "hidden"/"h", "scale"/"s".
+	SetTextOverflow(maxWidth, maxHeight float32, mode string)
 
 	// Text draws a string at (x, y) with the default font and color c.
 	// Use napi.SetDefaultFont() to change the engine-wide font.

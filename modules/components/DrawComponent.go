@@ -1,7 +1,9 @@
-﻿package components
+package components
 
 import (
+	"image"
 	"image/color"
+	"strings"
 
 	"autoworld/modules/enginetype"
 
@@ -25,6 +27,14 @@ type DrawComponent struct {
 	IObject
 	data        *DrawData
 	defaultFont font.Face // per-instance font override; nil = use packageDefaultFont
+
+	// Text rendering states
+	hAlign       textv2.Align
+	vAlign       textv2.Align
+	isJustify    bool
+	maxWidth     float32
+	maxHeight    float32
+	overflowMode string // "visible", "hidden", "scale"
 }
 
 // packageDefaultFont is the engine-wide default font for DrawComponent.Text().
@@ -206,35 +216,158 @@ func (d *DrawComponent) PathStroke(p *vector.Path, c color.RGBA, strokeWidth flo
 // Text
 // =============================================================================
 
+// parseAlign converts a string token to textv2.Align
+func parseAlign(token string) (textv2.Align, bool) {
+	switch token {
+	case "start", "left", "top", "l", "t":
+		return textv2.AlignStart, false
+	case "center", "middle", "c", "m":
+		return textv2.AlignCenter, false
+	case "end", "right", "bottom", "r", "b":
+		return textv2.AlignEnd, false
+	case "justify", "j":
+		return textv2.AlignStart, true // We use Start alignment and handle justify manually
+	default:
+		return textv2.AlignStart, false
+	}
+}
+
+// SetTextAlign thiết lập căn lề cho các lệnh vẽ chữ tiếp theo.
+func (d *DrawComponent) SetTextAlign(hAlign, vAlign string) {
+	d.hAlign, d.isJustify = parseAlign(hAlign)
+	d.vAlign, _ = parseAlign(vAlign)
+}
+
+// SetTextOverflow thiết lập giới hạn khung chữ và cách xử lý tràn.
+func (d *DrawComponent) SetTextOverflow(maxWidth, maxHeight float32, mode string) {
+	d.maxWidth = maxWidth
+	d.maxHeight = maxHeight
+	
+	switch mode {
+	case "hidden", "h":
+		d.overflowMode = "hidden"
+	case "scale", "s":
+		d.overflowMode = "scale"
+	default:
+		d.overflowMode = "visible"
+	}
+}
+
 // Text draws a string at map-space (x, y) using the active default font.
 // Color c is applied to the rendered glyphs.
 func (d *DrawComponent) Text(text string, x, y float32, c color.RGBA) {
-	s := d.screen()
-	if s == nil || text == "" {
-		return
-	}
-	sx, sy := d.toScreen(x, y)
-	face := textv2.NewGoXFace(d.activeFont())
-	op := &textv2.DrawOptions{}
-	op.GeoM.Translate(float64(sx), float64(sy))
-	op.ColorScale.ScaleWithColor(c)
-	textv2.Draw(s, text, face, op)
+	d.drawTextInternal(text, x, y, c, 1.0)
 }
 
 // TextEx draws a string at map-space (x, y) with a uniform scale applied to the font.
 // scale 1.0 = default size, 2.0 = double size. Uses the same font as Text().
 func (d *DrawComponent) TextEx(text string, x, y float32, c color.RGBA, scale float64) {
+	d.drawTextInternal(text, x, y, c, scale)
+}
+
+func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c color.RGBA, scale float64) {
 	s := d.screen()
-	if s == nil || text == "" {
+	if s == nil || textContent == "" {
 		return
 	}
 	sx, sy := d.toScreen(x, y)
 	face := textv2.NewGoXFace(d.activeFont())
+	
 	op := &textv2.DrawOptions{}
+	op.PrimaryAlign = d.hAlign
+	op.SecondaryAlign = d.vAlign
 	op.GeoM.Scale(scale, scale)
+	
+	// 1. Xử lý Overflow Scale
+	var minScale float64 = 1.0
+	if (d.maxWidth > 0 || d.maxHeight > 0) && d.overflowMode == "scale" {
+		w, h := textv2.Measure(textContent, face, face.Metrics().HAscent)
+		w *= scale
+		h *= scale
+		
+		scaleX, scaleY := 1.0, 1.0
+		if d.maxWidth > 0 && w > float64(d.maxWidth) {
+			scaleX = float64(d.maxWidth) / w
+		}
+		if d.maxHeight > 0 && h > float64(d.maxHeight) {
+			scaleY = float64(d.maxHeight) / h
+		}
+		
+		minScale = scaleX
+		if scaleY < minScale {
+			minScale = scaleY
+		}
+		if minScale < 1.0 {
+			op.GeoM.Scale(minScale, minScale)
+		}
+	}
+	
+	// 2. Xử lý Overflow Hidden (Clipping)
+	var target *ebiten.Image = s
+	if d.overflowMode == "hidden" && (d.maxWidth > 0 || d.maxHeight > 0) {
+		clipX, clipY := float64(sx), float64(sy)
+		
+		if d.maxWidth > 0 {
+			if d.hAlign == textv2.AlignCenter { clipX -= float64(d.maxWidth) / 2 }
+			if d.hAlign == textv2.AlignEnd { clipX -= float64(d.maxWidth) }
+		} else {
+			clipX = 0 // Không giới hạn
+		}
+		
+		if d.maxHeight > 0 {
+			if d.vAlign == textv2.AlignCenter { clipY -= float64(d.maxHeight) / 2 }
+			if d.vAlign == textv2.AlignEnd { clipY -= float64(d.maxHeight) }
+		} else {
+			clipY = 0
+		}
+		
+		cw := float64(d.maxWidth)
+		if cw <= 0 { cw = 99999 } // Rất lớn nếu không giới hạn
+		ch := float64(d.maxHeight)
+		if ch <= 0 { ch = 99999 }
+		
+		rect := image.Rect(int(clipX), int(clipY), int(clipX+cw), int(clipY+ch))
+		// Cắt giới hạn vẽ (Clipping)
+		target = s.SubImage(rect.Intersect(s.Bounds())).(*ebiten.Image)
+	}
+	
 	op.GeoM.Translate(float64(sx), float64(sy))
 	op.ColorScale.ScaleWithColor(c)
-	textv2.Draw(s, text, face, op)
+	
+	// 3. Xử lý Justify
+	if d.isJustify && d.maxWidth > 0 && d.overflowMode != "scale" {
+		words := strings.Fields(textContent)
+		if len(words) > 1 {
+			totalWordWidth := 0.0
+			for _, w := range words {
+				ww, _ := textv2.Measure(w, face, face.Metrics().HAscent)
+				totalWordWidth += ww * minScale
+			}
+			
+			spaceWidth := (float64(d.maxWidth) - totalWordWidth) / float64(len(words)-1)
+			if spaceWidth < 0 { spaceWidth = 0 } // Tránh đè chữ
+			
+			currX := float64(sx)
+			if d.hAlign == textv2.AlignCenter { currX -= float64(d.maxWidth) / 2 }
+			if d.hAlign == textv2.AlignEnd { currX -= float64(d.maxWidth) }
+			
+			for _, w := range words {
+				wOp := &textv2.DrawOptions{}
+				wOp.PrimaryAlign = textv2.AlignStart
+				wOp.SecondaryAlign = d.vAlign
+				wOp.GeoM.Scale(minScale, minScale)
+				wOp.GeoM.Translate(currX, float64(sy))
+				wOp.ColorScale.ScaleWithColor(c)
+				textv2.Draw(target, w, face, wOp)
+				
+				ww, _ := textv2.Measure(w, face, face.Metrics().HAscent)
+				currX += (ww * minScale) + spaceWidth
+			}
+			return
+		}
+	}
+	
+	textv2.Draw(target, textContent, face, op)
 }
 
 // =============================================================================

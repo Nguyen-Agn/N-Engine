@@ -123,9 +123,46 @@ func (p AudioComponent) PlayDefault(name string) {
 	p.Play(name, 1.0, 1.0)
 }
 
-func (p AudioComponent) StopAudio() {
+func (p AudioComponent) StopAudio(name string) {
 
 	if p.data != nil {
+		p.data.AudioName = name
 		p.data.ShouldStop = true
 	}
+}
+
+func (p AudioComponent) PauseAudio(name string) {
+
+	if p.data != nil {
+		p.data.AudioName = name
+		p.data.ShouldPause = true
+	}
+}
+
+func (p AudioComponent) ResumeAudio(name string) {
+
+	if p.data != nil {
+		p.data.AudioName = name
+		p.data.ShouldResume = true
+	}
+}
+
+func (p AudioComponent) SetLooping(name string, loop bool) {
+
+	if p.data != nil {
+		p.data.AudioName = name
+		p.data.IsLooping = loop
+	}
+}
+
+func (p AudioComponent) IsLooping(name string) bool {
+
+	if p.data == nil {
+		return false
+	}
+	// Check directly from the internal wrapper if possible, otherwise return the pending flag
+	if audioLW, ok := p.data.Audio[name]; ok && audioLW != nil {
+		return audioLW.IsLooping()
+	}
+	return p.data.IsLooping && p.data.AudioName == name
 }

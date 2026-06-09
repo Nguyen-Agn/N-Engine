@@ -15,6 +15,7 @@ type MovingBox struct {
 
 	ncom.Col
 	ncom.Info
+	ncom.Deb
 }
 
 func NewMovingBox(x, y int) *MovingBox {

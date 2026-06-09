@@ -306,8 +306,16 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 		if textToDraw != "" {
 			op := &text.DrawOptions{}
 			if hasPos {
-				op.GeoM.Translate(float64(screenX), float64(screenY)-16)
+				op.PrimaryAlign = text.AlignCenter
+				
+				if entry.HasComponent(Box) {
+					box := donburi.Get[domain.BoxData](entry, Box)
+					op.GeoM.Translate(float64(screenX+box.BoxX+box.BoxW/2), float64(screenY)-16)
+				} else {
+					op.GeoM.Translate(float64(screenX), float64(screenY)-16)
+				}
 			} else {
+				op.PrimaryAlign = text.AlignStart
 				op.GeoM.Translate(float64(screenX), float64(screenY))
 			}
 			op.ColorScale.ScaleWithColor(debugData.Color)

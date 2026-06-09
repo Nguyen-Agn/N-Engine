@@ -1,11 +1,14 @@
 package nobject
 
 import (
+	"autoworld/domain"
+
 	"github.com/yohamta/donburi"
 )
 
 type Object struct {
 	entry *donburi.Entry
+	pool  domain.IPool
 }
 
 func NewObject(entry *donburi.Entry) *Object {
@@ -16,6 +19,14 @@ func NewObject(entry *donburi.Entry) *Object {
 // Dùng bởi napi.SetComponent và napi.GetComponent để gán custom component data.
 func (this *Object) Entry() *donburi.Entry {
 	return this.entry
+}
+
+func (this *Object) GetPool() domain.IPool {
+	return this.pool
+}
+
+func (this *Object) SetPool(pool domain.IPool) {
+	this.pool = pool
 }
 
 // #region Event

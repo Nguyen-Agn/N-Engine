@@ -45,4 +45,19 @@ type IAudioLW interface {
 
 	// IsPaused trả về true nếu âm thanh đang tạm dừng.
 	IsPaused() bool
+
+	// Resume tiếp tục phát âm thanh đang bị tạm dừng.
+	Resume()
+
+	// IsStopped trả về true nếu âm thanh đã dừng hoàn toàn (chưa phát hoặc đã gọi Stop).
+	IsStopped() bool
+
+	// SetLooping bật/tắt chế độ lặp lại vô tận cho âm thanh này.
+	SetLooping(loop bool)
+
+	// IsLooping kiểm tra xem âm thanh này có đang ở chế độ lặp lại không.
+	IsLooping() bool
+
+	// SetVolume thiết lập âm lượng cho trình phát âm thanh (0.0 đến 1.0).
+	SetVolume(volume float32)
 }

@@ -46,7 +46,7 @@ func (h *HUD) Draw() {
 
 func NewHUD() *HUD {
 	h := &HUD{}
-	napi.Obj.NewObject(h, "hud", "drw sce-cur")
+	napi.Obj.NewObject(h, "hud", "pos drw sce-cur")
 	return h
 }
 
@@ -74,7 +74,7 @@ func (s *ShapeDemo) Draw() {
 	// Filled circle
 	s.Circle(cx, cy+110, 45, color.RGBA{200, 60, 60, 200})
 	// Circle stroke
-	//s.CircleStroke(cx, cy+110, 45, color.RGBA{255, 200, 200, 255}, 3)
+	s.CircleStroke(cx, cy+110, 45, color.RGBA{255, 200, 200, 255}, 3)
 
 	// Label
 	s.Text("DrawComponent Demo", cx-75, cy-55, color.RGBA{200, 255, 200, 255})
@@ -82,7 +82,7 @@ func (s *ShapeDemo) Draw() {
 
 func NewShapeDemo() *ShapeDemo {
 	sd := &ShapeDemo{}
-	napi.Obj.NewObject(sd, "shape_demo", "drw sce-cur")
+	napi.Obj.NewObject(sd, "shape_demo", "pos drw sce-cur")
 	return sd
 }
 

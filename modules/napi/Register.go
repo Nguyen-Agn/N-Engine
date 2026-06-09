@@ -18,8 +18,8 @@ type Engine = core.Engine
 // GameConfig lÃ  cáº¥u hÃ¬nh khá»Ÿi Ä‘á»™ng: Title, Width, Height, SampleRate.
 type GameConfig = core.GameConfig
 
-// SceneType lÃ  *core.SceneType â€” má»™t mÃ n chÆ¡i Ä‘á»™c láº­p vá»›i world donburi riÃªng.
-type SceneType = core.Scene
+// sceneType lÃ  *core.sceneType â€” má»™t mÃ n chÆ¡i Ä‘á»™c láº­p vá»›i world donburi riÃªng.
+type sceneType = core.Scene
 
 // NewGame khá»Ÿi táº¡o Engine tá»« GameConfig. ThÆ°á»ng Ä‘Æ°á»£c gá»i giÃ¡n tiáº¿p qua napi.Init().
 func NewGame(cfg GameConfig) *Engine {
@@ -40,14 +40,14 @@ type IGlobal = domain.IGlobal
 
 // Re-export cÃ¡c Component Data struct dÃ¹ng trong ECS.
 
-type PositionData = domain.PositionData
-type SpriteData = domain.SpriteData
-type BoxData = domain.BoxData
-type AudioData = domain.AudioData
-type BackgroundData = domain.BackgroundData
-type TilemapData = domain.TilemapData
-type BoxShape = domain.BoxShape
-type DrawData = domain.DrawData
+type positionData = domain.PositionData
+type spriteData = domain.SpriteData
+type boxData = domain.BoxData
+type audioData = domain.AudioData
+type backgroundData = domain.BackgroundData
+type tilemapData = domain.TilemapData
+type boxShape = domain.BoxShape
+type drawData = domain.DrawData
 
 const (
 	BSRectangle = domain.BSRectangle
@@ -56,23 +56,23 @@ const (
 
 // IDraw is the interface Objects implement so the engine calls Draw() each frame.
 // Combine with the Drw mixin (token "drw") to get drawing methods (Rect, Circle, Text...).
-type IDraw = domain.IDraw
+type iDraw = domain.IDraw
 
-// IDrawComponent defines the drawing primitives exposed by DrawComponent.
-type IDrawComponent = domain.IDrawComponent
+// iDrawComponent defines the drawing primitives exposed by DrawComponent.
+type iDrawComponent = domain.IDrawComponent
 
 var (
-	Position   = enginetype.Position
-	Sprite     = enginetype.Sprite
-	Box_       = enginetype.Box
-	Audio      = enginetype.Audio
-	Infor      = enginetype.Infor
-	Direction  = enginetype.Direction
-	Background = enginetype.Background
-	Tilemap    = enginetype.Tilemap
-	Alarm      = enginetype.Alarm
-	Velocity   = enginetype.Velocity
-	Tween      = enginetype.Tween
+	position   = enginetype.Position
+	sprite     = enginetype.Sprite
+	box_       = enginetype.Box
+	audio      = enginetype.Audio
+	infor      = enginetype.Infor
+	direction  = enginetype.Direction
+	background = enginetype.Background
+	tilemap    = enginetype.Tilemap
+	alarm      = enginetype.Alarm
+	velocity   = enginetype.Velocity
+	tween      = enginetype.Tween
 )
 
 // â”€â”€â”€ Component Mixin Aliases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

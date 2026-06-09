@@ -17,17 +17,17 @@ import (
 
 // --- Khai báo Hero ---
 type Hero struct {
-	ncom.Object
+	napi.IObject
 	ncom.Pos
-	ncom.Drw
 	ncom.Info
 	ncom.Spr
+	ncom.Deb
 }
 
 func NewHero() *Hero {
 	h := &Hero{}
 	// Tokens: pos (vị trí), drw (vẽ), inf (thông tin + savetag), sce-cur (scene hiện tại)
-	napi.Obj.NewObject(h, "hero", "pos drw inf sce-cur spr")
+	napi.Obj.NewObject(h, "hero", "pos sce-cur spr deb")
 	h.SetX(300)
 	h.SetY(200)
 	h.SetSaveTag("hero_1") // Bắt buộc phải set SaveTag để lưu
@@ -37,6 +37,7 @@ func NewHero() *Hero {
 func (h *Hero) OnCreate() {
 	h.AddSprite("normal", napi.Assert.GetSprite("character"))
 	h.SetCurrentSprite("normal")
+
 }
 
 func (h *Hero) OnStep() {
@@ -52,12 +53,7 @@ func (h *Hero) OnStep() {
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
 		h.SetX(h.X() + 3)
 	}
-}
-
-func (h *Hero) Draw() {
-	// Vẽ hcn và chữ
-	//	h.Rect(h.X(), h.Y(), 40, 40, color.RGBA{0, 200, 100, 255})
-	h.Text("Hero (WASD)", h.X()-20, h.Y()-10, color.RGBA{255, 255, 255, 255})
+	h.Log(fmt.Sprintf("%f-%f", h.X(), h.Y()))
 }
 
 // Hook lưu dữ liệu
@@ -84,16 +80,21 @@ type BouncingBall struct {
 	ncom.Pos
 	ncom.Drw
 	ncom.Info
+	ncom.Deb
+	ncom.Box
 	VX, VY float32
 	Color  color.RGBA
 }
 
 func NewBouncingBall(id string, x, y, vx, vy float32, clr color.RGBA) *BouncingBall {
 	b := &BouncingBall{VX: vx, VY: vy, Color: clr}
-	napi.Obj.NewObject(b, "ball_"+id, "pos drw inf sce-cur")
+	napi.Obj.NewObject(b, "ball_"+id, "pos drw inf sce-cur deb box")
 	b.SetX(x)
 	b.SetY(y)
 	b.SetSaveTag("ball_" + id)
+	b.Debug("box info")
+	b.SetBoxH(15)
+	b.SetBoxW(15)
 	return b
 }
 
@@ -102,10 +103,10 @@ func (b *BouncingBall) OnStep() {
 	b.SetY(b.Y() + b.VY)
 
 	// Bounce
-	if b.X() <= 0 || b.X() >= 600 {
+	if b.X() <= b.BoxW() || b.X() >= 610 {
 		b.VX = -b.VX
 	}
-	if b.Y() <= 0 || b.Y() >= 440 {
+	if b.Y() <= b.BoxH() || b.Y() >= 450 {
 		b.VY = -b.VY
 	}
 }

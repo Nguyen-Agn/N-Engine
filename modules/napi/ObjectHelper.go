@@ -18,8 +18,6 @@ type objGroup struct{}
 // Obj is the function group for creating and registering Game Objects.
 var Obj = &objGroup{}
 
-// â”€â”€â”€ Object Interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 // Object lÃ  interface tá»‘i thiá»ƒu mÃ  Custom Object pháº£i implement Ä‘á»ƒ dÃ¹ng vá»›i NewObject.
 // Game object chá»‰ cáº§n cÃ³ OnCreate() — cÃ¡c lifecycle khÃ¡c (OnStep, OnDestroy) lÃ  optional override.
 // type Object interface {
@@ -38,9 +36,9 @@ func getNextObjectID() int {
 
 func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 	tokens := strings.Fields(componentCode)
-	tokenSet, sceneName := filter(tokens)
+	tokenSet, sceneName, hasSceneToken := filter(tokens)
 
-	// Láº¥y map tá»« scene phÃ¹ há»£p Ä‘á»ƒ táº¡o entry
+	// Lấy map từ scene phù hợp để tạo entry
 	var targetScene = getScene(sceneName)
 
 	targetMap := targetScene.GetMap()
@@ -74,7 +72,7 @@ func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 	specilalCase(obj, tokenSet)
 
 	// LÆ°u vÃ o global store náº¿u cÃ³ tÃªn (Ä‘á»ƒ tra cá»©u sau báº±ng napi.GetObject)
-	if target != nil {
+	if target != nil && hasSceneToken {
 		o.RegisterIn(target, targetScene)
 	}
 }
@@ -132,21 +130,23 @@ func getScene(name string) IScene {
 }
 
 // filter phÃ¢n tÃ­ch danh sÃ¡ch token, tÃ¡ch modifier "sce-*" (hoáº·c "glo").
-// Tráº£ vá»: set token duy nháº¥t vÃ  tÃªn scene Ä‘á»ƒ auto-register.
-func filter(tokens []string) (map[string]bool, string) {
+// Tráº£ vá» : set token duy nháº¥t vÃ  tÃªn scene Ä‘á»ƒ auto-register.
+func filter(tokens []string) (map[string]bool, string, bool) {
 	tokenSet := make(map[string]bool, len(tokens))
 	var sceneName string = ""
+	hasSceneToken := false
 	for _, t := range tokens {
 		if after, ok := strings.CutPrefix(t, "sce-"); ok {
 			sceneName = after
+			hasSceneToken = true
 			continue
 		}
 		tokenSet[t] = true
 	}
 
-	// Infor lÃ  component báº¯t buá»™c Ä‘á»‘i vá»›i má»i Object
+	// Infor lÃ  component báº¯t buá»™c Ä‘á»‘i vá»›i má» i Object
 	tokenSet["info"] = true
-	return constraint(tokenSet), sceneName
+	return constraint(tokenSet), sceneName, hasSceneToken
 }
 
 // bind inject IObject vÃ o target struct vÃ  táº¥t cáº£ Component Mixin nhÃºng trong nÃ³.
@@ -169,7 +169,7 @@ func bind(target any, base IObject) {
 		fieldType := t.Field(i)
 
 		// 1. GÃ¡n IObject chÃ­nh cá»§a Custom Object
-		if fieldType.Name == "IObject" {
+		if fieldType.Name == "IObject" || fieldType.Name == "Object" {
 			if fieldVal.CanSet() {
 				fieldVal.Set(reflect.ValueOf(base))
 			}
