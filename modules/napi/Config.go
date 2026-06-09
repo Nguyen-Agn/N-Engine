@@ -11,34 +11,15 @@ type storeGroup struct{}
 // Store is the function group for accessing assets, audio, and global variables.
 var Store = &storeGroup{}
 
-// VarInt trả về giá trị kiểu int từ global config theo key. Trả về 0 nếu không có.
-func (c *storeGroup) Int(key string) int {
-	return engine().Config.GetInt(key)
-}
+// =============================================================================
+// Generic Wrapper cho các biến toàn cục (Thay thế toàn bộ Int, String, Float...)
+// =============================================================================
 
-// VarInt64 trả về giá trị kiểu int64 từ global config theo key. Trả về 0 nếu không có.
-func (c *storeGroup) Int64(key string) int64 {
-	return engine().Config.GetInt64(key)
-}
-
-// VarFloat32 trả về giá trị kiểu float32 từ global config theo key. Trả về 0.0 nếu không có.
-func (c *storeGroup) Float32(key string) float32 {
-	return engine().Config.GetFloat32(key)
-}
-
-// VarFloat64 trả về giá trị kiểu float64 từ global config theo key. Trả về 0.0 nếu không có.
-func (c *storeGroup) Float64(key string) float64 {
-	return engine().Config.GetFloat64(key)
-}
-
-// VarString trả về giá trị kiểu string từ global config theo key. Trả về "" nếu không có.
-func (c *storeGroup) String(key string) string {
-	return engine().Config.GetString(key)
-}
-
-// VarBool trả về giá trị kiểu bool từ global config theo key. Trả về false nếu không có.
-func (c *storeGroup) VarBool(key string) bool {
-	return engine().Config.GetBool(key)
+// StoreGet lấy giá trị toàn cục theo key và tự ép kiểu. Trả về zero value nếu không tìm thấy.
+// Ví dụ: napi.StoreGet[int]("score")
+func StoreGet[T any](key string) T {
+	val, _ := engine().Config.GetValue(key).(T)
+	return val
 }
 
 // Setvalue cho global value

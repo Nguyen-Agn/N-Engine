@@ -39,23 +39,10 @@ type ShareGlobal interface {
 	// SetValue lưu một giá trị bất kỳ theo key. Ghi đè nếu key đã tồn tại.
 	SetValue(key string, value any)
 
-	// GetInt trả về giá trị kiểu int theo key. Trả về 0 nếu key không tồn tại.
-	GetInt(key string) int
+	// GetValue trả về giá trị dưới dạng any theo key.
+	// Sử dụng Generic Wrapper ở API tầng trên để ép kiểu.
+	GetValue(key string) any
 
-	// GetInt64 trả về giá trị kiểu int64 theo key. Trả về 0 nếu key không tồn tại.
-	GetInt64(key string) int64
-
-	// GetString trả về giá trị kiểu string theo key. Trả về "" nếu key không tồn tại.
-	GetString(key string) string
-
-	// GetFloat32 trả về giá trị kiểu float32 theo key. Trả về 0.0 nếu key không tồn tại.
-	GetFloat32(key string) float32
-
-	// GetFloat64 trả về giá trị kiểu float64 theo key. Trả về 0.0 nếu key không tồn tại.
-	GetFloat64(key string) float64
-
-	// GetBool trả về giá trị kiểu bool theo key. Trả về false nếu key không tồn tại.
-	GetBool(key string) bool
 
 	// GetConst trả về giá trị hằng số theo key. Trả về nil nếu key không tồn tại.
 	GetConst(key string) any

@@ -42,26 +42,14 @@ func ConstBool(key string) bool {
 	return false
 }
 
-func VarInt(key string) int {
-	return store.GetInt(key)
+// Generic Wrapper cho biến toàn cục của hệ thống nsys cũ
+func Get[T any](key string) T {
+	val, _ := store.GetValue(key).(T)
+	return val
 }
 
-func VarInt64(key string) int64 {
-	return store.GetInt64(key)
-}
-
-func VarFloat32(key string) float32 {
-	return store.GetFloat32(key)
-}
-
-func VarFloat64(key string) float64 {
-	return store.GetFloat64(key)
-}
-
-func VarString(key string) string {
-	return store.GetString(key)
-}
-
-func VarBool(key string) bool {
-	return store.GetBool(key)
+// Generic Wrapper cho Const của hệ thống nsys cũ
+func ConstGet[T any](key string) T {
+	val, _ := store.GetConst(key).(T)
+	return val
 }

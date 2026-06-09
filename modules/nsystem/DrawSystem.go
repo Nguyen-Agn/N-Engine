@@ -2,6 +2,7 @@ package nsystem
 
 import (
 	"fmt"
+	"sort"
 
 	"autoworld/domain"
 
@@ -31,6 +32,8 @@ type DrawSystem struct {
 	debugQuery *donburi.Query
 	// drawObjects holds objects that implement IDraw; populated by AddDrawObject
 	drawObjects []domain.IObject
+	// sortedSprites contains valid Sprite entries sorted by ZOrder
+	sortedSprites []*donburi.Entry
 	// screen is the render target; set every frame via SetScreen
 	screen *ebiten.Image
 }
@@ -38,11 +41,12 @@ type DrawSystem struct {
 // NewDrawSystem initialises DrawSystem with all required component filters.
 func NewDrawSystem() *DrawSystem {
 	return &DrawSystem{
-		query:        donburi.NewQuery(filter.Contains(Sprite, Position)),
-		bgQuery:      donburi.NewQuery(filter.Contains(Background)),
-		tilemapQuery: donburi.NewQuery(filter.Contains(Tilemap)),
-		drawQuery:    donburi.NewQuery(filter.Contains(Draw)),
-		debugQuery:   donburi.NewQuery(filter.Contains(Debug)),
+		query:         donburi.NewQuery(filter.Contains(Sprite, Position)),
+		bgQuery:       donburi.NewQuery(filter.Contains(Background)),
+		tilemapQuery:  donburi.NewQuery(filter.Contains(Tilemap)),
+		drawQuery:     donburi.NewQuery(filter.Contains(Draw)),
+		debugQuery:    donburi.NewQuery(filter.Contains(Debug)),
+		sortedSprites: make([]*donburi.Entry, 0),
 	}
 }
 
@@ -212,21 +216,68 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 	})
 
 	// ─── 3. Sprite ────────────────────────────────────────────────────────────
-	// AABB culling: skip entities fully outside the viewport.
+	// Sync and Sort Sprites based on ZOrder
+	currentMap := make(map[donburi.Entity]bool)
+	hasDirty := false
+
 	ds.query.Each(w, func(entry *donburi.Entry) {
-		sprData := donburi.Get[SpriteData](entry, Sprite)
+		currentMap[entry.Entity()] = true
+		sprData := donburi.Get[domain.SpriteData](entry, Sprite)
+		if sprData.IsZOrderDirty {
+			hasDirty = true
+			sprData.IsZOrderDirty = false
+		}
+	})
+
+	// Remove dead entries
+	alive := ds.sortedSprites[:0]
+	for _, entry := range ds.sortedSprites {
+		if entry.Valid() && currentMap[entry.Entity()] {
+			alive = append(alive, entry)
+		} else {
+			hasDirty = true
+		}
+	}
+	ds.sortedSprites = alive
+
+	// Add new entries
+	if len(ds.sortedSprites) != len(currentMap) {
+		existingMap := make(map[donburi.Entity]bool)
+		for _, entry := range ds.sortedSprites {
+			existingMap[entry.Entity()] = true
+		}
+		ds.query.Each(w, func(entry *donburi.Entry) {
+			if !existingMap[entry.Entity()] {
+				ds.sortedSprites = append(ds.sortedSprites, entry)
+				hasDirty = true
+			}
+		})
+	}
+
+	// Sort if needed
+	if hasDirty {
+		sort.SliceStable(ds.sortedSprites, func(i, j int) bool {
+			zI := donburi.Get[domain.SpriteData](ds.sortedSprites[i], Sprite).ZOrder
+			zJ := donburi.Get[domain.SpriteData](ds.sortedSprites[j], Sprite).ZOrder
+			return zI < zJ
+		})
+	}
+
+	// Render sorted sprites with AABB culling
+	for _, entry := range ds.sortedSprites {
+		sprData := donburi.Get[domain.SpriteData](entry, Sprite)
 		if !sprData.IsVisible || sprData.CurrentSprite == "" {
-			return
+			continue
 		}
 
-		posData := donburi.Get[PositionData](entry, Position)
+		posData := donburi.Get[domain.PositionData](entry, Position)
 
 		screenX := posData.X - camX
 		screenY := posData.Y - camY
 
 		currentSpr := sprData.Sprite[sprData.CurrentSprite]
 		if currentSpr == nil {
-			return
+			continue
 		}
 
 		sprW := float32(currentSpr.Width()) * sprData.ScaleX
@@ -234,7 +285,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 
 		// AABB cull
 		if screenX+sprW < 0 || screenY+sprH < 0 || screenX > screenW || screenY > screenH {
-			return
+			continue
 		}
 
 		drawOptsList := BuildDrawOptions(*posData, *sprData, camX, camY)
@@ -250,7 +301,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 			sprData.SpriteIdx += int(sprData.ImageSpeed)
 			sprData.SpriteIdx %= currentSpr.Length()
 		}
-	})
+	}
 
 	// ─── 4. IDraw objects ─────────────────────────────────────────────────────
 	// Inject current screen and camera offset into DrawData for each Draw entity,
@@ -261,6 +312,19 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 		drawData.CamX = camX
 		drawData.CamY = camY
 	})
+	
+	// Sort drawObjects by ZOrder if they also implement ISprite
+	sort.SliceStable(ds.drawObjects, func(i, j int) bool {
+		zI, zJ := 0, 0
+		if sprI, ok := ds.drawObjects[i].(domain.ISprite); ok {
+			zI = sprI.ZOrder()
+		}
+		if sprJ, ok := ds.drawObjects[j].(domain.ISprite); ok {
+			zJ = sprJ.ZOrder()
+		}
+		return zI < zJ
+	})
+
 	for _, obj := range ds.drawObjects {
 		if drawer, ok := obj.(domain.IDraw); ok {
 			drawer.Draw()

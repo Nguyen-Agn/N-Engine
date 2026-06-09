@@ -1,7 +1,7 @@
 # Feature
 - [x] A+ Mouse Input Full (click + pressed + release + hover + scoll + ...) 
 - [ ] B- Game pad / Touching
-- [ ] B- Z-order /player in draw
+- [x] B- Z-order /player in draw
 - [ ] B- Gravity
 - [x] A- Audio Full 
 - [ ] B- Scaling screen (hight quality alth)

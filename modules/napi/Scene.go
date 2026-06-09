@@ -70,8 +70,8 @@ func (s *sceneGroup) GetSceneByID(id string) IScene {
 // Trả về IScene và error nếu id đã tồn tại.
 func (s *sceneGroup) NewScene(id, component string) (IScene, error) {
 	e := engine()
-	viewW := e.Config.GetInt("game-width")
-	viewH := e.Config.GetInt("game-height")
+	viewW := e.Config.GetValue("game-width").(int)
+	viewH := e.Config.GetValue("game-height").(int)
 
 	var mapW, mapH int
 	var guiW, guiH int

@@ -49,7 +49,7 @@ func (this *MovingBox) Create() {
 
 func (this *MovingBox) StepUpdate() {
 	_vx, _vy := this.VelocityX(), this.VelocityY()
-	_w, _h := napi.Store.Int("game-width"), napi.Store.Int("game-height")
+	_w, _h := napi.StoreGet[int]("game-width"), napi.StoreGet[int]("game-height")
 	_x, _y := this.X(), this.Y()
 
 	if _x > float32(_w) || _x < 0 {

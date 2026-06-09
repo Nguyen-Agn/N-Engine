@@ -137,6 +137,11 @@ type ISprite interface {
 	// Enable / Disable 9Slice Mode
 	// String Ex: "5" ->5:all, "5 6" -> 5:top&bottom, 6:right&left, "1 2 3 4" -> each
 	Set9Slice(turn bool, TopRightBottomLeft string)
+
+	// ZOrder trả về giá trị thứ tự vẽ của sprite (số nhỏ vẽ trước, số lớn vẽ sau).
+	ZOrder() int
+	// SetZOrder thiết lập thứ tự vẽ của sprite và kích hoạt cờ cập nhật (dirty flag).
+	SetZOrder(z int)
 }
 
 // IBox cung cấp hitbox hình học cho Object dùng trong va chạm (ánh xạ tới BoxData).

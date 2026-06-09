@@ -35,6 +35,8 @@ func init() {
 			OffsetY:       0,
 			CurrentSprite: "",
 			SpriteIdx:     0,
+			ZOrder:        0,
+			IsZOrderDirty: true,
 		})
 	})
 }
@@ -253,4 +255,18 @@ func (p SpriteComponent) Set9Slice(turn bool, TopRightBottomLeft string) {
 	p.data.NineSlice.Right = values[indexs[1]]
 	p.data.NineSlice.Bottom = values[indexs[2]]
 	p.data.NineSlice.Left = values[indexs[3]]
+}
+
+func (p SpriteComponent) ZOrder() int {
+	if p.data == nil {
+		return 0
+	}
+	return p.data.ZOrder
+}
+
+func (p SpriteComponent) SetZOrder(z int) {
+	if p.data != nil && p.data.ZOrder != z {
+		p.data.ZOrder = z
+		p.data.IsZOrderDirty = true
+	}
 }

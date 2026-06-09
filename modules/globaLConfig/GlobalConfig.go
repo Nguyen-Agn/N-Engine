@@ -63,59 +63,9 @@ func (c *GlobalConfig) NotifyChange() {
 	}
 }
 
-// get value type Int
-// return defuatl = 0
-func (c *GlobalConfig) GetInt(key string) int {
-	if val, ok := c.values[key].(int); ok {
-		return val
-	}
-	return 0
-}
-
-// get value type Int64
-// return defuatl = 0
-func (c *GlobalConfig) GetInt64(key string) int64 {
-	if val, ok := c.values[key].(int64); ok {
-		return val
-	}
-	return 0
-}
-
-// get value type String
-// return defuatl = ""
-func (c *GlobalConfig) GetString(key string) string {
-	if val, ok := c.values[key].(string); ok {
-		return val
-	}
-	return ""
-}
-
-// get value type float32
-// return defuatl = 0.0
-func (c *GlobalConfig) GetFloat32(key string) float32 {
-	if val, ok := c.values[key].(float32); ok {
-		return val
-	}
-	return 0.0
-}
-
-// get value type float64
-// return defuatl = 0.0
-func (c *GlobalConfig) GetFloat64(key string) float64 {
-	if val, ok := c.values[key].(float64); ok {
-		return val
-	}
-	return 0.0
-}
-
-// get value type bool
-// return defuatl = false
-func (c *GlobalConfig) GetBool(key string) bool {
-	if val, ok := c.values[key].(bool); ok {
-		return val
-	}
-	return false
-
+// GetValue trả về giá trị kiểu any.
+func (c *GlobalConfig) GetValue(key string) any {
+	return c.values[key]
 }
 
 func (c *GlobalConfig) GetConst(key string) any {

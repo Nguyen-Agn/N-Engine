@@ -76,8 +76,8 @@ func NewGame(cfg GameConfig) *Engine {
 func (e *Engine) Start() {
 	config := e.Config
 
-	ebiten.SetWindowSize(config.GetInt("game-width"), config.GetInt("game-height"))
-	ebiten.SetWindowTitle(config.GetString("game-title"))
+	ebiten.SetWindowSize(config.GetValue("game-width").(int), config.GetValue("game-height").(int))
+	ebiten.SetWindowTitle(config.GetValue("game-title").(string))
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	if err := ebiten.RunGame(NewEbitenGame(e)); err != nil {

@@ -100,75 +100,10 @@ func (g *globalStore) SetValue(key string, value any) {
 	g.variable[key] = value
 }
 
-// get value type Int
-// return defuatl = 0
-func (g *globalStore) GetInt(key string) int {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if val, ok := g.variable[key].(int); ok {
-		return val
-	}
-	return 0
-
-}
-
-// get value type Int64
-// return defuatl = 0
-func (g *globalStore) GetInt64(key string) int64 {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if val, ok := g.variable[key].(int64); ok {
-		return val
-	}
-	return 0
-}
-
-// get value type String
-// return defuatl = ""
-func (g *globalStore) GetString(key string) string {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	{
-		if val, ok := g.variable[key].(string); ok {
-			return val
-		}
-		return ""
-	}
-}
-
-// get value type float32
-// return defuatl = 0.0
-func (g *globalStore) GetFloat32(key string) float32 {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if val, ok := g.variable[key].(float32); ok {
-		return val
-	}
-	return 0.0
-}
-
-// get value type float64
-// return defuatl = 0.0
-func (g *globalStore) GetFloat64(key string) float64 {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if val, ok := g.variable[key].(float64); ok {
-		return val
-	}
-	return 0.0
-}
-
-// get value type bool
-// return defuatl = false
-func (g *globalStore) GetBool(key string) bool {
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	{
-		if val, ok := g.variable[key].(bool); ok {
-			return val
-		}
-		return false
-	}
+func (g *globalStore) GetValue(key string) any {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.variable[key]
 }
 
 func (g *globalStore) DumpVariables() map[string]any {

@@ -25,3 +25,9 @@
        Với mỗi thực thể, `Graphic.BuildDrawOptions` tính toán tọa độ, độ xoay, tỉ lệ và màu sắc.
     4. **Rendering**:
        Hình ảnh được vẽ lên màn hình thông qua thư viện Ebitengine.
+
+**Tính năng Z-Order (Depth Sorting)**:
+    - Để giải quyết vấn đề thứ tự vẽ chồng lấn giữa các Sprite, N-Engine sử dụng thuộc tính `ZOrder` (kiểu `int`) lưu trong `SpriteData`.
+    - `DrawSystem` duy trì một mảng nội bộ các thực thể hợp lệ (`sortedSprites`). Mảng này được tự động phân giải (cập nhật nếu có thêm bớt thực thể).
+    - Để tối ưu hiệu năng theo phương châm "chỉ sort khi có thay đổi", `DrawSystem` lắng nghe cờ `IsZOrderDirty` (được bật tự động khi gọi `SetZOrder()`). Nếu cờ này bật hoặc có thực thể mới thêm vào, hệ thống mới tiến hành chạy thuật toán `sort.SliceStable` trên mảng. Do mảng đã gần như được sắp xếp sẵn, `sort.SliceStable` thực thi cực kỳ nhanh (thời gian chạy tiệm cận `O(N)`).
+    - Quá trình vẽ cuối cùng diễn ra bằng cách duyệt mảng `sortedSprites` sau khi đã được sắp xếp và loại trừ AABB Culling.

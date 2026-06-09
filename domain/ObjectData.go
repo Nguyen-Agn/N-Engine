@@ -29,6 +29,8 @@ type SpriteData struct {
 	ScaleX, ScaleY   float32
 	IsNineSlice      bool
 	NineSlice        NineSlice
+	ZOrder           int
+	IsZOrderDirty    bool
 }
 
 // BackgroundData holds background image or color data for a Scene.
