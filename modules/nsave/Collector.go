@@ -1,8 +1,9 @@
 package nsave
 
 import (
-	"autoworld/domain"
 	"log"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 type collector struct{}

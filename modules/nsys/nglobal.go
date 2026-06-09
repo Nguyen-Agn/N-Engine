@@ -1,7 +1,7 @@
 package nsys
 
 import (
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 // GetInstance returns the Singleton instance of the global store, initializing it if necessary.

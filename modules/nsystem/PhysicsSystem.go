@@ -1,7 +1,7 @@
 package nsystem
 
 import (
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 )
 
 // PhysicsSystem calculates basic physics for entities: friction, max speed limiting, and applying velocity to position.

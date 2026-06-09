@@ -1,9 +1,10 @@
 package nsystem
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
 	"testing"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 	"github.com/yohamta/donburi"
 )
 
@@ -11,7 +12,7 @@ func TestAlarmSystem(t *testing.T) {
 	world := donburi.NewWorld()
 	entity := world.Create(enginetype.Alarm)
 	entry := world.Entry(entity)
-	
+
 	// Ensure data is initialized
 	enginetype.InitializeComponent("ala", entry)
 
@@ -26,10 +27,10 @@ func TestAlarmSystem(t *testing.T) {
 	callbackCalled := false
 	// Add an alarm manually
 	data.Alarms = append(data.Alarms, domain.Alarm{
-		Id: "test",
+		Id:         "test",
 		FramesLeft: 2,
-		IsActive: true,
-		Callback: func() { callbackCalled = true },
+		IsActive:   true,
+		Callback:   func() { callbackCalled = true },
 	})
 
 	sys := NewAlarmSystem()

@@ -1,8 +1,9 @@
 package nsystem
 
 import (
-	"autoworld/modules/enginetype"
 	"testing"
+
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -27,7 +28,7 @@ func TestPhysicsSystem(t *testing.T) {
 
 	sys := NewVelocitySystem()
 
-	// Apply Physics: 
+	// Apply Physics:
 	// Friction: Vx 10 -> 9, Vy -5 -> -4
 	// MaxSpeed: Vx 9 -> 8, Vy -4 -> -4
 	// Pos: X 0 -> 8, Y 0 -> -4

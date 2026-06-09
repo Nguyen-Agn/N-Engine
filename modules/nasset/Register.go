@@ -1,8 +1,8 @@
 package nasset
 
 import (
-	"autoworld/domain"
-	"autoworld/domain/bridge"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain/bridge"
 )
 
 type ISpriteLoader = domain.ISpriteLoader

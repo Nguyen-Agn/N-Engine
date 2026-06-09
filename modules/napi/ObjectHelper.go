@@ -5,9 +5,9 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"autoworld/modules/components"
-	"autoworld/modules/enginetype"
-	"autoworld/modules/nobject"
+	"github.com/Nguyen-Agn/N-Engine/modules/components"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/nobject"
 
 	"github.com/yohamta/donburi"
 )

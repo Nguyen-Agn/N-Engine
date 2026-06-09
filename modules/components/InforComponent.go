@@ -1,6 +1,6 @@
 package components
 
-import "autoworld/modules/enginetype"
+import "github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 type InforComponent struct {
 	IObject

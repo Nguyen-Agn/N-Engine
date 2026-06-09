@@ -3,8 +3,8 @@ package components
 import (
 	"strings"
 
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -50,6 +50,7 @@ type InputComponent struct {
 // Purpose: Automatically invoked by the engine to fetch the input data pointer.
 // Inputs:
 //   - base: The IObject representing the base entity to bind.
+//
 // Outputs: None.
 func (c *InputComponent) BindComponent(base IObject) {
 	c.IObject = base
@@ -62,6 +63,7 @@ func (c *InputComponent) BindComponent(base IObject) {
 //   - key: The string name of the key or group (e.g., "w a s d alpha", "all").
 //   - eventType: The type of event ("pressed", "just_pressed", "just_released").
 //   - handler: The function to execute when the event occurs. It receives the triggered key name.
+//
 // Outputs: None.
 func (c *InputComponent) ListenOn(key string, eventType string, handler func(key string)) {
 	if c.data == nil {

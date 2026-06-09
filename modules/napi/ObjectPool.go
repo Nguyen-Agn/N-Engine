@@ -1,8 +1,9 @@
 package napi
 
 import (
-	"autoworld/domain"
 	"sync"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 // PoolConfig chứa các hàm khởi tạo và reset cho ObjectPool.

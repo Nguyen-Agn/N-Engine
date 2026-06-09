@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"strings"
 
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	textv2 "github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -45,6 +45,7 @@ var packageDefaultFont font.Face = basicfont.Face7x13
 // Purpose: Sets the global font. Intended to be called only by napi.SetDefaultFont().
 // Inputs:
 //   - f: The font.Face to set as default.
+//
 // Outputs: None.
 func SetPackageDefaultFont(f font.Face) {
 	packageDefaultFont = f
@@ -63,6 +64,7 @@ func init() {
 // Purpose: Binds the component to the ECS entry.
 // Inputs:
 //   - base: The IObject representing the base entity.
+//
 // Outputs: None.
 func (d *DrawComponent) BindComponent(base IObject) {
 	d.IObject = base
@@ -73,6 +75,7 @@ func (d *DrawComponent) BindComponent(base IObject) {
 // Purpose: Sets a specific font for this component instance.
 // Inputs:
 //   - f: The font.Face to use for this component.
+//
 // Outputs: None.
 func (d *DrawComponent) SetFont(f font.Face) {
 	d.defaultFont = f
@@ -96,6 +99,7 @@ func (d *DrawComponent) screen() *ebiten.Image {
 // Inputs:
 //   - x: Map-space X coordinate.
 //   - y: Map-space Y coordinate.
+//
 // Outputs: A tuple (float32, float32) representing screen-space X and Y coordinates.
 func (d *DrawComponent) toScreen(x, y float32) (float32, float32) {
 	if d.data == nil {
@@ -123,6 +127,7 @@ func (d *DrawComponent) activeFont() font.Face {
 // Purpose: Useful when building a custom vector.Path before passing it to PathFill/PathStroke.
 // Inputs:
 //   - mapX: Map-space X coordinate.
+//
 // Outputs: Screen-space X coordinate.
 func (d *DrawComponent) ScreenX(mapX float32) float32 {
 	if d.data == nil {
@@ -135,6 +140,7 @@ func (d *DrawComponent) ScreenX(mapX float32) float32 {
 // Purpose: Useful when building a custom vector.Path before passing it to PathFill/PathStroke.
 // Inputs:
 //   - mapY: Map-space Y coordinate.
+//
 // Outputs: Screen-space Y coordinate.
 func (d *DrawComponent) ScreenY(mapY float32) float32 {
 	if d.data == nil {
@@ -153,6 +159,7 @@ func (d *DrawComponent) ScreenY(mapY float32) float32 {
 //   - x, y: Map-space coordinates for the top-left corner.
 //   - w, h: Width and height of the rectangle.
 //   - c: The fill color.
+//
 // Outputs: None.
 func (d *DrawComponent) Rect(x, y, w, h float32, c color.RGBA) {
 	s := d.screen()
@@ -169,6 +176,7 @@ func (d *DrawComponent) Rect(x, y, w, h float32, c color.RGBA) {
 //   - x, y: Map-space coordinates for the center.
 //   - r: Radius of the circle.
 //   - c: The fill color.
+//
 // Outputs: None.
 func (d *DrawComponent) Circle(x, y, r float32, c color.RGBA) {
 	s := d.screen()
@@ -190,6 +198,7 @@ func (d *DrawComponent) Circle(x, y, r float32, c color.RGBA) {
 //   - w, h: Width and height of the rectangle.
 //   - c: The outline color.
 //   - strokeWidth: Thickness of the border in pixels.
+//
 // Outputs: None.
 func (d *DrawComponent) RectStroke(x, y, w, h float32, c color.RGBA, strokeWidth float32) {
 	s := d.screen()
@@ -207,6 +216,7 @@ func (d *DrawComponent) RectStroke(x, y, w, h float32, c color.RGBA, strokeWidth
 //   - r: Radius of the circle.
 //   - c: The outline color.
 //   - strokeWidth: Thickness of the border in pixels.
+//
 // Outputs: None.
 func (d *DrawComponent) CircleStroke(x, y, r float32, c color.RGBA, strokeWidth float32) {
 	s := d.screen()
@@ -224,6 +234,7 @@ func (d *DrawComponent) CircleStroke(x, y, r float32, c color.RGBA, strokeWidth 
 //   - x1, y1: Map-space coordinates for the end point.
 //   - c: The line color.
 //   - strokeWidth: Thickness of the line in pixels.
+//
 // Outputs: None.
 func (d *DrawComponent) Line(x0, y0, x1, y1 float32, c color.RGBA, strokeWidth float32) {
 	s := d.screen()
@@ -245,6 +256,7 @@ func (d *DrawComponent) Line(x0, y0, x1, y1 float32, c color.RGBA, strokeWidth f
 //   - p: Pointer to the vector.Path built in screen-space coordinates.
 //   - c: The fill color.
 //   - antialias: Whether to enable antialiasing.
+//
 // Outputs: None.
 func (d *DrawComponent) PathFill(p *vector.Path, c color.RGBA, antialias bool) {
 	s := d.screen()
@@ -263,6 +275,7 @@ func (d *DrawComponent) PathFill(p *vector.Path, c color.RGBA, antialias bool) {
 //   - c: The stroke color.
 //   - strokeWidth: Thickness of the stroke.
 //   - antialias: Whether to enable antialiasing.
+//
 // Outputs: None.
 func (d *DrawComponent) PathStroke(p *vector.Path, c color.RGBA, strokeWidth float32, antialias bool) {
 	s := d.screen()
@@ -283,6 +296,7 @@ func (d *DrawComponent) PathStroke(p *vector.Path, c color.RGBA, strokeWidth flo
 // Purpose: Parses a string alignment token into an ebiten text alignment enum.
 // Inputs:
 //   - token: The string token (e.g., "center", "left").
+//
 // Outputs: A tuple containing the textv2.Align and a boolean indicating if it is justified.
 func parseAlign(token string) (textv2.Align, bool) {
 	switch token {
@@ -304,6 +318,7 @@ func parseAlign(token string) (textv2.Align, bool) {
 // Inputs:
 //   - hAlign: Horizontal alignment string token.
 //   - vAlign: Vertical alignment string token.
+//
 // Outputs: None.
 func (d *DrawComponent) SetTextAlign(hAlign, vAlign string) {
 	d.hAlign, d.isJustify = parseAlign(hAlign)
@@ -316,11 +331,12 @@ func (d *DrawComponent) SetTextAlign(hAlign, vAlign string) {
 //   - maxWidth: Maximum width of the text box.
 //   - maxHeight: Maximum height of the text box.
 //   - mode: The overflow mode ("visible", "hidden", "scale").
+//
 // Outputs: None.
 func (d *DrawComponent) SetTextOverflow(maxWidth, maxHeight float32, mode string) {
 	d.maxWidth = maxWidth
 	d.maxHeight = maxHeight
-	
+
 	switch mode {
 	case "hidden", "h":
 		d.overflowMode = "hidden"
@@ -337,6 +353,7 @@ func (d *DrawComponent) SetTextOverflow(maxWidth, maxHeight float32, mode string
 //   - text: The string to draw.
 //   - x, y: Map-space coordinates for the text.
 //   - c: The color of the text.
+//
 // Outputs: None.
 func (d *DrawComponent) Text(text string, x, y float32, c color.RGBA) {
 	d.drawTextInternal(text, x, y, c, 1.0)
@@ -349,6 +366,7 @@ func (d *DrawComponent) Text(text string, x, y float32, c color.RGBA) {
 //   - x, y: Map-space coordinates for the text.
 //   - c: The color of the text.
 //   - scale: The scaling factor (1.0 is default size).
+//
 // Outputs: None.
 func (d *DrawComponent) TextEx(text string, x, y float32, c color.RGBA, scale float64) {
 	d.drawTextInternal(text, x, y, c, scale)
@@ -361,6 +379,7 @@ func (d *DrawComponent) TextEx(text string, x, y float32, c color.RGBA, scale fl
 //   - x, y: Map-space coordinates.
 //   - c: The text color.
 //   - scale: The scaling factor.
+//
 // Outputs: None.
 func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c color.RGBA, scale float64) {
 	s := d.screen()
@@ -369,19 +388,19 @@ func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c col
 	}
 	sx, sy := d.toScreen(x, y)
 	face := textv2.NewGoXFace(d.activeFont())
-	
+
 	op := &textv2.DrawOptions{}
 	op.PrimaryAlign = d.hAlign
 	op.SecondaryAlign = d.vAlign
 	op.GeoM.Scale(scale, scale)
-	
+
 	// 1. Xử lý Overflow Scale
 	var minScale float64 = 1.0
 	if (d.maxWidth > 0 || d.maxHeight > 0) && d.overflowMode == "scale" {
 		w, h := textv2.Measure(textContent, face, face.Metrics().HAscent)
 		w *= scale
 		h *= scale
-		
+
 		scaleX, scaleY := 1.0, 1.0
 		if d.maxWidth > 0 && w > float64(d.maxWidth) {
 			scaleX = float64(d.maxWidth) / w
@@ -389,7 +408,7 @@ func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c col
 		if d.maxHeight > 0 && h > float64(d.maxHeight) {
 			scaleY = float64(d.maxHeight) / h
 		}
-		
+
 		minScale = scaleX
 		if scaleY < minScale {
 			minScale = scaleY
@@ -398,39 +417,51 @@ func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c col
 			op.GeoM.Scale(minScale, minScale)
 		}
 	}
-	
+
 	// 2. Xử lý Overflow Hidden (Clipping)
 	var target *ebiten.Image = s
 	if d.overflowMode == "hidden" && (d.maxWidth > 0 || d.maxHeight > 0) {
 		clipX, clipY := float64(sx), float64(sy)
-		
+
 		if d.maxWidth > 0 {
-			if d.hAlign == textv2.AlignCenter { clipX -= float64(d.maxWidth) / 2 }
-			if d.hAlign == textv2.AlignEnd { clipX -= float64(d.maxWidth) }
+			if d.hAlign == textv2.AlignCenter {
+				clipX -= float64(d.maxWidth) / 2
+			}
+			if d.hAlign == textv2.AlignEnd {
+				clipX -= float64(d.maxWidth)
+			}
 		} else {
 			clipX = 0 // Không giới hạn
 		}
-		
+
 		if d.maxHeight > 0 {
-			if d.vAlign == textv2.AlignCenter { clipY -= float64(d.maxHeight) / 2 }
-			if d.vAlign == textv2.AlignEnd { clipY -= float64(d.maxHeight) }
+			if d.vAlign == textv2.AlignCenter {
+				clipY -= float64(d.maxHeight) / 2
+			}
+			if d.vAlign == textv2.AlignEnd {
+				clipY -= float64(d.maxHeight)
+			}
 		} else {
 			clipY = 0
 		}
-		
+
 		cw := float64(d.maxWidth)
-		if cw <= 0 { cw = 99999 } // Rất lớn nếu không giới hạn
+		if cw <= 0 {
+			cw = 99999
+		} // Rất lớn nếu không giới hạn
 		ch := float64(d.maxHeight)
-		if ch <= 0 { ch = 99999 }
-		
+		if ch <= 0 {
+			ch = 99999
+		}
+
 		rect := image.Rect(int(clipX), int(clipY), int(clipX+cw), int(clipY+ch))
 		// Cắt giới hạn vẽ (Clipping)
 		target = s.SubImage(rect.Intersect(s.Bounds())).(*ebiten.Image)
 	}
-	
+
 	op.GeoM.Translate(float64(sx), float64(sy))
 	op.ColorScale.ScaleWithColor(c)
-	
+
 	// 3. Xử lý Justify
 	if d.isJustify && d.maxWidth > 0 && d.overflowMode != "scale" {
 		words := strings.Fields(textContent)
@@ -440,14 +471,20 @@ func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c col
 				ww, _ := textv2.Measure(w, face, face.Metrics().HAscent)
 				totalWordWidth += ww * minScale
 			}
-			
+
 			spaceWidth := (float64(d.maxWidth) - totalWordWidth) / float64(len(words)-1)
-			if spaceWidth < 0 { spaceWidth = 0 } // Tránh đè chữ
-			
+			if spaceWidth < 0 {
+				spaceWidth = 0
+			} // Tránh đè chữ
+
 			currX := float64(sx)
-			if d.hAlign == textv2.AlignCenter { currX -= float64(d.maxWidth) / 2 }
-			if d.hAlign == textv2.AlignEnd { currX -= float64(d.maxWidth) }
-			
+			if d.hAlign == textv2.AlignCenter {
+				currX -= float64(d.maxWidth) / 2
+			}
+			if d.hAlign == textv2.AlignEnd {
+				currX -= float64(d.maxWidth)
+			}
+
 			for _, w := range words {
 				wOp := &textv2.DrawOptions{}
 				wOp.PrimaryAlign = textv2.AlignStart
@@ -456,14 +493,14 @@ func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c col
 				wOp.GeoM.Translate(currX, float64(sy))
 				wOp.ColorScale.ScaleWithColor(c)
 				textv2.Draw(target, w, face, wOp)
-				
+
 				ww, _ := textv2.Measure(w, face, face.Metrics().HAscent)
 				currX += (ww * minScale) + spaceWidth
 			}
 			return
 		}
 	}
-	
+
 	textv2.Draw(target, textContent, face, op)
 }
 
@@ -477,6 +514,7 @@ func (d *DrawComponent) drawTextInternal(textContent string, x, y float32, c col
 //   - sprite: The ISpriteLW instance to draw.
 //   - idx: The frame index of the sprite to draw.
 //   - x, y: Map-space coordinates.
+//
 // Outputs: None.
 func (d *DrawComponent) Image(sprite ISpriteLW, idx int, x, y float32) {
 	s := d.screen()

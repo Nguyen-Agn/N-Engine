@@ -1,8 +1,8 @@
 package ncom
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/components"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/components"
 
 	"github.com/yohamta/donburi"
 )

@@ -1,8 +1,9 @@
 package core
 
 import (
-	"autoworld/domain"
 	"slices"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"

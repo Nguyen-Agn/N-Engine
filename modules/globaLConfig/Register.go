@@ -1,6 +1,6 @@
 package globalconfig
 
-import "autoworld/domain"
+import "github.com/Nguyen-Agn/N-Engine/domain"
 
 type IObserver = domain.IObserver
 type IGlobalConfig = domain.IGlobalConfig

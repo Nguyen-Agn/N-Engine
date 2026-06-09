@@ -1,10 +1,11 @@
 package nsave
 
 import (
-	"autoworld/domain"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 func TestJsonFileAdapter_WriteReadDelete(t *testing.T) {
@@ -60,7 +61,7 @@ func TestJsonFileAdapter_ListAll(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	adapter := newJsonFileAdapter(tmpDir)
-	
+
 	// Create some fake files
 	adapter.Write(filepath.Join(tmpDir, "save1.json"), domain.SaveSnapshot{})
 	adapter.Write(filepath.Join(tmpDir, "save2.json"), domain.SaveSnapshot{})
@@ -70,14 +71,18 @@ func TestJsonFileAdapter_ListAll(t *testing.T) {
 	if len(slots) != 2 {
 		t.Errorf("ListAll() = %v slots, want 2", len(slots))
 	}
-	
+
 	hasSave1 := false
 	hasSave2 := false
 	for _, s := range slots {
-		if s == "save1" { hasSave1 = true }
-		if s == "save2" { hasSave2 = true }
+		if s == "save1" {
+			hasSave1 = true
+		}
+		if s == "save2" {
+			hasSave2 = true
+		}
 	}
-	
+
 	if !hasSave1 || !hasSave2 {
 		t.Errorf("ListAll() missing saves. Got %v", slots)
 	}

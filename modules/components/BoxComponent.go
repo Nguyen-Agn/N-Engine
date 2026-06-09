@@ -1,7 +1,7 @@
 package components
 
 import (
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -114,6 +114,7 @@ func (p BoxComponent) SetBoxY(boxY float32) {
 		p.data.BoxY = boxY
 	}
 }
+
 // Shape retrieves the shape type of the bounding box.
 // Outputs: Returns the BoxShape (e.g., Rectangle, Circle).
 func (p BoxComponent) Shape() BoxShape {

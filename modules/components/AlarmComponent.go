@@ -1,8 +1,8 @@
 package components
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -66,6 +66,7 @@ func (a AlarmComponent) SetAlarm(name string, frames int, callback func()) {
 // Purpose: Checks how many frames are left before the alarm triggers.
 // Inputs:
 //   - name: The unique identifier of the alarm.
+//
 // Outputs: Returns the remaining frames as an integer, or 0 if not found or inactive.
 func (a AlarmComponent) GetAlarm(name string) int {
 	if a.data == nil {

@@ -1,9 +1,10 @@
 package core
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/nmath"
-	"autoworld/modules/nsystem"
+	"github.com/Nguyen-Agn/N-Engine/modules/nmath"
+	"github.com/Nguyen-Agn/N-Engine/modules/nsystem"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/yohamta/donburi"

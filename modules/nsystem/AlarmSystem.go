@@ -1,7 +1,7 @@
 package nsystem
 
 import (
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 )
 
 type AlarmSystem struct {

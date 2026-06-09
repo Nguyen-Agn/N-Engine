@@ -3,7 +3,7 @@ package components
 import (
 	"math"
 
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -17,6 +17,7 @@ type DirectionComponent struct {
 // Purpose: Initializes the component with the base object and fetches the ECS data.
 // Inputs:
 //   - base: The IObject representing the base entity to bind.
+//
 // Outputs: None.
 func (p *DirectionComponent) BindComponent(base IObject) {
 	p.IObject = base
@@ -49,6 +50,7 @@ func (d DirectionComponent) Direction() float32 {
 // Purpose: Sets a specific direction for the entity.
 // Inputs:
 //   - dir: The target direction in degrees (float32). Special Requirement: It will be normalized to [0, 360).
+//
 // Outputs: None.
 func (d DirectionComponent) SetDirection(dir float32) {
 	if d.data != nil {
@@ -64,6 +66,7 @@ func (d DirectionComponent) SetDirection(dir float32) {
 // Purpose: Adds an angle to the current direction.
 // Inputs:
 //   - dir: The angle in degrees to add to the current direction (float32). Special Requirement: The result is normalized to [0, 360).
+//
 // Outputs: None.
 func (d DirectionComponent) Rotate(dir float32) {
 

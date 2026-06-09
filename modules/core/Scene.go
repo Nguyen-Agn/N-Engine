@@ -1,7 +1,7 @@
 package core
 
 import (
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 
 	"github.com/yohamta/donburi"
 )

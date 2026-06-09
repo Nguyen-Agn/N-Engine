@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"autoworld/domain/bridge"
+	"github.com/Nguyen-Agn/N-Engine/domain/bridge"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )

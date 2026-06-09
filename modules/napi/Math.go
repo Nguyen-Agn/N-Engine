@@ -1,6 +1,6 @@
 package napi
 
-import "autoworld/modules/nmath"
+import "github.com/Nguyen-Agn/N-Engine/modules/nmath"
 
 // Math cung cấp các hàm hỗ trợ tính toán 2D đặc thù cho game (Vector, Góc, Lưới, Random, v.v.).
 // Được viết chuyên biệt cho float32 để không phải ép kiểu từ float64 của Go.

@@ -3,9 +3,9 @@ package napi
 import (
 	"log"
 
-	"autoworld/domain"
-	"autoworld/modules/nasset"
-	"autoworld/modules/nsys"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/nasset"
+	"github.com/Nguyen-Agn/N-Engine/modules/nsys"
 )
 
 type gameGroup struct{}

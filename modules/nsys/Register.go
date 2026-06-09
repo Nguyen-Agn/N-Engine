@@ -1,8 +1,9 @@
 package nsys
 
 import (
-	"autoworld/domain"
 	"sync"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 type IGlobalConfig = domain.IGlobalConfig

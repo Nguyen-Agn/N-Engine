@@ -1,8 +1,9 @@
 package components
 
 import (
-	"autoworld/modules/enginetype"
 	"image/color"
+
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )

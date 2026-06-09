@@ -1,7 +1,7 @@
 package components
 
 import (
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -71,6 +71,7 @@ type GenericComponent[T any] struct {
 // Purpose: Initializes a generic component before it is processed by the engine.
 // Inputs:
 //   - comp: The donburi ComponentType to bind.
+//
 // Outputs: A new GenericComponent instance.
 // Special Requirements: Must be called before napi.NewObject for BindComponent to work correctly.
 func NewGenericComponent[T any](comp *donburi.ComponentType[T]) GenericComponent[T] {
@@ -81,6 +82,7 @@ func NewGenericComponent[T any](comp *donburi.ComponentType[T]) GenericComponent
 // Purpose: Automatically invoked by the engine to fetch the pointer to the ECS data.
 // Inputs:
 //   - base: The IObject representing the base entity to bind.
+//
 // Outputs: None.
 func (c *GenericComponent[T]) BindComponent(base IObject) {
 	c.IObject = base
@@ -101,6 +103,7 @@ func (c *GenericComponent[T]) Data() *T {
 // Purpose: Replaces the current data in the ECS.
 // Inputs:
 //   - val: The new data to set.
+//
 // Outputs: None.
 func (c *GenericComponent[T]) SetData(val T) {
 	if c.data != nil {

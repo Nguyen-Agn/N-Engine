@@ -1,7 +1,7 @@
 package nsystem
 
 import (
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 )
 
 // TweenSystem calculates linear interpolation (lerp) for values such as position, scale, and color/alpha.
@@ -92,10 +92,12 @@ func (s *TweenSystem) Update(objectList []IObject) {
 }
 
 // lerp performs linear interpolation between a and b using ratio t (0.0 - 1.0).
-// Inputs: 
-//   a (float32) - Start value.
-//   b (float32) - End value.
-//   t (float32) - Progress ratio from 0.0 to 1.0.
+// Inputs:
+//
+//	a (float32) - Start value.
+//	b (float32) - End value.
+//	t (float32) - Progress ratio from 0.0 to 1.0.
+//
 // Outputs: Returns the interpolated float32 value.
 func lerp(a, b, t float32) float32 {
 	return a + (b-a)*t

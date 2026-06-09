@@ -1,7 +1,7 @@
 package enginetype
 
 import (
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 type IScene = domain.IScene
@@ -25,4 +25,3 @@ var (
 	Draw       = NewComponentType[domain.DrawData]("drw")
 	Debug      = NewComponentType[domain.DebugData]("deb")
 )
-

@@ -1,4 +1,4 @@
-﻿//go:build ignore
+//go:build ignore
 
 // DrawDemo demonstrates DrawComponent (token "drw"):
 //   - Text rendering with default font
@@ -14,11 +14,11 @@ import (
 	"fmt"
 	"image/color"
 
-	"autoworld/modules/napi"
-	"autoworld/modules/napi/ncom"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
 )
 
-// ─── HUD: text + rect background ─────────────────────────────────────────────
+// --- HUD: text + rect background ---------------------------------------------
 
 type HUD struct {
 	ncom.Object
@@ -50,7 +50,7 @@ func NewHUD() *HUD {
 	return h
 }
 
-// ─── ShapeDemo: circles and rects ────────────────────────────────────────────
+// --- ShapeDemo: circles and rects --------------------------------------------
 
 type ShapeDemo struct {
 	ncom.Object
@@ -86,7 +86,7 @@ func NewShapeDemo() *ShapeDemo {
 	return sd
 }
 
-// ─── main ─────────────────────────────────────────────────────────────────────
+// --- main ---------------------------------------------------------------------
 
 func main() {
 	napi.Game.Init(napi.GameConfig{

@@ -1,30 +1,31 @@
 package core
 
 import (
-	"autoworld/domain"
 	"testing"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 	"github.com/yohamta/donburi"
 )
 
 // Minimal mock for IScene
 type mockScene struct {
-	id          string
-	updateCount int
-	drawCount   int
+	id           string
+	updateCount  int
+	drawCount    int
 	destroyCount int
 }
 
-func (m *mockScene) setID(id string)      { m.id = id }
-func (m *mockScene) GetID() string        { return m.id }
-func (m *mockScene) Update() error        { m.updateCount++; return nil }
-func (m *mockScene) Draw()                { m.drawCount++ }
-func (m *mockScene) Destroy()             { m.destroyCount++ }
-func (m *mockScene) AddObject(obj domain.IObject) {}
+func (m *mockScene) setID(id string)                 { m.id = id }
+func (m *mockScene) GetID() string                   { m.updateCount++; return "" }
+func (m *mockScene) Draw()                           { m.drawCount++ }
+func (m *mockScene) Update() error                   { m.drawCount++; return nil }
+func (m *mockScene) Destroy()                        { m.destroyCount++ }
+func (m *mockScene) AddObject(obj domain.IObject)    {}
 func (m *mockScene) AddGUIObject(obj domain.IObject) {}
-func (m *mockScene) World() donburi.World { return donburi.NewWorld() } // Need import donburi
-func (m *mockScene) GetMap() domain.IMap  { return nil }
-func (m *mockScene) GetGUIMap() domain.IMap { return nil }
-func (m *mockScene) GetCamera() domain.ICamera { return nil }
+func (m *mockScene) World() donburi.World            { return donburi.NewWorld() } // Need import donburi
+func (m *mockScene) GetMap() domain.IMap             { return nil }
+func (m *mockScene) GetGUIMap() domain.IMap          { return nil }
+func (m *mockScene) GetCamera() domain.ICamera       { return nil }
 
 func TestSceneManager(t *testing.T) {
 	// The real NewSceneManager creates a real globalScene which requires real dependencies.

@@ -1,8 +1,9 @@
 package napi
 
 import (
-	"autoworld/modules/components"
 	"os"
+
+	"github.com/Nguyen-Agn/N-Engine/modules/components"
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"

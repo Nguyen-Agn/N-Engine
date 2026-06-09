@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -41,6 +41,7 @@ func init() {
 		})
 	})
 }
+
 // BindComponent binds the base object and retrieves the SpriteData from the ECS.
 // Inputs: base - the base IObject to bind.
 func (p *SpriteComponent) BindComponent(base IObject) {
@@ -258,6 +259,7 @@ func (p SpriteComponent) SetCurrentSprite(name string) {
 		p.data.CurrentSprite = name
 	}
 }
+
 // GetCurrentSprite retrieves the currently active sprite.
 // Outputs: ISpriteLW representing the active sprite, or nil if none is active.
 func (p SpriteComponent) GetCurrentSprite() ISpriteLW {

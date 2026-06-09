@@ -1,7 +1,7 @@
 package components
 
 import (
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 type IObject = domain.IObject

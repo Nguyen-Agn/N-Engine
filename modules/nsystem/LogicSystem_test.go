@@ -1,28 +1,29 @@
 package nsystem
 
 import (
-	"autoworld/domain"
 	"testing"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
 	"github.com/yohamta/donburi"
 )
 
 type mockObject struct {
-	entry *donburi.Entry
-	createCount int
-	stepCount int
+	entry        *donburi.Entry
+	createCount  int
+	stepCount    int
 	destroyCount int
 }
 
-func (m *mockObject) OnCreate() { m.createCount++ }
-func (m *mockObject) OnStep() { m.stepCount++ }
-func (m *mockObject) OnDestroy() { m.destroyCount++ }
-func (m *mockObject) OnSave(data map[string]any) {}
-func (m *mockObject) OnLoad(data map[string]any) {}
-func (m *mockObject) GetPool() domain.IPool { return nil }
-func (m *mockObject) SetPool(pool domain.IPool) {}
+func (m *mockObject) OnCreate()                     { m.createCount++ }
+func (m *mockObject) OnStep()                       { m.stepCount++ }
+func (m *mockObject) OnDestroy()                    { m.destroyCount++ }
+func (m *mockObject) OnSave(data map[string]any)    {}
+func (m *mockObject) OnLoad(data map[string]any)    {}
+func (m *mockObject) GetPool() domain.IPool         { return nil }
+func (m *mockObject) SetPool(pool domain.IPool)     {}
 func (m *mockObject) SetTokens(tokenClasses string) {}
-func (m *mockObject) Remove() {}
-func (m *mockObject) Entry() *donburi.Entry { return m.entry }
+func (m *mockObject) Remove()                       {}
+func (m *mockObject) Entry() *donburi.Entry         { return m.entry }
 
 func TestLogicSystem(t *testing.T) {
 	ls := NewLogicSystem()

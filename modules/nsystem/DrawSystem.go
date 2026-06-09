@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -79,9 +79,11 @@ func (ds *DrawSystem) RemoveDrawObject(obj domain.IObject) {
 }
 
 // Draw renders all entities in order: Background → Tilemap → Sprite → IDraw.
-// Inputs: 
-//   w (donburi.World) - The ECS world containing entities to draw.
-//   camX, camY (float32) - Camera coordinates in map space used as screen offset. Pass 0, 0 for GUI layers.
+// Inputs:
+//
+//	w (donburi.World) - The ECS world containing entities to draw.
+//	camX, camY (float32) - Camera coordinates in map space used as screen offset. Pass 0, 0 for GUI layers.
+//
 // Purpose: Manages the complete rendering pipeline. Performs viewport culling and properly handles z-ordering. Also handles debug rendering if the debug component is present.
 func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 	if ds.screen == nil {
@@ -318,7 +320,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 		drawData.CamX = camX
 		drawData.CamY = camY
 	})
-	
+
 	// Sort drawObjects by ZOrder if they also implement ISprite
 	sort.SliceStable(ds.drawObjects, func(i, j int) bool {
 		zI, zJ := 0, 0
@@ -377,7 +379,7 @@ func (ds *DrawSystem) Draw(w donburi.World, camX, camY float32) {
 			op := &text.DrawOptions{}
 			if hasPos {
 				op.PrimaryAlign = text.AlignCenter
-				
+
 				if entry.HasComponent(Box) {
 					box := donburi.Get[domain.BoxData](entry, Box)
 					op.GeoM.Translate(float64(screenX+box.BoxX+box.BoxW/2), float64(screenY)-16)

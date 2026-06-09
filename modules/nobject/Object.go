@@ -1,7 +1,7 @@
 package nobject
 
 import (
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 
 	"github.com/yohamta/donburi"
 )
@@ -40,27 +40,27 @@ func (this *Object) SetPool(pool domain.IPool) {
 // #region Event
 
 // OnCreate is triggered when the object is initially created or spawned.
-func (this *Object) OnCreate()                     {}
+func (this *Object) OnCreate() {}
 
 // OnStep is triggered on every frame update to process the object's logic.
-func (this *Object) OnStep()                       {}
+func (this *Object) OnStep() {}
 
 // OnDestroy is triggered right before the object is completely removed from the world.
-func (this *Object) OnDestroy()                    {}
+func (this *Object) OnDestroy() {}
 
 // OnSave captures the object's specific save data for persistence.
 // Inputs: data - a map where the object should store its persistable state.
-func (this *Object) OnSave(data map[string]any)    {}
+func (this *Object) OnSave(data map[string]any) {}
 
 // OnLoad restores the object's state from a loaded save data payload.
 // Inputs: data - the previously saved map holding this object's specific state.
-func (this *Object) OnLoad(data map[string]any)    {}
+func (this *Object) OnLoad(data map[string]any) {}
 
 // SetTokens configures the ECS component tokens bound to this object.
 // Inputs: tokenClasses - a space-separated string of component types.
 func (this *Object) SetTokens(tokenClasses string) {}
 
 // Remove marks this object for removal from the scene or pool.
-func (this *Object) Remove()                       {}
+func (this *Object) Remove() {}
 
 // #endregion

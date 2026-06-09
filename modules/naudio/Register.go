@@ -1,8 +1,8 @@
 package naudio
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 )
 
 type IAudioSystem = domain.IAudioSystem

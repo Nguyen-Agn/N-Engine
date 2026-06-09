@@ -1,9 +1,10 @@
 package components
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
 	"testing"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -14,34 +15,51 @@ type mockObject struct {
 }
 
 // OnCreate is a mock implementation.
+
 func (m *mockObject) OnCreate() {}
+
 // OnStep is a mock implementation.
+
 func (m *mockObject) OnStep() {}
+
 // OnDestroy is a mock implementation.
+
 func (m *mockObject) OnDestroy() {}
+
 // OnSave is a mock implementation.
+
 func (m *mockObject) OnSave(data map[string]any) {}
+
 // OnLoad is a mock implementation.
+
 func (m *mockObject) OnLoad(data map[string]any) {}
+
 // GetPool is a mock implementation.
+
 func (m *mockObject) GetPool() domain.IPool { return nil }
+
 // SetPool is a mock implementation.
+
 func (m *mockObject) SetPool(pool domain.IPool) {}
+
 // SetTokens is a mock implementation.
+
 func (m *mockObject) SetTokens(tokenClasses string) {}
+
 // Remove is a mock implementation.
 func (m *mockObject) Remove() {}
+
 // Entry is a mock implementation.
 func (m *mockObject) Entry() *donburi.Entry { return m.entry }
 
 // TestPositionComponent verifies the creation and modification of PositionComponent.
 func TestPositionComponent(t *testing.T) {
 	world := donburi.NewWorld()
-	
+
 	// Create entity with Position component
 	entity := world.Create(enginetype.Position)
 	entry := world.Entry(entity)
-	
+
 	// Initialize default values using initializer
 	enginetype.InitializeComponent("pos", entry)
 
@@ -63,7 +81,7 @@ func TestPositionComponent(t *testing.T) {
 	if pos.X() != 100 || pos.Y() != 200 {
 		t.Errorf("Position not updated. Got %v,%v", pos.X(), pos.Y())
 	}
-	
+
 	// Verify data is actually stored in donburi
 	data := enginetype.GetComponent(obj, enginetype.Position)
 	if data.X != 100 || data.Y != 200 {
@@ -109,7 +127,7 @@ func TestCollisionComponent(t *testing.T) {
 	if col.IsCollidable() {
 		t.Errorf("IsCollidable should be false")
 	}
-	
+
 	col.OnCollisionTag("enemy", func(other IObject) {})
 	// Just ensuring no panic
 }

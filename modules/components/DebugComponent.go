@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"strings"
 
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -53,9 +53,9 @@ func (c *DebugComponent) SetDebugColor(col color.RGBA) {
 // Debug configures the display elements on the debug overlay using a space-separated string of flags.
 // Inputs:
 //   - flags: A string containing options:
-//       "box": draws the collision bounding box.
-//       "pos": draws the origin position.
-//       "info": prints the [ID] and Name of the object.
+//     "box": draws the collision bounding box.
+//     "pos": draws the origin position.
+//     "info": prints the [ID] and Name of the object.
 //     For example, calling Debug("pos box") will disable info and only draw pos and box.
 func (c *DebugComponent) Debug(flags string) {
 	if c.data == nil {

@@ -2,3 +2,8 @@ AGENT_GUIDE.md
 GEMINI.md
 Intructor.md
 main.exe
+.agents
+Agent
+dev-example
+tests
+FuturePlan.md

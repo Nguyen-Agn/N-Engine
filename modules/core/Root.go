@@ -3,10 +3,10 @@ package core
 import (
 	"log"
 
-	"autoworld/modules/components"
-	globalconfig "autoworld/modules/globaLConfig"
-	"autoworld/modules/nsave"
-	"autoworld/modules/nsys"
+	"github.com/Nguyen-Agn/N-Engine/modules/components"
+	globalconfig "github.com/Nguyen-Agn/N-Engine/modules/globaLConfig"
+	"github.com/Nguyen-Agn/N-Engine/modules/nsave"
+	"github.com/Nguyen-Agn/N-Engine/modules/nsys"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	ebitenAudio "github.com/hajimehoshi/ebiten/v2/audio"

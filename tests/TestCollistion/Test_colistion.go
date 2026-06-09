@@ -1,8 +1,8 @@
 package main
 
 import (
-	"autoworld/modules/napi"
-	sharedobject "autoworld/tests/SharedObject"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	sharedobject "github.com/Nguyen-Agn/N-Engine/tests/SharedObject"
 )
 
 func main() {

@@ -1,14 +1,14 @@
-﻿package main
+package main
 
 import (
 	"image/color"
 	"log"
 
-	"autoworld/domain"
-	"autoworld/domain/bridge"
-	"autoworld/modules/napi"
-	"autoworld/modules/napi/ncom"
-	layout "autoworld/modules/nlayout"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain/bridge"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
+	layout "github.com/Nguyen-Agn/N-Engine/modules/nlayout"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -89,7 +89,7 @@ func (hb *HeaderBar) Create() {
 
 func setupLayoutDemo() {
 	buildSection(
-		"[1] Row Â· JustifyCenter Â· AlignCenter",
+		"[1] Row · JustifyCenter · AlignCenter",
 		0, 20, 400, 270,
 		layout.DirRow|layout.AlignCenter|layout.JustifyCenter,
 		10,
@@ -101,7 +101,7 @@ func setupLayoutDemo() {
 	)
 
 	buildSection(
-		"[2] Row Â· JustifyEnd Â· AlignEnd",
+		"[2] Row · JustifyEnd · AlignEnd",
 		400, 20, 400, 270,
 		layout.DirRow|layout.AlignEnd|layout.JustifyEnd,
 		8,
@@ -113,7 +113,7 @@ func setupLayoutDemo() {
 	)
 
 	buildSection(
-		"[3] Column Â· JustifyCenter Â· AlignCenter",
+		"[3] Column · JustifyCenter · AlignCenter",
 		0, 320, 400, 270,
 		layout.DirColumn|layout.AlignCenter|layout.JustifyCenter,
 		12,
@@ -125,7 +125,7 @@ func setupLayoutDemo() {
 	)
 
 	buildSection(
-		"[4] Column Â· JustifyStart Â· AlignEnd",
+		"[4] Column · JustifyStart · AlignEnd",
 		400, 320, 400, 270,
 		layout.DirColumn|layout.AlignEnd|layout.JustifyStart,
 		10,
@@ -150,7 +150,7 @@ type boxSpec struct {
 }
 
 func buildSection(sectionName string, rx, ry, rw, rh int, config, gap int, specs []boxSpec) {
-	// Viá»n section (1px dÃ y, dÃ¹ng HeaderBar Ä‘Æ¡n giáº£n)
+	// Viền section (1px dày, dùng HeaderBar đơn giản)
 	NewHeaderBar(sectionName+"-border-t", rx, ry, rw, 1, color.RGBA{70, 70, 100, 255})
 	NewHeaderBar(sectionName+"-border-b", rx, ry+rh-1, rw, 1, color.RGBA{70, 70, 100, 255})
 	NewHeaderBar(sectionName+"-border-l", rx, ry, 1, rh, color.RGBA{70, 70, 100, 255})
@@ -196,6 +196,6 @@ func main() {
 
 	setupLayoutDemo()
 
-	// 4. Cháº¡y vÃ²ng láº·p game
+	// 4. Chạy vòng lặp game
 	napi.Game.GameStart()
 }

@@ -1,8 +1,8 @@
 package core
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/nsystem"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/nsystem"
 
 	"github.com/yohamta/donburi"
 )

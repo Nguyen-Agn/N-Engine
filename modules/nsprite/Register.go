@@ -1,7 +1,7 @@
 package nsprite
 
 import (
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 type PositionData = domain.PositionData

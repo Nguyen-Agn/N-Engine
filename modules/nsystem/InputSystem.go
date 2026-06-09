@@ -1,9 +1,9 @@
 package nsystem
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/components"
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/components"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 )
 
 // InputSystem iterates through all Objects with InputData and triggers
@@ -57,9 +57,11 @@ func (s *InputSystem) Update(objectList []IObject) {
 }
 
 // checkKey evaluates the key state based on the provided EventType.
-// Inputs: 
-//   key (domain.Key) - The key to check.
-//   evt (domain.EventType) - The type of event (Pressed, JustPressed, JustReleased).
+// Inputs:
+//
+//	key (domain.Key) - The key to check.
+//	evt (domain.EventType) - The type of event (Pressed, JustPressed, JustReleased).
+//
 // Outputs: Returns true if the key state matches the event type, false otherwise.
 func (s *InputSystem) checkKey(key domain.Key, evt domain.EventType) bool {
 	switch evt {

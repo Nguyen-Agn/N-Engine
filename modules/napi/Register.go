@@ -1,10 +1,10 @@
 package napi
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/components"
-	"autoworld/modules/core"
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/components"
+	"github.com/Nguyen-Agn/N-Engine/modules/core"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )

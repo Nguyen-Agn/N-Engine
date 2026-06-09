@@ -3,7 +3,7 @@ package components
 import (
 	"strings"
 
-	"autoworld/domain"
+	"github.com/Nguyen-Agn/N-Engine/domain"
 )
 
 // globalInputManager là reference singleton tới IInputManager.
@@ -14,6 +14,7 @@ var globalInputManager domain.IInputManager
 // Purpose: Initializes the singleton input manager for mouse components.
 // Inputs:
 //   - m: The IInputManager instance to inject.
+//
 // Outputs: None.
 // Special Requirements: Must be called by core during engine initialization before any MouseComponent is used.
 func SetGlobalInputManager(m domain.IInputManager) {
@@ -54,6 +55,7 @@ type MouseComponent struct {
 // Purpose: Satisfies the IComponent interface requirement.
 // Inputs:
 //   - _: The IObject representing the base entity (ignored).
+//
 // Outputs: None.
 func (c *MouseComponent) BindComponent(_ IObject) {}
 
@@ -111,6 +113,7 @@ func (c *MouseComponent) WheelY() float64 {
 //   - button: The string name of the mouse button ("left", "right", "middle") or multiple space-separated buttons.
 //   - eventType: The type of event ("pressed", "just_pressed", "just_released").
 //   - handler: The function to execute when the event occurs. It receives the triggered button name.
+//
 // Outputs: None.
 func (c *MouseComponent) ListenMouseOn(button string, eventType string, handler func(button string)) {
 	evt, ok := domain.EventTypeNameMap[eventType]
@@ -155,6 +158,7 @@ func (c *MouseComponent) UpdateMouseBindings() {
 //   - m: The IInputManager instance to use for checking.
 //   - btn: The domain.MouseButton to check.
 //   - evt: The domain.EventType to test for.
+//
 // Outputs: True if the specified event occurred for the button, false otherwise.
 func checkMouseButton(m domain.IInputManager, btn domain.MouseButton, evt domain.EventType) bool {
 	switch evt {

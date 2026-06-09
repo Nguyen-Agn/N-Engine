@@ -1,8 +1,8 @@
 package components
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -99,7 +99,7 @@ func (t TweenComponent) TweenAlpha(targetAlpha uint8, duration int) {
 		IsActive:   true,
 		Duration:   duration,
 		Elapsed:    0,
-		StartX:     0,             // Will be set by TweenSystem when it starts
+		StartX:     0, // Will be set by TweenSystem when it starts
 		EndX:       float32(targetAlpha),
 	})
 }

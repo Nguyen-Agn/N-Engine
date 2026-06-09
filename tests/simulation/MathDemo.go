@@ -8,7 +8,7 @@ package main
 import (
 	"fmt"
 
-	"autoworld/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
 )
 
 func main() {

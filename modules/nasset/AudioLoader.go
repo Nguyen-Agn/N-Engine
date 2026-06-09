@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"autoworld/domain"
-	"autoworld/modules/naudio"
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/naudio"
 
 	ebitenAudio "github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"

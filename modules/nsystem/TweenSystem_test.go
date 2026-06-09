@@ -1,9 +1,10 @@
 package nsystem
 
 import (
-	"autoworld/domain"
-	"autoworld/modules/enginetype"
 	"testing"
+
+	"github.com/Nguyen-Agn/N-Engine/domain"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )

@@ -1,7 +1,7 @@
 package components
 
 import (
-	"autoworld/modules/enginetype"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 
 	"github.com/yohamta/donburi"
 )
@@ -208,6 +208,7 @@ func (p AudioComponent) SetLooping(name string, loop bool) {
 // IsLooping checks if the audio with the given name is currently set to loop.
 // Inputs:
 //   - name: The name of the audio to check.
+//
 // Outputs: Returns true if the audio is looping, false otherwise.
 func (p AudioComponent) IsLooping(name string) bool {
 
