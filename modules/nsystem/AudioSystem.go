@@ -28,59 +28,60 @@ func (this *AudioSystem) Update(w donburi.World) {
 	this.query.Each(w, func(entry *donburi.Entry) {
 		data := donburi.Get[AudioData](entry, Audio)
 
-		// Skip if no audio name is set
-		if data.AudioName == "" {
+		if data.States == nil {
 			return
 		}
 
-		// Retrieve IAudioLW from the map by current name
-		audioLW, ok := data.Audio[data.AudioName]
-		if !ok || audioLW == nil {
-			return
-		}
-
-		// Update looping state for IAudioLW
-		audioLW.SetLooping(data.IsLooping)
-
-		// Continuously update volume if playing (to support real-time volume changes/fading)
-		if audioLW.IsPlaying() {
-			audioLW.SetVolume(data.Volume)
-		}
-
-		// Process STOP command first (highest priority)
-		if data.ShouldStop {
-			audioLW.Stop()
-			data.ShouldStop = false // Reset flag after processing
-			return
-		}
-
-		// Process PAUSE command
-		if data.ShouldPause {
-			audioLW.Pause()
-			data.ShouldPause = false
-			return
-		}
-
-		// Process RESUME command
-		if data.ShouldResume {
-			audioLW.Resume()
-			data.ShouldResume = false
-			return
-		}
-
-		// Process NEW PLAY command
-		if data.ShouldPlay {
-			// Only play if not already playing (prevent overlapping)
-			if !audioLW.IsPlaying() {
-				audioLW.Play(data.AudioName, data.Volume, data.Pitch)
+		for audioName, state := range data.States {
+			// Retrieve IAudioLW from the map by current name
+			audioLW, ok := data.Audio[audioName]
+			if !ok || audioLW == nil {
+				continue
 			}
-			data.ShouldPlay = false // Reset flag after processing
-		} else {
-			// Process automatic looping
-			if data.IsLooping {
-				// If not playing, not paused, and NOT forcibly stopped
-				if !audioLW.IsPlaying() && !audioLW.IsPaused() && !audioLW.IsStopped() {
-					audioLW.Play(data.AudioName, data.Volume, data.Pitch)
+
+			// Update looping state for IAudioLW
+			audioLW.SetLooping(state.IsLooping)
+
+			// Continuously update volume if playing (to support real-time volume changes/fading)
+			if audioLW.IsPlaying() {
+				audioLW.SetVolume(state.Volume)
+			}
+
+			// Process STOP command first (highest priority)
+			if state.ShouldStop {
+				audioLW.Stop()
+				state.ShouldStop = false // Reset flag after processing
+				continue
+			}
+
+			// Process PAUSE command
+			if state.ShouldPause {
+				audioLW.Pause()
+				state.ShouldPause = false
+				continue
+			}
+
+			// Process RESUME command
+			if state.ShouldResume {
+				audioLW.Resume()
+				state.ShouldResume = false
+				continue
+			}
+
+			// Process NEW PLAY command
+			if state.ShouldPlay {
+				// Only play if not already playing (prevent overlapping)
+				if !audioLW.IsPlaying() {
+					audioLW.Play(audioName, state.Volume, state.Pitch)
+				}
+				state.ShouldPlay = false // Reset flag after processing
+			} else {
+				// Process automatic looping
+				if state.IsLooping {
+					// If not playing, not paused, and NOT forcibly stopped
+					if !audioLW.IsPlaying() && !audioLW.IsPaused() && !audioLW.IsStopped() {
+						audioLW.Play(audioName, state.Volume, state.Pitch)
+					}
 				}
 			}
 		}

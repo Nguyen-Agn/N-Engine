@@ -18,6 +18,7 @@ const (
 )
 
 type AudioData = domain.AudioData
+type AudioTrackState = domain.AudioTrackState
 type SpriteData = domain.SpriteData
 type BoxData = domain.BoxData
 type PositionData = domain.PositionData

@@ -376,67 +376,47 @@ type IBox interface {
 
 // IAudio cung cấp khả năng phát âm thanh cho Object (ánh xạ tới AudioData).
 type IAudio interface {
-	// Audio trả về IAudioLW của kênh âm thanh đang active. Trả về nil nếu chưa có.
-	// Purpose: Retrieves the currently active audio object.
-	// Inputs: None.
+	// Audio trả về IAudioLW của kênh âm thanh đang active theo tên. Trả về nil nếu chưa có.
+	// Purpose: Retrieves the currently active audio object by name.
+	// Inputs: name string - The audio track name.
 	// Outputs: IAudioLW - The active audio, or nil if none is selected.
-	Audio() IAudioLW
+	Audio(name string) IAudioLW
 	
 	// SetAudio gắn một IAudioLW vào Object với tên kênh chỉ định.
 	// Purpose: Registers a new audio track to the object under a specific name.
 	// Inputs:
-	//   - audioName string: The identifier for the audio.
+	//   - name string: The identifier for the audio.
 	//   - audio IAudioLW: The audio object.
 	// Outputs: None.
-	SetAudio(audioName string, audio IAudioLW)
+	SetAudio(name string, audio IAudioLW)
 
-	// AudioName trả về tên kênh âm thanh đang active.
-	// Purpose: Retrieves the name of the currently active audio track.
-	// Inputs: None.
-	// Outputs: string - The active audio name.
-	AudioName() string
-	
-	// SetAudioName chọn kênh âm thanh active theo tên.
-	// Purpose: Sets the active audio track by name.
-	// Inputs: audioName string - The name of the track to activate.
-	// Outputs: None.
-	SetAudioName(audioName string)
-
-	// AudioSpeed trả về tốc độ phát âm thanh (1.0 = bình thường).
-	// Purpose: Retrieves the playback speed multiplier.
-	// Inputs: None.
-	// Outputs: float32 - The speed multiplier (1.0 is normal).
-	AudioSpeed() float32
-	
-	// SetAudioSpeed thiết lập tốc độ phát âm thanh.
-	// Purpose: Sets the playback speed multiplier.
-	// Inputs: audioSpeed float32 - The new speed multiplier.
-	// Outputs: None.
-	SetAudioSpeed(audioSpeed float32)
-
-	// Volume trả về âm lượng hiện tại (0.0 - 1.0).
+	// Volume trả về âm lượng hiện tại (0.0 - 1.0) của kênh âm thanh.
 	// Purpose: Retrieves the playback volume.
-	// Inputs: None.
+	// Inputs: name string - The audio track name.
 	// Outputs: float32 - The volume level (0.0 to 1.0).
-	Volume() float32
+	Volume(name string) float32
 	
-	// SetVolume thiết lập âm lượng.
+	// SetVolume thiết lập âm lượng cho kênh âm thanh.
 	// Purpose: Sets the playback volume.
-	// Inputs: volume float32 - The new volume level (0.0 to 1.0).
+	// Inputs: 
+	//   - name string: The audio track name.
+	//   - volume float32: The new volume level (0.0 to 1.0).
 	// Outputs: None.
-	SetVolume(volume float32)
+	SetVolume(name string, volume float32)
 
-	// Pitch trả về cao độ hiện tại (1.0 = bình thường).
+	// Pitch trả về cao độ hiện tại (1.0 = bình thường) của kênh âm thanh.
 	// Purpose: Retrieves the playback pitch multiplier.
-	// Inputs: None.
+	// Inputs: name string - The audio track name.
 	// Outputs: float32 - The pitch multiplier (1.0 is normal).
-	Pitch() float32
+	Pitch(name string) float32
 	
-	// SetPitch thiết lập cao độ âm thanh.
+	// SetPitch thiết lập cao độ âm thanh cho kênh âm thanh.
 	// Purpose: Sets the playback pitch multiplier.
-	// Inputs: pitch float32 - The new pitch multiplier.
+	// Inputs: 
+	//   - name string: The audio track name.
+	//   - pitch float32: The new pitch multiplier.
 	// Outputs: None.
-	SetPitch(pitch float32)
+	SetPitch(name string, pitch float32)
 
 	// Play phát kênh âm thanh tên name với volume và pitch chỉ định.
 	// AudioSystem sẽ xử lý lệnh này vào frame tiếp theo.
@@ -447,12 +427,6 @@ type IAudio interface {
 	//   - pitch float32: Pitch multiplier.
 	// Outputs: None.
 	Play(name string, volume float32, pitch float32)
-	
-	// PlayDefault phát kênh âm thanh tên name với volume và pitch mặc định.
-	// Purpose: Queues an audio track to play with default volume and pitch.
-	// Inputs: name string - The track name.
-	// Outputs: None.
-	PlayDefault(name string)
 	
 	// StopAudio dừng âm thanh đang phát theo tên.
 	// Purpose: Queues a stop command for a specific audio track.

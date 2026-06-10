@@ -151,22 +151,19 @@ type InputData struct {
 }
 
 // audio
-type AudioData struct {
-	Audio      map[string]IAudioLW
-	AudioName  string
-	AudioSpeed float32
-	Volume     float32
-	Pitch      float32
-	// ShouldPlay signals AudioSystem to play audio. Reset to false after processing.
-	ShouldPlay bool
-	// ShouldStop signals AudioSystem to stop current audio.
-	ShouldStop bool
-	// ShouldPause signals AudioSystem to pause current audio.
-	ShouldPause bool
-	// ShouldResume signals AudioSystem to resume paused audio.
+type AudioTrackState struct {
+	Volume       float32
+	Pitch        float32
+	ShouldPlay   bool
+	ShouldStop   bool
+	ShouldPause  bool
 	ShouldResume bool
-	// IsLooping signals that the current audio should automatically loop.
-	IsLooping bool
+	IsLooping    bool
+}
+
+type AudioData struct {
+	Audio  map[string]IAudioLW
+	States map[string]*AudioTrackState
 }
 
 // draw

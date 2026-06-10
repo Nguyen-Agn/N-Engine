@@ -10,6 +10,7 @@ type PositionData = domain.PositionData
 type SpriteData = domain.SpriteData
 type BoxData = domain.BoxData
 type AudioData = domain.AudioData
+type AudioTrackState = domain.AudioTrackState
 type InputData = domain.InputData
 
 type BackgroundData = domain.BackgroundData

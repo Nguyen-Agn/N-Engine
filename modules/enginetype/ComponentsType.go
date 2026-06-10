@@ -1,6 +1,10 @@
 package enginetype
 
 import (
+	"reflect"
+	"strconv"
+	"strings"
+
 	"github.com/yohamta/donburi"
 )
 
@@ -15,6 +19,9 @@ func NewEntry(scene IScene, components ...donburi.IComponentType) *donburi.Entry
 
 // Registry lưu trữ các custom component type để dùng với componentCode string
 var customComponentRegistry = make(map[string]donburi.IComponentType)
+
+// componentSetterRegistry lưu trữ các hàm closure reflection để set field linh hoạt
+var componentSetterRegistry = make(map[string]func(entry *donburi.Entry, fieldName string, valueStr string))
 
 // NewComponentType tạo một donburi component type mới cho game dev dùng.
 // Nếu token != "", component sẽ được đăng ký để có thể dùng trong chuỗi componentCode
@@ -31,8 +38,66 @@ func NewComponentType[T any](token string) *donburi.ComponentType[T] {
 	comp := donburi.NewComponentType[T]()
 	if token != "" {
 		customComponentRegistry[token] = comp
+		
+		componentSetterRegistry[token] = func(entry *donburi.Entry, fieldName string, valueStr string) {
+			if !entry.HasComponent(comp) {
+				return
+			}
+			
+			dataPtr := donburi.Get[T](entry, comp)
+			
+			// Use reflect to set the field by name (case-insensitive)
+			v := reflect.ValueOf(dataPtr)
+			if v.Kind() != reflect.Ptr || v.IsNil() {
+				return
+			}
+			v = v.Elem()
+			if v.Kind() != reflect.Struct {
+				return
+			}
+
+			var field reflect.Value
+			for i := 0; i < v.NumField(); i++ {
+				typeField := v.Type().Field(i)
+				if strings.EqualFold(typeField.Name, fieldName) {
+					field = v.Field(i)
+					break
+				}
+			}
+
+			if !field.IsValid() || !field.CanSet() {
+				return
+			}
+
+			switch field.Kind() {
+			case reflect.String:
+				field.SetString(valueStr)
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				if intVal, err := strconv.ParseInt(valueStr, 10, 64); err == nil {
+					field.SetInt(intVal)
+				}
+			case reflect.Float32, reflect.Float64:
+				if floatVal, err := strconv.ParseFloat(valueStr, 64); err == nil {
+					field.SetFloat(floatVal)
+				}
+			case reflect.Bool:
+				if boolVal, err := strconv.ParseBool(valueStr); err == nil {
+					field.SetBool(boolVal)
+				}
+			}
+		}
 	}
 	return comp
+}
+
+// SetComponentFieldByToken tìm component bằng token và gán field bằng reflection.
+// Trả về true nếu gán thành công.
+func SetComponentFieldByToken(entry *donburi.Entry, token string, fieldName string, valueStr string) bool {
+	if setter, ok := componentSetterRegistry[token]; ok {
+		setter(entry, fieldName, valueStr)
+		return true
+	}
+	return false
 }
 
 // GetComponentType lấy component đã đăng ký dựa trên token.
