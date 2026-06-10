@@ -28,8 +28,8 @@ package objects
 
 import (
 	"autoworld/domain"
-	"autoworld/modules/napi"
-	"autoworld/modules/napi/ncom"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
 )
 
 type Popup struct {

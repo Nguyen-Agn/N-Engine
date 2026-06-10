@@ -14,12 +14,9 @@ import (
 
 type objGroup struct{}
 
-// Obj lÃ  nhÃ³m hÃ m táº¡o vÃ  Ä‘Äƒng kÃ½ Game Object.
 // Obj is the function group for creating and registering Game Objects.
 var Obj = &objGroup{}
 
-// Object lÃ  interface tá»‘i thiá»ƒu mÃ  Custom Object pháº£i implement Ä‘á»ƒ dÃ¹ng vá»›i NewObject.
-// Game object chá»‰ cáº§n cÃ³ OnCreate() — cÃ¡c lifecycle khÃ¡c (OnStep, OnDestroy) lÃ  optional override.
 // type Object interface {
 // 	OnCreate()
 // }
@@ -64,6 +61,8 @@ func (o *objGroup) NewObject(target Object, name string, componentCode string) {
 		comp := getComponentType(token)
 		if comp != nil {
 			componentsList = append(componentsList, comp)
+		} else {
+			enginetype.LogError("[NewObject()] no component has token name: <<%s>>", token)
 		}
 	}
 
@@ -118,6 +117,8 @@ func (o *objGroup) Register(obj IObject, scene string) {
 
 	if _scene != nil {
 		_scene.AddObject(obj)
+	} else {
+		enginetype.LogError("[Register] no scen name <<%s>>", scene)
 	}
 }
 

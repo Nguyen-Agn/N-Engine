@@ -41,9 +41,9 @@ Kết hợp hướng (Dir), Canh lề (Align), và Dàn đều (Justify) bằng 
 package main
 
 import (
-	"autoworld/modules/napi"
-	"autoworld/modules/napi/ncom"
-	layout "autoworld/modules/nlayout"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
+	layout "github.com/Nguyen-Agn/N-Engine/modules/nlayout"
 )
 
 func createUIMenu() {

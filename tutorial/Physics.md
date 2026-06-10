@@ -21,8 +21,8 @@ Note: When using `ncom.Velo`, you must always include the `"pos"` token so the s
 package objects
 
 import (
-	"autoworld/modules/napi"
-	"autoworld/modules/napi/ncom"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
 )
 
 type Car struct {
@@ -38,7 +38,7 @@ func NewCar() *Car {
 	return c
 }
 
-func (c *Car) Create() {
+func (c *Car) OnCreate() {
 	// Giới hạn tốc độ tối đa (Max Speed)
 	// Limit maximum speed
 	c.SetMaxSpeed(10.0)

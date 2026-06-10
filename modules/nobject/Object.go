@@ -158,7 +158,9 @@ func (this *Object) SetTokens(tokenClasses string) {
 			}
 		default:
 			// Fallback: try dynamic reflection-based setter for custom components (or exact field names)
-			enginetype.SetComponentFieldByToken(this.entry, comp, varName, valStr)
+			if !enginetype.SetComponentFieldByToken(this.entry, comp, varName, valStr) {
+				enginetype.LogError("SetTokens: Bỏ qua token không hợp lệ '%s-%s-%s' trên object", comp, varName, valStr)
+			}
 		}
 	}
 }

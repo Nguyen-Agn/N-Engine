@@ -25,7 +25,7 @@ package main
 import (
 	"log"
 
-	"autoworld/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
 )
 
 func main() {
@@ -34,13 +34,12 @@ func main() {
 		Title:      "My Game",
 		Width:      800,
 		Height:     600,
-		SampleRate: 44100, // Thường dùng cho audio
 	}
 
 	// Khởi tạo engine / Initialize engine
 	napi.Game.Init(cfg)
 
-	// Nạp tài nguyên từ file TOML / Load resources from TOML
+	// Nạp tài nguyên từ file TOML / Load resources from TOML [Optional]
 	napi.Game.LoadFromFile("assets/manifest.toml")
 
 	// Tạo scene "main" với một physical map và chuyển đến ngay
@@ -51,11 +50,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// YOUR GAME LOGIN
 	// Đăng ký objects vào scene / Register objects into scene
 	// NewPlayer() -> Sẽ gọi napi.Obj.NewObject() và napi.Obj.Register() bên trong.
 
+
+
+	// Final;
 	// Chạy game / Start game loop
-	napi.Game.GameStart()
+	napi.Game.Start()
 }
 ```
 

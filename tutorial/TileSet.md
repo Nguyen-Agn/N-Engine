@@ -29,8 +29,8 @@ Giá trị trong mảng grid:
 package objects
 
 import (
-	"autoworld/modules/napi"
-	"autoworld/modules/napi/ncom"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
 )
 
 // TilemapObject - bản đồ ô gạch / tile map object

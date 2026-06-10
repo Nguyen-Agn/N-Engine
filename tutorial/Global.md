@@ -52,7 +52,7 @@ value = "1.0.0"
 Sử dụng `napi.Store` để lấy giá trị biến một cách an toàn và đúng kiểu:
 
 ```go
-import "autoworld/modules/napi"
+import "github.com/Nguyen-Agn/N-Engine/modules/napi"
 
 // Số nguyên
 score := napi.Store.Int("score")           // int

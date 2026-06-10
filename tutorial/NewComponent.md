@@ -35,27 +35,28 @@ type HealthData struct {
 ```
 
 ### Bước 2: Tạo Component Type / Step 2: Create Component Type
-Sử dụng hàm từ module `enginetype` hoặc `napi.NewComponentType` (đại diện cho API nội bộ). Bằng `autoworld/modules/enginetype`:
+Sử dụng hàm từ/Using function from module `napi.NewComponentType`. `github.com/Nguyen-Agn/N-Engine/modules/enginetype`:
 ```go
-import "autoworld/modules/napi"
+import "github.com/Nguyen-Agn/N-Engine/modules/napi"
 
 // Token (chuỗi 3 ký tự) dùng cho hàm napi.Obj.NewObject() sau này
+// Token "sta" maybe used for napi.Obj.NewObject( ,  , "sta") later
 var StatsComp = napi.NewComponentType[HealthData]("sta")
 ```
-> *Lưu ý: API nội bộ cho NewComponentType có thể nằm ở `napi.NewComponentType` hoặc `enginetype.NewComponentType`. Dưới góc độ user, ta tham chiếu qua module tương ứng.*
 
 ### Bước 3: Tạo Wrapper Struct / Step 3: Create Wrapper Struct
 Tạo một Mixin bao bọc lấy generic component để viết thêm các methods tùy biến tiện ích.
+Create a Mixin wrapper to cover geniric component -> to write methods
 ```go
-import "autoworld/modules/napi/ncom"
+import "github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
 
 // StatsComponent - wrapper component với methods tiện ích
+// StatsComponent - wrapper component > methods 
 type StatsComponent struct {
 	ncom.Generic[HealthData]
 }
 
-
-
+// WRITE METHODS/FUNCTIONS
 
 // Hàm nhận sát thương (sẽ tự động hiển thị cho Object nào nhúng StatsComponent)
 func (s *StatsComponent) TakeDamage(dmg int) {
@@ -108,3 +109,12 @@ func (h *Hero) StepUpdate() {
 ```
 
 Với mô hình này, dữ liệu nằm sâu dưới Donburi để đảm bảo hiệu suất, nhưng bạn vẫn code game bằng phong cách OOP (Gọi `h.TakeDamage()`) vô cùng thân thiện.
+
+Note: 
+- Step 1 + 2: Is to define data/attributes struct for the component, step 2 is create token name for data struct
+- Step 3: Is to define functions/behaviour for the component
+- Step 4 + 5: use it in a real Object.
+
+# Why seperating Variable & functions into 2 struct?
+1. It it just used to enable `LightWeight Pattern` and `Dependent Injection`.
+2. A Component may get shared Data of another component faster.

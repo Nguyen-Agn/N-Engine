@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Nguyen-Agn/N-Engine/modules/components"
+	"github.com/Nguyen-Agn/N-Engine/modules/enginetype"
 	globalconfig "github.com/Nguyen-Agn/N-Engine/modules/globaLConfig"
 	"github.com/Nguyen-Agn/N-Engine/modules/nsave"
 	"github.com/Nguyen-Agn/N-Engine/modules/nsys"
@@ -68,6 +69,7 @@ func NewGame(cfg GameConfig) *Engine {
 
 	// Inject IInputManager vào components package để MouseComponent có thể truy cập.
 	components.SetGlobalInputManager(_input)
+	enginetype.LogError("[Game] Input-system installed")
 
 	return &Engine{
 		Scene:    _scene,

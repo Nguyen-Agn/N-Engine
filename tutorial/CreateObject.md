@@ -47,8 +47,8 @@ Khi tạo struct, bạn nhúng Mixin tương ứng. Khi gọi `NewObject`, bạn
 package objects
 
 import (
-	"autoworld/modules/napi"
-	"autoworld/modules/napi/ncom"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi"
+	"github.com/Nguyen-Agn/N-Engine/modules/napi/ncom"
 )
 
 // Player - nhân vật người chơi / player character
